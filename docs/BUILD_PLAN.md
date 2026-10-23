@@ -21,7 +21,7 @@ Check the result in the browser before moving on. Commit after each phase.
 **Done when:** a sample quiz runs end to end and answers are saved; review quiz picks due cards.
 
 ### Phase 4 — Week 1 content
-> Do Phase 4: write content/questions/week-01.json (35 MCQs following the CONTENT_SCHEMA rules, plus 10 drill prompts) and content/templates/week-01.md for Week 1 in docs/CURRICULUM.md. Interview-level, Python 3.11. Run validate and check_outputs.py and fix anything failing.
+> Do Phase 4: write content/questions/week-01.json (35 MCQs following the CONTENT_SCHEMA rules, plus 10 drill prompts) and content/templates/week-01.md for Week 1 in docs/CURRICULUM.md. Interview-level, Python 3.11. Run validate and check_outputs.py and fix anything failing. Turn on strict question-count rules in validate-content (30+ per week, ≥5 per type, ≥10 drill prompts).
 
 **Done when:** both scripts pass. **You:** take the quiz and flag any question that feels wrong or too easy.
 

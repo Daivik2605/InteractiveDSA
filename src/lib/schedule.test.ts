@@ -15,7 +15,7 @@ import {
   redoDates,
   redosDue,
   removeExtension,
-  resolveRedos,
+  redoChanges,
   shortenExtension,
   streaks,
   type ScheduleContext,
@@ -274,11 +274,30 @@ describe("streaks", () => {
     expect(streaks(days, "2026-10-30")).toEqual({ current: 1, longest: 2 });
   });
 
-  it("done-late and rest days break a streak", () => {
+  it("done-late and missed days break a streak", () => {
     const done = [...tickDay("w01-d1", "2026-10-26"), ...tickDay("w01-d2", "2026-10-28"), ...tickDay("w01-d3", "2026-10-28")];
-    const { days } = evaluate({ today: "2026-10-29", done, rest: ["2026-10-28"] });
+    const { days } = evaluate({ today: "2026-10-29", done });
     expect(statusOn(days, "2026-10-27")).toBe("done-late");
     expect(streaks(days, "2026-10-29")).toEqual({ current: 1, longest: 1 });
+  });
+
+  it("a rest day neither counts nor breaks a streak", () => {
+    const done = [...tickDay("w01-d1", "2026-10-26"), ...tickDay("w01-d3", "2026-10-28"), ...tickDay("w01-d4", "2026-10-29")];
+    const { days } = evaluate({ today: "2026-10-30", done, rest: ["2026-10-27"] });
+    expect(statusOn(days, "2026-10-27")).toBe("rest");
+    expect(streaks(days, "2026-10-30")).toEqual({ current: 3, longest: 3 });
+  });
+
+  it("a rest day next to a missed day does not hide the miss", () => {
+    const done = [...tickDay("w01-d1", "2026-10-26"), ...tickDay("w01-d4", "2026-10-29")];
+    const { days } = evaluate({ today: "2026-10-30", done, rest: ["2026-10-27"] }); // d3 (10-28) missed
+    expect(streaks(days, "2026-10-30")).toEqual({ current: 1, longest: 1 });
+  });
+
+  it("a rest day today is skipped", () => {
+    const done = [...tickDay("w01-d1", "2026-10-26"), ...tickDay("w01-d2", "2026-10-27")];
+    const { days } = evaluate({ today: "2026-10-28", done, rest: ["2026-10-28"] });
+    expect(streaks(days, "2026-10-28")).toEqual({ current: 2, longest: 2 });
   });
 
   it("is zero before the plan starts", () => {
@@ -377,18 +396,60 @@ describe("redo scheduling", () => {
     expect(redosDue(redos, "2026-10-30").map((r) => r.problemId)).toEqual(["a", "b"]);
   });
 
-  it("completes a redo only when re-solved alone", () => {
-    const redos: RedoTask[] = [{ problemId: "a", dueOn: "2026-10-28" }];
-    const attempt = (outcome: ProblemAttempt["outcome"], isRedo = true): ProblemAttempt => ({
-      problemId: "a",
-      date: "2026-10-29",
-      outcome,
-      minutes: 20,
-      isRedo,
-    });
-    expect(resolveRedos(redos, attempt("hint"))[0]!.doneOn).toBeUndefined();
-    expect(resolveRedos(redos, attempt("alone", false))[0]!.doneOn).toBeUndefined();
-    expect(resolveRedos(redos, attempt("alone"))[0]!.doneOn).toBe("2026-10-29");
+  it("ignores redos that were closed as completed or attempted", () => {
+    const redos: RedoTask[] = [
+      { problemId: "a", dueOn: "2026-10-27", attemptedOn: "2026-10-28" },
+      { problemId: "b", dueOn: "2026-10-27", doneOn: "2026-10-28" },
+    ];
+    expect(redosDue(redos, "2026-11-30")).toEqual([]);
+  });
+});
+
+describe("redoChanges", () => {
+  const attempt = (over: Partial<ProblemAttempt>): ProblemAttempt => ({
+    problemId: "a",
+    date: "2026-10-29",
+    outcome: "alone",
+    minutes: 20,
+    isRedo: true,
+    ...over,
+  });
+  const pending: RedoTask[] = [
+    { id: 1, problemId: "a", dueOn: "2026-10-29" },
+    { id: 2, problemId: "a", dueOn: "2026-11-02" },
+    { id: 3, problemId: "other", dueOn: "2026-10-29" },
+  ];
+  const ids = (xs: { task: RedoTask }[]) => xs.map((x) => x.task.id);
+
+  it("closes due tasks as completed when re-solved alone, leaving the later one pending", () => {
+    const r = redoChanges(pending, attempt({}));
+    expect(r.close.map((c) => [c.task.id, c.as])).toEqual([[1, "completed"]]);
+    expect(r.create).toEqual([]);
+  });
+
+  it("hint/solution on a redo: closes the whole old chain as attempted and starts a new one", () => {
+    const hint = redoChanges(pending, attempt({ outcome: "hint" }));
+    expect(hint.close.map((c) => [c.task.id, c.as])).toEqual([[1, "attempted"], [2, "attempted"]]);
+    expect(hint.create).toEqual([{ problemId: "a", dueOn: "2026-11-01" }]);
+
+    const sol = redoChanges(pending, attempt({ outcome: "solution" }));
+    expect(sol.create.map((c) => c.dueOn)).toEqual(["2026-11-01", "2026-11-05"]);
+  });
+
+  it("a slow solve alone completes the due task and replaces the rest with a +7d redo", () => {
+    const r = redoChanges(pending, attempt({ minutes: 55 }));
+    expect(r.close.map((c) => [c.task.id, c.as])).toEqual([[1, "completed"], [2, "attempted"]]);
+    expect(r.create).toEqual([{ problemId: "a", dueOn: "2026-11-05" }]);
+  });
+
+  it("a non-redo solve alone changes nothing; never touches other problems", () => {
+    expect(redoChanges(pending, attempt({ isRedo: false }))).toEqual({ close: [], create: [] });
+    expect(ids(redoChanges(pending, attempt({ outcome: "solution" })).close)).not.toContain(3);
+  });
+
+  it("a first attempt with a hint just creates redos", () => {
+    const r = redoChanges([], attempt({ isRedo: false, outcome: "hint" }));
+    expect(r).toEqual({ close: [], create: [{ problemId: "a", dueOn: "2026-11-01" }] });
   });
 });
 

@@ -231,12 +231,13 @@ export function canAddRestDay(
 // ── streaks ──────────────────────────────────────────────────────────────────
 
 /**
- * Streaks count consecutive `done` days (done-late, rest and missed break a streak).
- * An unfinished today neither counts nor breaks.
+ * Streaks count consecutive `done` days. `done-late` and `missed` break a streak; rest days
+ * and an unfinished today neither count nor break it.
  */
 export function streaks(days: readonly EvaluatedDay[], today: string): { current: number; longest: number } {
   const considered = days.filter(
-    (d) => compareDates(d.day.date, today) < 0 || (d.day.date === today && d.status === "done"),
+    (d) =>
+      d.status !== "rest" && (compareDates(d.day.date, today) < 0 || (d.day.date === today && d.status === "done")),
   );
   let longest = 0;
   let run = 0;
@@ -256,20 +257,37 @@ export function redoDates(outcome: ProblemAttempt["outcome"], minutes: number, d
   return minutes > SLOW_SOLVE_MINUTES ? [addDays(date, 7)] : [];
 }
 
+const isPending = (r: RedoTask) => !r.doneOn && !r.attemptedOn;
+
 export function redosDue(redos: readonly RedoTask[], today: string): RedoTask[] {
   return redos
-    .filter((r) => !r.doneOn && compareDates(r.dueOn, today) <= 0)
+    .filter((r) => isPending(r) && compareDates(r.dueOn, today) <= 0)
     .sort((a, b) => compareDates(a.dueOn, b.dueOn));
 }
 
-/** A redo is complete when the problem is re-solved alone; returns the updated task list. */
-export function resolveRedos(redos: readonly RedoTask[], attempt: ProblemAttempt): RedoTask[] {
-  if (!attempt.isRedo || attempt.outcome !== "alone") return [...redos];
-  return redos.map((r) =>
-    r.problemId === attempt.problemId && !r.doneOn && compareDates(r.dueOn, attempt.date) <= 0
-      ? { ...r, doneOn: attempt.date }
-      : r,
-  );
+export interface RedoChanges {
+  close: { task: RedoTask; as: "completed" | "attempted" }[];
+  create: { problemId: string; dueOn: string }[];
+}
+
+/**
+ * What a new attempt does to the redo queue, so a problem never has more than one pending chain:
+ *  - re-solved alone as a redo → its due tasks are closed as completed;
+ *  - any attempt that earns new redo dates (hint / solution / slow) → every other pending task for
+ *    that problem is closed as attempted and a fresh chain is created from this attempt.
+ */
+export function redoChanges(pending: readonly RedoTask[], attempt: ProblemAttempt): RedoChanges {
+  const mine = pending.filter((r) => r.problemId === attempt.problemId && isPending(r));
+  const close: RedoChanges["close"] = [];
+  const completing =
+    attempt.isRedo && attempt.outcome === "alone" ? mine.filter((r) => compareDates(r.dueOn, attempt.date) <= 0) : [];
+  for (const task of completing) close.push({ task, as: "completed" });
+
+  const dates = redoDates(attempt.outcome, attempt.minutes, attempt.date);
+  if (dates.length > 0) {
+    for (const task of mine) if (!completing.includes(task)) close.push({ task, as: "attempted" });
+  }
+  return { close, create: dates.map((dueOn) => ({ problemId: attempt.problemId, dueOn })) };
 }
 
 // ── week extensions ──────────────────────────────────────────────────────────

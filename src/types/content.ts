@@ -75,6 +75,7 @@ export interface ItemCompletion {
   itemId: string; // primary key: a problem id ("w03-d2-p1"), "w03-d2:learn", or a slot "w03-d7:s1" / "w03-x1:s1"
   planDayId: string; // "w03-d2" or extension day "w03-x1"
   completedOn: string; // YYYY-MM-DD when actually done
+  attemptId?: number; // the ProblemAttempt that produced this completion (lets "untick" undo it)
 }
 
 export interface WeekExtension {
@@ -107,7 +108,10 @@ export interface RedoTask {
   id?: number;
   problemId: string;
   dueOn: string;
-  doneOn?: string;
+  doneOn?: string; // closed as completed (re-solved alone)
+  attemptedOn?: string; // closed as attempted (hint/solution): a fresh redo chain replaced it
+  createdByAttemptId?: number;
+  closedByAttemptId?: number;
 }
 
 export interface QuizAnswer {

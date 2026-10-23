@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { addDays, compareDates, diffDays, isValidDate, parseDate, todayLocal, weekdayIndex } from "./dates";
+import {
+  addDays,
+  addMonths,
+  compareDates,
+  daysInMonth,
+  diffDays,
+  formatShort,
+  isValidDate,
+  monthGrid,
+  monthLabel,
+  parseDate,
+  todayLocal,
+  weekdayIndex,
+} from "./dates";
 
 describe("dates", () => {
   it("validates and parses", () => {
@@ -37,5 +50,17 @@ describe("dates", () => {
   it("reads today from local fields, not UTC", () => {
     expect(todayLocal(new Date(2026, 9, 25, 23, 59))).toBe("2026-10-25");
     expect(todayLocal(new Date(2026, 9, 26, 0, 1))).toBe("2026-10-26");
+  });
+
+  it("formats and builds month grids", () => {
+    expect(formatShort("2026-11-03")).toBe("Tue 3 Nov");
+    expect(monthLabel(2026, 11)).toBe("November 2026");
+    expect(daysInMonth(2028, 2)).toBe(29);
+    expect(addMonths({ y: 2026, m: 12 }, 1)).toEqual({ y: 2027, m: 1 });
+    expect(addMonths({ y: 2026, m: 1 }, -1)).toEqual({ y: 2025, m: 12 });
+    const grid = monthGrid(2026, 11); // 1 Nov 2026 is a Sunday
+    expect(grid[0]).toEqual([null, null, null, null, null, null, "2026-11-01"]);
+    expect(grid.every((r) => r.length === 7)).toBe(true);
+    expect(grid.flat().filter(Boolean)).toHaveLength(30);
   });
 });

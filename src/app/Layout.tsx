@@ -1,4 +1,9 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { ExtensionDialog } from "../features/calendar/ExtensionDialog";
+import { Sidebar, sidebarSummary } from "../features/calendar/Sidebar";
+import { Modal } from "./Modal";
+import { usePlanContext } from "./PlanContext";
 
 export const NAV_ITEMS = [
   { to: "/", label: "Today", end: true },
@@ -18,6 +23,8 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(" ");
 
 export function Layout() {
+  const { plan, extensionPrefill } = usePlanContext();
+  const [drawer, setDrawer] = useState(false);
   return (
     <div className="min-h-screen bg-white text-slate-900 md:grid md:grid-cols-[13rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)_20rem] dark:bg-slate-950 dark:text-slate-100">
       {/* Bottom tab bar below md, left rail from md up. */}
@@ -34,16 +41,35 @@ export function Layout() {
       </nav>
 
       <main className="min-w-0 p-4 pb-20 md:p-8">
+        {/* Below lg the sidebar collapses into this bar and opens as a drawer. */}
+        <button
+          type="button"
+          onClick={() => setDrawer(true)}
+          aria-label="Open calendar sidebar"
+          className="-mt-1 mb-4 flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left text-sm dark:border-slate-800 lg:hidden"
+        >
+          <span className="font-medium">{sidebarSummary(plan)}</span>
+          <span aria-hidden>▾</span>
+        </button>
         <Outlet />
       </main>
 
-      {/* Right-hand slot for the calendar sidebar (SPEC 3.12) — filled in Phase 2. Visible from lg up. */}
+      {/* Calendar sidebar (SPEC 3.12) on every page from lg up. */}
       <aside
         id="calendar-sidebar-slot"
         data-testid="calendar-sidebar-slot"
         aria-label="Calendar sidebar"
         className="hidden border-l border-slate-200 p-4 dark:border-slate-800 lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start lg:overflow-y-auto"
-      />
+      >
+        <Sidebar />
+      </aside>
+
+      {drawer && (
+        <Modal title="Calendar" side onClose={() => setDrawer(false)}>
+          <Sidebar />
+        </Modal>
+      )}
+      {extensionPrefill && <ExtensionDialog />}
     </div>
   );
 }

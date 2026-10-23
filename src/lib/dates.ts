@@ -63,3 +63,43 @@ export function weekdayIndex(s: string): number {
   const { y, m, d } = parseDate(s);
   return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
 }
+
+const WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "Tue 3 Nov" */
+export function formatShort(s: string): string {
+  const { m, d } = parseDate(s);
+  return `${WEEKDAY_NAMES[weekdayIndex(s)]} ${d} ${MONTH_NAMES[m - 1]!.slice(0, 3)}`;
+}
+
+/** "3 Nov" */
+export function formatDayMonth(s: string): string {
+  const { m, d } = parseDate(s);
+  return `${d} ${MONTH_NAMES[m - 1]!.slice(0, 3)}`;
+}
+
+/** "November 2026" */
+export function monthLabel(y: number, m: number): string {
+  return `${MONTH_NAMES[m - 1]} ${y}`;
+}
+
+export function daysInMonth(y: number, m: number): number {
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+export function addMonths({ y, m }: { y: number; m: number }, n: number): { y: number; m: number } {
+  const idx = y * 12 + (m - 1) + n;
+  return { y: Math.floor(idx / 12), m: (idx % 12) + 1 };
+}
+
+/** Month grid rows (Monday first); `null` pads days outside the month. */
+export function monthGrid(y: number, m: number): (string | null)[][] {
+  const first = formatDate({ y, m, d: 1 });
+  const cells: (string | null)[] = Array(weekdayIndex(first)).fill(null);
+  for (let d = 1; d <= daysInMonth(y, m); d++) cells.push(formatDate({ y, m, d }));
+  while (cells.length % 7 !== 0) cells.push(null);
+  const rows: (string | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  return rows;
+}
