@@ -1,0 +1,2230 @@
+{
+  "version": 1,
+  "defaultStartDate": "2026-10-26",
+  "weeks": [
+    {
+      "week": 1,
+      "title": "Big-O + Arrays & Strings",
+      "goal": "Analyse the time and space of any loop or recursion; know what every Python list/str operation costs.",
+      "concepts": [
+        "Big-O, Big-Θ, Big-Ω; dropping constants",
+        "Best / average / worst case",
+        "Space: auxiliary vs input, recursion stack",
+        "Amortized analysis (list.append)",
+        "Python list = dynamic array; str is immutable",
+        "Matrix traversal (rows, cols, layers)"
+      ],
+      "visuals": [
+        "Growth-rate race: O(1) … O(n!) as n grows",
+        "Dynamic array: append, resize (capacity doubling), insert at front shifting",
+        "Matrix rotate = transpose + reverse rows",
+        "Spiral traversal shrinking boundaries"
+      ],
+      "templates": [
+        "Prefix/suffix product pass",
+        "In-place matrix transpose"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 1,
+              "title": "Contains Duplicate",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/contains-duplicate/",
+              "source": "original",
+              "id": "w01-d1-p1"
+            },
+            {
+              "lcNumber": 140,
+              "title": "Plus One",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/plus-one/",
+              "source": "original",
+              "id": "w01-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "title": "Merge Sorted Array",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/merge-sorted-array/",
+              "source": "added",
+              "id": "w01-d2-p1"
+            },
+            {
+              "title": "Longest Common Prefix",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/longest-common-prefix/",
+              "source": "added",
+              "id": "w01-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 2,
+              "title": "Product of Array Except Self",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/product-of-array-except-self/",
+              "source": "original",
+              "id": "w01-d3-p1"
+            },
+            {
+              "lcNumber": 3,
+              "title": "Valid Sudoku",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/valid-sudoku/",
+              "source": "original",
+              "id": "w01-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 136,
+              "title": "Rotate Image",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/rotate-image/",
+              "source": "original",
+              "id": "w01-d4-p1"
+            },
+            {
+              "lcNumber": 137,
+              "title": "Spiral Matrix",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/spiral-matrix/",
+              "source": "original",
+              "id": "w01-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 138,
+              "title": "Set Matrix Zeroes",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/set-matrix-zeroes/",
+              "source": "original",
+              "id": "w01-d5-p1"
+            },
+            {
+              "lcNumber": 142,
+              "title": "Multiply Strings",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/multiply-strings/",
+              "source": "original",
+              "id": "w01-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 141,
+              "title": "Pow(x, n)",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/powx-n/",
+              "source": "original",
+              "id": "w01-d6-p1"
+            },
+            {
+              "title": "Rotate Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/rotate-array/",
+              "source": "added",
+              "id": "w01-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 2,
+      "title": "Hashing, Prefix Sums & Bit Tricks",
+      "goal": "Turn O(n²) searches into O(n) with dict/set; use prefix sums and XOR tricks.",
+      "concepts": [
+        "Hash function, collisions, load factor, resizing",
+        "dict/set O(1) avg vs O(n) worst; hashable keys",
+        "Counter / defaultdict",
+        "Prefix sums + hashmap of prefix counts",
+        "Binary, &, |, ^, <<, >>; x & (x-1); 32-bit masking in Python"
+      ],
+      "visuals": [
+        "Hash table buckets with chaining and a resize",
+        "Prefix-sum array and the 'prefix − k' lookup",
+        "XOR cancelling pairs bit by bit"
+      ],
+      "templates": [
+        "Seen-set / complement lookup",
+        "Prefix sum + count map",
+        "Frequency bucket sort"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 4,
+              "title": "Valid Anagram",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/valid-anagram/",
+              "source": "original",
+              "id": "w02-d1-p1"
+            },
+            {
+              "lcNumber": 5,
+              "title": "Two Sum",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/two-sum/",
+              "source": "original",
+              "id": "w02-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 139,
+              "title": "Happy Number",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/happy-number/",
+              "source": "original",
+              "id": "w02-d2-p1"
+            },
+            {
+              "lcNumber": 144,
+              "title": "Single Number",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/single-number/",
+              "source": "original",
+              "id": "w02-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 145,
+              "title": "Number of 1 Bits",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/number-of-1-bits/",
+              "source": "original",
+              "id": "w02-d3-p1"
+            },
+            {
+              "lcNumber": 146,
+              "title": "Counting Bits",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/counting-bits/",
+              "source": "original",
+              "id": "w02-d3-p2"
+            },
+            {
+              "lcNumber": 147,
+              "title": "Reverse Bits",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/reverse-bits/",
+              "source": "original",
+              "id": "w02-d3-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 148,
+              "title": "Missing Number",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/missing-number/",
+              "source": "original",
+              "id": "w02-d4-p1"
+            },
+            {
+              "lcNumber": 6,
+              "title": "Group Anagrams",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/group-anagrams/",
+              "source": "original",
+              "id": "w02-d4-p2"
+            },
+            {
+              "lcNumber": 7,
+              "title": "Top K Frequent Elements",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/top-k-frequent-elements/",
+              "source": "original",
+              "id": "w02-d4-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 8,
+              "title": "Longest Consecutive Sequence",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-consecutive-sequence/",
+              "source": "original",
+              "id": "w02-d5-p1"
+            },
+            {
+              "lcNumber": 9,
+              "title": "Subarray Sum Equals K",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/subarray-sum-equals-k/",
+              "source": "original",
+              "id": "w02-d5-p2"
+            },
+            {
+              "lcNumber": 143,
+              "title": "Detect Squares",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/detect-squares/",
+              "source": "original",
+              "id": "w02-d5-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 149,
+              "title": "Sum of Two Integers",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/sum-of-two-integers/",
+              "source": "original",
+              "id": "w02-d6-p1"
+            },
+            {
+              "lcNumber": 150,
+              "title": "Reverse Integer (then redo your 5 weakest problems)",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/reverse-integer/",
+              "source": "original",
+              "id": "w02-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 15
+    },
+    {
+      "week": 3,
+      "title": "Two Pointers & Sliding Window",
+      "goal": "Instantly recognise sorted-pair and contiguous-subarray/substring problems.",
+      "concepts": [
+        "Opposite-end pointers on sorted input",
+        "Fast/slow and read/write pointers",
+        "Fixed vs variable window",
+        "Why expand/shrink is O(n) (amortized)",
+        "Monotonic deque for window max"
+      ],
+      "visuals": [
+        "Two pointers closing in on a target sum",
+        "3Sum: fixed i + inner two pointers, skipping duplicates",
+        "Variable window expanding and shrinking over a string",
+        "Trapping rain water: left/right max"
+      ],
+      "templates": [
+        "Opposite-end two pointers",
+        "Variable sliding window with counts",
+        "Monotonic deque"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 10,
+              "title": "Valid Palindrome",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/valid-palindrome/",
+              "source": "original",
+              "id": "w03-d1-p1"
+            },
+            {
+              "lcNumber": 16,
+              "title": "Best Time to Buy and Sell Stock",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
+              "source": "original",
+              "id": "w03-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 11,
+              "title": "Two Sum II - Input Array Is Sorted",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
+              "source": "original",
+              "id": "w03-d2-p1"
+            },
+            {
+              "lcNumber": 12,
+              "title": "Sort Colors",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/sort-colors/",
+              "source": "original",
+              "id": "w03-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 13,
+              "title": "3Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/3sum/",
+              "source": "original",
+              "id": "w03-d3-p1"
+            },
+            {
+              "lcNumber": 14,
+              "title": "Container With Most Water",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/container-with-most-water/",
+              "source": "original",
+              "id": "w03-d3-p2"
+            },
+            {
+              "lcNumber": 17,
+              "title": "Longest Substring Without Repeating Characters",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+              "source": "original",
+              "id": "w03-d3-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 18,
+              "title": "Longest Repeating Character Replacement",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-repeating-character-replacement/",
+              "source": "original",
+              "id": "w03-d4-p1"
+            },
+            {
+              "lcNumber": 19,
+              "title": "Permutation in String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/permutation-in-string/",
+              "source": "original",
+              "id": "w03-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 20,
+              "title": "Find All Anagrams in a String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-all-anagrams-in-a-string/",
+              "source": "original",
+              "id": "w03-d5-p1"
+            },
+            {
+              "lcNumber": 15,
+              "title": "Trapping Rain Water",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/trapping-rain-water/",
+              "source": "original",
+              "id": "w03-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 21,
+              "title": "Minimum Window Substring",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/minimum-window-substring/",
+              "source": "original",
+              "id": "w03-d6-p1"
+            },
+            {
+              "lcNumber": 22,
+              "title": "Sliding Window Maximum",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/sliding-window-maximum/",
+              "source": "original",
+              "id": "w03-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 13
+    },
+    {
+      "week": 4,
+      "title": "Stacks, Queues & Monotonic Stack",
+      "goal": "Use LIFO/FIFO structures and monotonic stacks for 'next greater/smaller' problems.",
+      "concepts": [
+        "Stack (list) vs queue (collections.deque) and why list.pop(0) is O(n)",
+        "Implementing a queue with two stacks (amortized O(1))",
+        "Min-stack pairing",
+        "Monotonic increasing/decreasing stacks",
+        "Expression evaluation"
+      ],
+      "visuals": [
+        "Bracket matching push/pop",
+        "Monotonic stack popping for Daily Temperatures",
+        "Largest rectangle: each pop computes an area"
+      ],
+      "templates": [
+        "Monotonic stack of indices",
+        "Stack-based parser"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 23,
+              "title": "Valid Parentheses",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/valid-parentheses/",
+              "source": "original",
+              "id": "w04-d1-p1"
+            },
+            {
+              "lcNumber": 24,
+              "title": "Implement Queue using Stacks",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/implement-queue-using-stacks/",
+              "source": "original",
+              "id": "w04-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "title": "Next Greater Element I",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/next-greater-element-i/",
+              "source": "added",
+              "id": "w04-d2-p1"
+            },
+            {
+              "lcNumber": 25,
+              "title": "Min Stack",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/min-stack/",
+              "source": "original",
+              "id": "w04-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 26,
+              "title": "Evaluate Reverse Polish Notation",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
+              "source": "original",
+              "id": "w04-d3-p1"
+            },
+            {
+              "lcNumber": 27,
+              "title": "Daily Temperatures",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/daily-temperatures/",
+              "source": "original",
+              "id": "w04-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 28,
+              "title": "Generate Parentheses",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/generate-parentheses/",
+              "source": "original",
+              "id": "w04-d4-p1"
+            },
+            {
+              "lcNumber": 29,
+              "title": "Car Fleet",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/car-fleet/",
+              "source": "original",
+              "id": "w04-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "title": "Asteroid Collision",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/asteroid-collision/",
+              "source": "added",
+              "id": "w04-d5-p1"
+            },
+            {
+              "title": "Online Stock Span",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/online-stock-span/",
+              "source": "added",
+              "id": "w04-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 30,
+              "title": "Largest Rectangle in Histogram",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
+              "source": "original",
+              "id": "w04-d6-p1"
+            },
+            {
+              "title": "Basic Calculator",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/basic-calculator/",
+              "source": "added",
+              "id": "w04-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 5,
+      "title": "Binary Search",
+      "goal": "Write bug-free binary search and apply it to answer spaces, not just arrays.",
+      "concepts": [
+        "Why O(log n)",
+        "Closed vs half-open templates; avoiding off-by-one",
+        "Lower/upper bound; bisect module",
+        "Rotated arrays: one half is always sorted",
+        "Binary search on the answer (monotonic predicate)"
+      ],
+      "visuals": [
+        "lo/mid/hi narrowing step by step",
+        "Rotated array with the sorted half highlighted",
+        "Answer-space search: feasible/infeasible line"
+      ],
+      "templates": [
+        "lower_bound",
+        "Binary search on answer with feasible()"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 31,
+              "title": "Binary Search",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/binary-search/",
+              "source": "original",
+              "id": "w05-d1-p1"
+            },
+            {
+              "title": "Search Insert Position",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/search-insert-position/",
+              "source": "added",
+              "id": "w05-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 32,
+              "title": "Find First and Last Position in Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
+              "source": "original",
+              "id": "w05-d2-p1"
+            },
+            {
+              "lcNumber": 33,
+              "title": "Search a 2D Matrix",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/search-a-2d-matrix/",
+              "source": "original",
+              "id": "w05-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 34,
+              "title": "Koko Eating Bananas",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/koko-eating-bananas/",
+              "source": "original",
+              "id": "w05-d3-p1"
+            },
+            {
+              "lcNumber": 35,
+              "title": "Find Minimum in Rotated Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
+              "source": "original",
+              "id": "w05-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 36,
+              "title": "Search in Rotated Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+              "source": "original",
+              "id": "w05-d4-p1"
+            },
+            {
+              "lcNumber": 37,
+              "title": "Time Based Key-Value Store",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/time-based-key-value-store/",
+              "source": "original",
+              "id": "w05-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "title": "Find Peak Element",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-peak-element/",
+              "source": "added",
+              "id": "w05-d5-p1"
+            },
+            {
+              "title": "Capacity To Ship Packages Within D Days",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/",
+              "source": "added",
+              "id": "w05-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 38,
+              "title": "Median of Two Sorted Arrays",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+              "source": "original",
+              "id": "w05-d6-p1"
+            },
+            {
+              "title": "Split Array Largest Sum",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/split-array-largest-sum/",
+              "source": "added",
+              "id": "w05-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 6,
+      "title": "Linked Lists",
+      "goal": "Manipulate pointers confidently: reverse, merge, detect cycles, design an LRU cache.",
+      "concepts": [
+        "Singly vs doubly linked lists vs arrays",
+        "Dummy head node",
+        "Fast/slow pointers (Floyd)",
+        "Reversal in place",
+        "Hash map + doubly linked list (LRU)",
+        "Recursion and the call stack"
+      ],
+      "visuals": [
+        "Reversal: prev/curr/next pointer flip",
+        "Floyd cycle detection meeting point",
+        "LRU: move-to-front and evict tail"
+      ],
+      "templates": [
+        "Iterative reverse",
+        "Find middle with slow/fast",
+        "Dummy-node merge"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 39,
+              "title": "Reverse Linked List",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/reverse-linked-list/",
+              "source": "original",
+              "id": "w06-d1-p1"
+            },
+            {
+              "lcNumber": 40,
+              "title": "Merge Two Sorted Lists",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/merge-two-sorted-lists/",
+              "source": "original",
+              "id": "w06-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 41,
+              "title": "Linked List Cycle",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/linked-list-cycle/",
+              "source": "original",
+              "id": "w06-d2-p1"
+            },
+            {
+              "lcNumber": 42,
+              "title": "Palindrome Linked List",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/palindrome-linked-list/",
+              "source": "original",
+              "id": "w06-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 43,
+              "title": "Reorder List",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/reorder-list/",
+              "source": "original",
+              "id": "w06-d3-p1"
+            },
+            {
+              "lcNumber": 44,
+              "title": "Remove Nth Node From End of List",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/",
+              "source": "original",
+              "id": "w06-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 45,
+              "title": "Find the Duplicate Number",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-the-duplicate-number/",
+              "source": "original",
+              "id": "w06-d4-p1"
+            },
+            {
+              "lcNumber": 46,
+              "title": "Add Two Numbers",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/add-two-numbers/",
+              "source": "original",
+              "id": "w06-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 47,
+              "title": "Copy List with Random Pointer",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/copy-list-with-random-pointer/",
+              "source": "original",
+              "id": "w06-d5-p1"
+            },
+            {
+              "lcNumber": 48,
+              "title": "LRU Cache",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/lru-cache/",
+              "source": "original",
+              "id": "w06-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 49,
+              "title": "Merge K Sorted Lists",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/merge-k-sorted-lists/",
+              "source": "original",
+              "id": "w06-d6-p1"
+            },
+            {
+              "lcNumber": 50,
+              "title": "Reverse Nodes in K-Group",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
+              "source": "original",
+              "id": "w06-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 7,
+      "title": "Trees & BST",
+      "goal": "Solve tree problems with DFS that returns values and BFS by level.",
+      "concepts": [
+        "Binary tree vs BST; height O(log n) vs O(n)",
+        "Pre/in/post-order and level-order",
+        "Recursive DFS returning values + global answer",
+        "Iterative traversal with a stack",
+        "BST validation with bounds",
+        "Serialisation"
+      ],
+      "visuals": [
+        "DFS traversal order animation (pre/in/post)",
+        "BFS level by level with a queue",
+        "Max path sum: value returned vs answer updated"
+      ],
+      "templates": [
+        "Recursive DFS returning height",
+        "BFS by level",
+        "Iterative inorder"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 51,
+              "title": "Invert Binary Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/invert-binary-tree/",
+              "source": "original",
+              "id": "w07-d1-p1"
+            },
+            {
+              "lcNumber": 52,
+              "title": "Maximum Depth of Binary Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+              "source": "original",
+              "id": "w07-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 53,
+              "title": "Same Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/same-tree/",
+              "source": "original",
+              "id": "w07-d2-p1"
+            },
+            {
+              "lcNumber": 54,
+              "title": "Diameter of Binary Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/diameter-of-binary-tree/",
+              "source": "original",
+              "id": "w07-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 55,
+              "title": "Balanced Binary Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/balanced-binary-tree/",
+              "source": "original",
+              "id": "w07-d3-p1"
+            },
+            {
+              "lcNumber": 56,
+              "title": "Subtree of Another Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/subtree-of-another-tree/",
+              "source": "original",
+              "id": "w07-d3-p2"
+            },
+            {
+              "lcNumber": 57,
+              "title": "Lowest Common Ancestor of a BST",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
+              "source": "original",
+              "id": "w07-d3-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 58,
+              "title": "Binary Tree Level Order Traversal",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+              "source": "original",
+              "id": "w07-d4-p1"
+            },
+            {
+              "lcNumber": 59,
+              "title": "Binary Tree Right Side View",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/binary-tree-right-side-view/",
+              "source": "original",
+              "id": "w07-d4-p2"
+            },
+            {
+              "lcNumber": 60,
+              "title": "Count Good Nodes in Binary Tree",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/",
+              "source": "original",
+              "id": "w07-d4-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 61,
+              "title": "Validate Binary Search Tree",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/validate-binary-search-tree/",
+              "source": "original",
+              "id": "w07-d5-p1"
+            },
+            {
+              "lcNumber": 62,
+              "title": "Kth Smallest Element in a BST",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/",
+              "source": "original",
+              "id": "w07-d5-p2"
+            },
+            {
+              "lcNumber": 63,
+              "title": "Construct Binary Tree from Preorder and Inorder",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
+              "source": "original",
+              "id": "w07-d5-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 64,
+              "title": "Binary Tree Maximum Path Sum",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
+              "source": "original",
+              "id": "w07-d6-p1"
+            },
+            {
+              "lcNumber": 65,
+              "title": "Serialize and Deserialize Binary Tree",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
+              "source": "original",
+              "id": "w07-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 15
+    },
+    {
+      "week": 8,
+      "title": "Heaps & Intervals",
+      "goal": "Use heapq for top-k, k-way merge and streaming medians; solve interval problems by sorting.",
+      "concepts": [
+        "Binary heap as an array; sift up/down",
+        "heapq is a min-heap; negate for max",
+        "heapify O(n); push/pop O(log n)",
+        "Top-k with a size-k heap",
+        "Two heaps for the median",
+        "Intervals: sort by start (merge) vs by end (scheduling)"
+      ],
+      "visuals": [
+        "Heap push/pop sifting in tree + array views",
+        "Two-heap median balancing",
+        "Merging overlapping intervals on a timeline"
+      ],
+      "templates": [
+        "Size-k heap",
+        "Two heaps",
+        "Merge intervals"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 66,
+              "title": "Kth Largest Element in a Stream",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/kth-largest-element-in-a-stream/",
+              "source": "original",
+              "id": "w08-d1-p1"
+            },
+            {
+              "lcNumber": 67,
+              "title": "Last Stone Weight",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/last-stone-weight/",
+              "source": "original",
+              "id": "w08-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 68,
+              "title": "K Closest Points to Origin",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/k-closest-points-to-origin/",
+              "source": "original",
+              "id": "w08-d2-p1"
+            },
+            {
+              "lcNumber": 69,
+              "title": "Kth Largest Element in an Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
+              "source": "original",
+              "id": "w08-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 70,
+              "title": "Task Scheduler",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/task-scheduler/",
+              "source": "original",
+              "id": "w08-d3-p1"
+            },
+            {
+              "lcNumber": 71,
+              "title": "Design Twitter",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/design-twitter/",
+              "source": "original",
+              "id": "w08-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 132,
+              "title": "Insert Interval",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/insert-interval/",
+              "source": "original",
+              "id": "w08-d4-p1"
+            },
+            {
+              "lcNumber": 133,
+              "title": "Merge Intervals",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/merge-intervals/",
+              "source": "original",
+              "id": "w08-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 134,
+              "title": "Non-overlapping Intervals",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/non-overlapping-intervals/",
+              "source": "original",
+              "id": "w08-d5-p1"
+            },
+            {
+              "lcNumber": 72,
+              "title": "Find Median from Data Stream",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/find-median-from-data-stream/",
+              "source": "original",
+              "id": "w08-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 135,
+              "title": "Minimum Interval to Include Each Query",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/minimum-interval-to-include-each-query/",
+              "source": "original",
+              "id": "w08-d6-p1"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 11
+    },
+    {
+      "week": 9,
+      "title": "Backtracking & Tries",
+      "goal": "Apply one choose/explore/un-choose template to subsets, permutations and grid search; build a trie.",
+      "concepts": [
+        "Recursion trees and their size (2ⁿ, n!)",
+        "Choose → explore → un-choose",
+        "Skipping duplicates after sorting",
+        "Pruning",
+        "Trie nodes: children dict + end flag"
+      ],
+      "visuals": [
+        "Recursion tree for subsets of [1,2,3]",
+        "Word Search DFS marking and restoring cells",
+        "Trie insert/search path"
+      ],
+      "templates": [
+        "Backtracking template",
+        "Trie class"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 73,
+              "title": "Subsets",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/subsets/",
+              "source": "original",
+              "id": "w09-d1-p1"
+            },
+            {
+              "lcNumber": 74,
+              "title": "Subsets II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/subsets-ii/",
+              "source": "original",
+              "id": "w09-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 75,
+              "title": "Combination Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/combination-sum/",
+              "source": "original",
+              "id": "w09-d2-p1"
+            },
+            {
+              "lcNumber": 76,
+              "title": "Combination Sum II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/combination-sum-ii/",
+              "source": "original",
+              "id": "w09-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 77,
+              "title": "Permutations",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/permutations/",
+              "source": "original",
+              "id": "w09-d3-p1"
+            },
+            {
+              "lcNumber": 78,
+              "title": "Word Search",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/word-search/",
+              "source": "original",
+              "id": "w09-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 79,
+              "title": "Palindrome Partitioning",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/palindrome-partitioning/",
+              "source": "original",
+              "id": "w09-d4-p1"
+            },
+            {
+              "lcNumber": 80,
+              "title": "Letter Combinations of a Phone Number",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/",
+              "source": "original",
+              "id": "w09-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 82,
+              "title": "Implement Trie (Prefix Tree)",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/implement-trie-prefix-tree/",
+              "source": "original",
+              "id": "w09-d5-p1"
+            },
+            {
+              "lcNumber": 83,
+              "title": "Design Add and Search Words Data Structure",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/design-add-and-search-words-data-structure/",
+              "source": "original",
+              "id": "w09-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 81,
+              "title": "N-Queens",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/n-queens/",
+              "source": "original",
+              "id": "w09-d6-p1"
+            },
+            {
+              "lcNumber": 84,
+              "title": "Word Search II",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/word-search-ii/",
+              "source": "original",
+              "id": "w09-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 10,
+      "title": "Graphs I: BFS, DFS, Topological Sort, Union-Find",
+      "goal": "Model problems as graphs and traverse them in O(V+E).",
+      "concepts": [
+        "Adjacency list vs matrix",
+        "BFS (shortest path unweighted) vs DFS",
+        "Grids as graphs; visited handling",
+        "Multi-source BFS",
+        "Topological sort (Kahn) and cycle detection",
+        "Union-Find with path compression + rank"
+      ],
+      "visuals": [
+        "BFS wave spreading across a grid",
+        "Topological sort removing zero in-degree nodes",
+        "Union-Find merging components"
+      ],
+      "templates": [
+        "Grid DFS/BFS",
+        "Kahn's algorithm",
+        "UnionFind class"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 85,
+              "title": "Number of Islands",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/number-of-islands/",
+              "source": "original",
+              "id": "w10-d1-p1"
+            },
+            {
+              "lcNumber": 86,
+              "title": "Max Area of Island",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/max-area-of-island/",
+              "source": "original",
+              "id": "w10-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 87,
+              "title": "Clone Graph",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/clone-graph/",
+              "source": "original",
+              "id": "w10-d2-p1"
+            },
+            {
+              "lcNumber": 88,
+              "title": "Number of Provinces",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/number-of-provinces/",
+              "source": "original",
+              "id": "w10-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 89,
+              "title": "Rotting Oranges",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/rotting-oranges/",
+              "source": "original",
+              "id": "w10-d3-p1"
+            },
+            {
+              "lcNumber": 90,
+              "title": "Pacific Atlantic Water Flow",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/pacific-atlantic-water-flow/",
+              "source": "original",
+              "id": "w10-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 91,
+              "title": "Surrounded Regions",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/surrounded-regions/",
+              "source": "original",
+              "id": "w10-d4-p1"
+            },
+            {
+              "lcNumber": 92,
+              "title": "Course Schedule",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/course-schedule/",
+              "source": "original",
+              "id": "w10-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 93,
+              "title": "Course Schedule II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/course-schedule-ii/",
+              "source": "original",
+              "id": "w10-d5-p1"
+            },
+            {
+              "lcNumber": 94,
+              "title": "Redundant Connection",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/redundant-connection/",
+              "source": "original",
+              "id": "w10-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 95,
+              "title": "Word Ladder",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/word-ladder/",
+              "source": "original",
+              "id": "w10-d6-p1"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 11
+    },
+    {
+      "week": 11,
+      "title": "Graphs II (Weighted) & Greedy",
+      "goal": "Run Dijkstra / Bellman-Ford / Prim and recognise when greedy is provably correct.",
+      "concepts": [
+        "Dijkstra with heapq O(E log V)",
+        "Bellman-Ford and k-limited relaxations",
+        "MST: Prim vs Kruskal",
+        "Eulerian path (Hierholzer)",
+        "Greedy choice + exchange argument; greedy vs DP"
+      ],
+      "visuals": [
+        "Dijkstra relaxing edges with a priority queue",
+        "Kadane's running sum",
+        "Jump Game farthest reach"
+      ],
+      "templates": [
+        "Dijkstra",
+        "Kadane"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 96,
+              "title": "Network Delay Time",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/network-delay-time/",
+              "source": "original",
+              "id": "w11-d1-p1"
+            },
+            {
+              "lcNumber": 97,
+              "title": "Min Cost to Connect All Points",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/min-cost-to-connect-all-points/",
+              "source": "original",
+              "id": "w11-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 98,
+              "title": "Cheapest Flights Within K Stops",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
+              "source": "original",
+              "id": "w11-d2-p1"
+            },
+            {
+              "lcNumber": 124,
+              "title": "Maximum Subarray",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/maximum-subarray/",
+              "source": "original",
+              "id": "w11-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 125,
+              "title": "Jump Game",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/jump-game/",
+              "source": "original",
+              "id": "w11-d3-p1"
+            },
+            {
+              "lcNumber": 126,
+              "title": "Jump Game II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/jump-game-ii/",
+              "source": "original",
+              "id": "w11-d3-p2"
+            },
+            {
+              "lcNumber": 127,
+              "title": "Gas Station",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/gas-station/",
+              "source": "original",
+              "id": "w11-d3-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 128,
+              "title": "Hand of Straights",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/hand-of-straights/",
+              "source": "original",
+              "id": "w11-d4-p1"
+            },
+            {
+              "lcNumber": 129,
+              "title": "Merge Triplets to Form Target Triplet",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/merge-triplets-to-form-target-triplet/",
+              "source": "original",
+              "id": "w11-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 130,
+              "title": "Partition Labels",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/partition-labels/",
+              "source": "original",
+              "id": "w11-d5-p1"
+            },
+            {
+              "lcNumber": 131,
+              "title": "Valid Parenthesis String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/valid-parenthesis-string/",
+              "source": "original",
+              "id": "w11-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 99,
+              "title": "Swim in Rising Water",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/swim-in-rising-water/",
+              "source": "original",
+              "id": "w11-d6-p1"
+            },
+            {
+              "lcNumber": 100,
+              "title": "Reconstruct Itinerary",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/reconstruct-itinerary/",
+              "source": "original",
+              "id": "w11-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 13
+    },
+    {
+      "week": 12,
+      "title": "Dynamic Programming I (1D)",
+      "goal": "Define state, transition and base case; go recursion → memo → table → O(1) space.",
+      "concepts": [
+        "Overlapping subproblems + optimal substructure",
+        "Top-down @lru_cache vs bottom-up",
+        "State compression",
+        "0/1 knapsack (subset sum)",
+        "LIS in O(n log n)"
+      ],
+      "visuals": [
+        "Fibonacci recursion tree vs memo",
+        "1D DP table filling for House Robber",
+        "Coin Change table"
+      ],
+      "templates": [
+        "Memoised recursion",
+        "Bottom-up 1D with rolling variables"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 101,
+              "title": "Climbing Stairs",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/climbing-stairs/",
+              "source": "original",
+              "id": "w12-d1-p1"
+            },
+            {
+              "lcNumber": 102,
+              "title": "Min Cost Climbing Stairs",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/min-cost-climbing-stairs/",
+              "source": "original",
+              "id": "w12-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 103,
+              "title": "House Robber",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/house-robber/",
+              "source": "original",
+              "id": "w12-d2-p1"
+            },
+            {
+              "lcNumber": 104,
+              "title": "House Robber II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/house-robber-ii/",
+              "source": "original",
+              "id": "w12-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 105,
+              "title": "Longest Palindromic Substring",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-palindromic-substring/",
+              "source": "original",
+              "id": "w12-d3-p1"
+            },
+            {
+              "lcNumber": 106,
+              "title": "Palindromic Substrings",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/palindromic-substrings/",
+              "source": "original",
+              "id": "w12-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 107,
+              "title": "Decode Ways",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/decode-ways/",
+              "source": "original",
+              "id": "w12-d4-p1"
+            },
+            {
+              "lcNumber": 108,
+              "title": "Coin Change",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/coin-change/",
+              "source": "original",
+              "id": "w12-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 109,
+              "title": "Maximum Product Subarray",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/maximum-product-subarray/",
+              "source": "original",
+              "id": "w12-d5-p1"
+            },
+            {
+              "lcNumber": 110,
+              "title": "Word Break",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/word-break/",
+              "source": "original",
+              "id": "w12-d5-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Timed session: 45 min per problem",
+          "problems": [
+            {
+              "lcNumber": 111,
+              "title": "Longest Increasing Subsequence",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-increasing-subsequence/",
+              "source": "original",
+              "id": "w12-d6-p1"
+            },
+            {
+              "lcNumber": 112,
+              "title": "Partition Equal Subset Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/partition-equal-subset-sum/",
+              "source": "original",
+              "id": "w12-d6-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 7,
+          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 12
+    },
+    {
+      "week": 13,
+      "title": "Dynamic Programming II (2D) + Mock Interviews",
+      "goal": "Solve grid/two-string/interval DP and perform under interview conditions.",
+      "concepts": [
+        "2D state tables (grid, two strings)",
+        "Unbounded knapsack and combinations vs permutations",
+        "State machines (cooldown)",
+        "Interval DP (Burst Balloons)",
+        "Interview communication: brute force → optimal → complexity → code → test"
+      ],
+      "visuals": [
+        "LCS / Edit Distance table with arrows",
+        "Rolling 2D → 1D array"
+      ],
+      "templates": [
+        "2D DP over two strings",
+        "Interval DP"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "learn": "Visuals + Python templates",
+          "problems": [
+            {
+              "lcNumber": 113,
+              "title": "Unique Paths",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/unique-paths/",
+              "source": "original",
+              "id": "w13-d1-p1"
+            },
+            {
+              "lcNumber": 114,
+              "title": "Longest Common Subsequence",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-common-subsequence/",
+              "source": "original",
+              "id": "w13-d1-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "learn": "Weekly quiz (30+ MCQs)",
+          "problems": [
+            {
+              "lcNumber": 115,
+              "title": "Coin Change II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/coin-change-ii/",
+              "source": "original",
+              "id": "w13-d2-p1"
+            },
+            {
+              "lcNumber": 116,
+              "title": "Target Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/target-sum/",
+              "source": "original",
+              "id": "w13-d2-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 117,
+              "title": "Best Time to Buy and Sell Stock with Cooldown",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/",
+              "source": "original",
+              "id": "w13-d3-p1"
+            },
+            {
+              "lcNumber": 118,
+              "title": "Edit Distance",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/edit-distance/",
+              "source": "original",
+              "id": "w13-d3-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 119,
+              "title": "Interleaving String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/interleaving-string/",
+              "source": "original",
+              "id": "w13-d4-p1"
+            },
+            {
+              "lcNumber": 120,
+              "title": "Longest Increasing Path in a Matrix",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+              "source": "original",
+              "id": "w13-d4-p2"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 5,
+          "learn": "Pattern drill (5 min)",
+          "problems": [
+            {
+              "lcNumber": 121,
+              "title": "Distinct Subsequences",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/distinct-subsequences/",
+              "source": "original",
+              "id": "w13-d5-p1"
+            },
+            {
+              "lcNumber": 122,
+              "title": "Burst Balloons",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/burst-balloons/",
+              "source": "original",
+              "id": "w13-d5-p2"
+            },
+            {
+              "lcNumber": 123,
+              "title": "Regular Expression Matching",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/regular-expression-matching/",
+              "source": "original",
+              "id": "w13-d5-p3"
+            }
+          ],
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "learn": "Mock interview: 2 random Mediums + 1 Hard from any week, 45 min each",
+          "problems": [],
+          "codingNote": "Pick from mock pool"
+        },
+        {
+          "day": 7,
+          "learn": "Final review quiz across all weeks",
+          "problems": [],
+          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+        }
+      ],
+      "problemCount": 11
+    }
+  ]
+}
