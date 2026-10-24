@@ -30,8 +30,8 @@ describe("derivePlan", () => {
     expect(p.phase).toBe("during");
     expect(p.todayDay!.day.planDayId).toBe("w02-d2");
     expect(p.dayNumber).toBe(9);
-    expect(p.totalDays).toBe(91);
-    expect(p.finish).toBe("2027-01-24");
+    expect(p.totalDays).toBe(90);
+    expect(p.finish).toBe("2027-01-23");
     expect(p.daysAdded).toBe(0);
     expect(p.stats.missed).toBe(8); // days 1–8 all missed
     expect(p.stats.catchUpCount).toBeGreaterThan(8);
@@ -51,8 +51,8 @@ describe("derivePlan", () => {
       "2026-10-26",
     );
     expect(p.byDate.get("2026-11-05")!.day.planDayId).toBe("w02-d1");
-    expect(p.totalDays).toBe(94);
-    expect(p.finish).toBe("2027-01-27");
+    expect(p.totalDays).toBe(93);
+    expect(p.finish).toBe("2027-01-26");
     expect(p.daysAdded).toBe(3);
   });
 

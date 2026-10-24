@@ -27,6 +27,7 @@ export const OUTCOMES: { value: ProblemAttempt["outcome"]; label: string }[] = [
 export function LogModal({
   title,
   problem,
+  platform,
   choices,
   dateRange,
   onCancel,
@@ -34,6 +35,7 @@ export function LogModal({
 }: {
   title: string;
   problem?: Problem;
+  platform?: string;
   choices?: Problem[];
   /** Shows a date field (tick with a chosen date). */
   dateRange?: DateRange;
@@ -63,7 +65,10 @@ export function LogModal({
         }}
       >
         {problem ? (
-          <p className="font-medium">{problem.title}</p>
+          <p className="font-medium">
+            {problem.title}
+            {platform && <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-normal dark:bg-slate-800">{platform}</span>}
+          </p>
         ) : (
           <label className="block">
             Which problem did you redo?

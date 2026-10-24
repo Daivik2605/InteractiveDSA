@@ -3,7 +3,7 @@
 
 import { curriculum } from "./curriculum";
 import type { Plan } from "./plan";
-import type { Difficulty, ProblemAttempt, ProblemEntry } from "../types/content";
+import type { Difficulty, Problem, ProblemAttempt, ProblemEntry } from "../types/content";
 
 export type ProblemSource = "plan" | "custom" | "found";
 export type Outcome = ProblemAttempt["outcome"];
@@ -14,7 +14,8 @@ export interface ProblemRow {
   url: string;
   difficulty: Difficulty;
   source: ProblemSource;
-  week: number;
+  /** Topic week. Undefined for old-topic and pool problems: their topic stays hidden until attempted. */
+  week?: number;
   platform?: string;
   tags: string[];
   attempts: number;
@@ -45,11 +46,17 @@ export function buildProblemRows(plan: Plan): ProblemRow[] {
     const entry = plan.entries.get(base.id);
     return { ...base, tags: entry?.tags ?? [], attempts: attempts.length, lastAttempt: attempts.at(-1), confidence: entry?.confidence, entry };
   };
-  const planRows = curriculum.weeks.flatMap((w) =>
-    w.days.flatMap((d) =>
-      d.problems.map((p) => rowOf({ id: p.id, title: p.title, url: p.url, difficulty: p.difficulty, source: "plan", week: w.week })),
-    ),
-  );
+  const planRow = (p: Problem, week: number | undefined) =>
+    rowOf({ id: p.id, title: p.title, url: p.url, difficulty: p.difficulty, source: "plan", week, platform: p.platform });
+  // Core and fallback problems carry their week. Old-topic problems never do (the point of the practice is
+  // spotting the pattern unlabelled). Pool problems are spares for mocks: listed only once attempted.
+  const planRows = curriculum.weeks.flatMap((w) => [
+    ...w.days.flatMap((d) => [
+      ...d.problems.map((p) => planRow(p, p.role === "old-topic" ? undefined : w.week)),
+      ...(d.fallback ? [planRow(d.fallback, w.week)] : []),
+    ]),
+    ...w.pool.filter((p) => byProblem.has(p.id)).map((p) => planRow(p, undefined)),
+  ]);
   const customRows = plan.snapshot.customItems
     .filter((c) => c.kind === "problem")
     .map((c) =>
@@ -104,5 +111,15 @@ export const OUTCOME_LABEL: Record<Outcome, string> = {
   failed: "Failed",
 };
 
-/** Plan problem ids start with their week: "w03-d2-p1" → 3. */
+/** Plan problem ids start with the week they sit in: "w03-d2-p1" → 3. */
 export const weekOfProblemId = (id: string): number => Number(/^w(\d+)-/.exec(id)?.[1] ?? 0);
+
+/**
+ * The topic week to show for a curriculum problem, or undefined when it must stay hidden: old-topic and
+ * pool problems reveal their origin week only after the first attempt (on the problem's own page).
+ */
+export function revealedWeek(problem: Problem, attempted: boolean): number | undefined {
+  if (problem.role === "old-topic") return attempted ? problem.fromWeek : undefined;
+  if (problem.role === "pool") return attempted ? weekOfProblemId(problem.id) : undefined;
+  return weekOfProblemId(problem.id);
+}

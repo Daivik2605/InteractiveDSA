@@ -1,73 +1,16 @@
-// Validates everything in content/ against the types in docs/CONTENT_SCHEMA.md.
+// Validates everything in content/ against the types in src/types/content.ts (curriculum: scripts/curriculum-schema.ts).
 // Usage: npm run validate
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { Curriculum, type CurriculumFile } from "./curriculum-schema";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contentDir = join(root, "content");
 
-const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
 const nonEmpty = z.string().min(1);
-
-// ── curriculum ───────────────────────────────────────────────────────────────
-
-const Problem = z.strictObject({
-  id: z.string().regex(/^w\d{2}-d[1-7]-p\d+$/, 'expected an id like "w03-d2-p1"'),
-  title: nonEmpty,
-  difficulty: z.enum(["Easy", "Medium", "Hard"]),
-  url: z.string().regex(/^https:\/\/leetcode\.com\/problems\/[a-z0-9-]+\/$/, "expected a leetcode.com problem URL"),
-  lcNumber: z.number().int().positive().optional(),
-  source: z.enum(["original", "added"]),
-});
-
-const PlanDay = z.strictObject({
-  day: z.number().int().min(1).max(7),
-  learn: nonEmpty,
-  problems: z.array(Problem),
-  codingNote: z.string().nullable(),
-});
-
-const Week = z.strictObject({
-  week: z.number().int().min(1).max(13),
-  title: nonEmpty,
-  goal: nonEmpty,
-  concepts: z.array(nonEmpty).min(1),
-  visuals: z.array(nonEmpty).min(1),
-  templates: z.array(nonEmpty).min(1),
-  days: z.array(PlanDay).length(7),
-  problemCount: z.number().int().nonnegative(),
-});
-
-const Curriculum = z
-  .strictObject({
-    version: z.number().int().positive(),
-    defaultStartDate: dateString,
-    weeks: z.array(Week).length(13),
-  })
-  .superRefine((c, ctx) => {
-    const seen = new Set<string>();
-    c.weeks.forEach((w, wi) => {
-      if (w.week !== wi + 1) ctx.addIssue({ code: "custom", path: ["weeks", wi, "week"], message: `expected week ${wi + 1}` });
-      const nn = String(w.week).padStart(2, "0");
-      let count = 0;
-      w.days.forEach((d, di) => {
-        if (d.day !== di + 1) ctx.addIssue({ code: "custom", path: ["weeks", wi, "days", di, "day"], message: `expected day ${di + 1}` });
-        d.problems.forEach((p, pi) => {
-          count++;
-          const path = ["weeks", wi, "days", di, "problems", pi, "id"];
-          if (!p.id.startsWith(`w${nn}-d${d.day}-p`)) ctx.addIssue({ code: "custom", path, message: `id "${p.id}" does not match its position (w${nn}-d${d.day})` });
-          if (seen.has(p.id)) ctx.addIssue({ code: "custom", path, message: `duplicate problem id "${p.id}"` });
-          seen.add(p.id);
-        });
-      });
-      if (count !== w.problemCount) {
-        ctx.addIssue({ code: "custom", path: ["weeks", wi, "problemCount"], message: `problemCount is ${w.problemCount} but the week has ${count} problems` });
-      }
-    });
-  });
 
 // ── questions ────────────────────────────────────────────────────────────────
 
@@ -149,12 +92,12 @@ function check(label: string, file: string, schema: z.ZodType) {
   return undefined;
 }
 
-const curriculum = check("content/curriculum.json", join(contentDir, "curriculum.json"), Curriculum) as
-  | z.infer<typeof Curriculum>
-  | undefined;
+const curriculum = check("content/curriculum.json", join(contentDir, "curriculum.json"), Curriculum) as CurriculumFile | undefined;
 if (curriculum) {
-  const total = curriculum.weeks.reduce((n, w) => n + w.problemCount, 0);
-  console.log(`  ${curriculum.weeks.length} weeks, ${curriculum.weeks.length * 7} plan days, ${total} problems`);
+  const core = curriculum.weeks.reduce((n, w) => n + w.problemCount, 0);
+  const old = curriculum.weeks.reduce((n, w) => n + w.oldTopicCount, 0);
+  const mocks = curriculum.weeks.reduce((n, w) => n + w.mockCount, 0);
+  console.log(`  ${curriculum.weeks.length} weeks, ${curriculum.totalPlanDays} plan days, ${core} core + ${old} old-topic problems, ${mocks} mocks`);
 }
 
 const questionsDir = join(contentDir, "questions");

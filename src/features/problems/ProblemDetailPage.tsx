@@ -6,7 +6,7 @@ import { addManualRedo, deleteCustomItem, logAttempt, saveProblemEntry, setCusto
 import { canAttach, parsePlanDayId } from "../../lib/schedule";
 import { formatShort } from "../../lib/dates";
 import { formatDayMonth } from "../../lib/dates";
-import { OUTCOME_LABEL, weekOfProblemId } from "../../lib/problems";
+import { OUTCOME_LABEL, revealedWeek } from "../../lib/problems";
 import type { ProblemEntry } from "../../types/content";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Markdown } from "../../components/Markdown";
@@ -37,8 +37,9 @@ function Detail({ id }: { id: string }) {
   const problem = plan.problemOf(id)!;
   const custom = plan.customById.get(id);
   const entry = plan.entries.get(id);
-  const week = custom?.week ?? weekOfProblemId(id);
   const attempts = plan.snapshot.attempts.filter((a) => a.problemId === id).sort((a, b) => (a.date === b.date ? (b.id ?? 0) - (a.id ?? 0) : a.date < b.date ? 1 : -1));
+  const week = custom ? custom.week : revealedWeek(problem, attempts.length > 0);
+  const platform = custom ? custom.platform : problem.platform;
   const pending = plan.snapshot.redos.filter((r) => r.problemId === id && !r.doneOn && !r.attemptedOn).sort((a, b) => (a.dueOn < b.dueOn ? -1 : 1));
 
   const [form, setForm] = useState({
@@ -73,7 +74,7 @@ function Detail({ id }: { id: string }) {
       <h1 className="mt-1 text-2xl font-semibold">{problem.title}</h1>
       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
         <span className={`rounded px-1.5 py-0.5 text-xs ${DIFF_STYLE[problem.difficulty]}`}>{problem.difficulty}</span>
-        <span>{custom ? (custom.planDayId ? "Added to a day" : "Found") : "Plan"} · Week {week}{custom?.platform ? ` · ${custom.platform}` : ""}</span>
+        <span>{custom ? (custom.planDayId ? "Added to a day" : "Found") : "Plan"}{week !== undefined ? ` · Week ${week}` : ""}{platform ? ` · ${platform}` : ""}</span>
         {problem.url && <a href={problem.url} target="_blank" rel="noopener noreferrer" className="text-indigo-700 underline dark:text-indigo-300">Open problem<span className="sr-only"> (new tab)</span></a>}
       </p>
 
@@ -193,6 +194,7 @@ function Detail({ id }: { id: string }) {
         <LogModal
           title="Log another attempt"
           problem={problem}
+          platform={platform}
           dateRange={{ value: plan.today, min: "2000-01-01", max: plan.today }}
           onCancel={() => setLogging(false)}
           onSubmit={async (v) => {

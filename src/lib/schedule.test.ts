@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import realCurriculum from "../../content/curriculum.json";
-import type { Curriculum, ItemCompletion, PlanDay, ProblemAttempt, RedoTask, WeekExtension } from "../types/content";
+import type { Curriculum, ItemCompletion, PlanDay, Problem, ProblemAttempt, RedoTask, WeekExtension } from "../types/content";
+import { addDays } from "./dates";
 import {
   addExtension,
   buildSchedule,
@@ -23,37 +24,47 @@ import {
 
 // ── fixtures ─────────────────────────────────────────────────────────────────
 // 3 weeks from Mon 2026-10-26. Week 1 = 10-26..11-01, week 2 = 11-02..11-08, week 3 = 11-09..11-15.
-// Days 1–6: learn + one problem. Day 7: learn + two redo slots.
+// Days 1–6: learn + one problem (odd plan days also have a mock). Day 7: learn + a fallback, no problems and no
+// slots. Extension days have two redo slots.
 
 const START = "2026-10-26";
 
 function makeCurriculum(weeks = 3): Curriculum {
   return {
-    version: 1,
+    version: 2,
     defaultStartDate: START,
+    totalPlanDays: weeks * 7,
+    mockSpec: { rule: "", parts: [], pythonThemes: [] },
+    practicalTasks: [],
     weeks: Array.from({ length: weeks }, (_, i) => {
       const w = i + 1;
       const nn = String(w).padStart(2, "0");
-      const days = [1, 2, 3, 4, 5, 6, 7].map(
-        (day): PlanDay => ({
+      const days = [1, 2, 3, 4, 5, 6, 7].map((day): PlanDay => {
+        const planDay = (w - 1) * 7 + day;
+        const problem = (id: string, role: "core" | "fallback"): Problem => ({
+          id,
+          platform: "LeetCode",
+          title: `P ${w}.${day}`,
+          difficulty: "Medium",
+          url: "https://leetcode.com/problems/x/",
+          role,
+        });
+        return {
           day: day as PlanDay["day"],
+          planDay,
+          kind: day === 7 ? "redo" : "topic",
+          mock:
+            planDay % 2 === 1
+              ? { number: (planDay + 1) / 2, pythonTheme: 1, extra: "debug", program2: false, diagnostic: false, final: false, mcqCount: 18 }
+              : null,
           learn: `learn ${w}.${day}`,
           codingNote: day === 7 ? "redo" : null,
-          problems:
-            day === 7
-              ? []
-              : [
-                  {
-                    id: `w${nn}-d${day}-p1`,
-                    title: `P ${w}.${day}`,
-                    difficulty: "Medium",
-                    url: "https://leetcode.com/problems/x/",
-                    source: "original",
-                  },
-                ],
-        }),
-      );
-      return { week: w, title: `Week ${w}`, goal: "", concepts: [], visuals: [], templates: [], days, problemCount: 6 };
+          timedMinutes: null,
+          problems: day === 7 ? [] : [problem(`w${nn}-d${day}-p1`, "core")],
+          fallback: day === 7 ? problem(`w${nn}-d7-fb`, "fallback") : null,
+        };
+      });
+      return { week: w, title: `Week ${w}`, goal: "", concepts: [], visuals: [], templates: [], days, pool: [], problemCount: 6, oldTopicCount: 0, mockCount: 0 };
     }),
   };
 }
@@ -130,28 +141,61 @@ describe("buildSchedule", () => {
     expect(finishDate(s)).toBe("2026-11-18");
   });
 
-  it("builds the real curriculum: 13 weeks = 91 days, finishing 2027-01-24", () => {
+  it("builds the real curriculum: 13 weeks = 90 days (Week 13 has 6), finishing 2027-01-23", () => {
     const real = realCurriculum as unknown as Curriculum;
     const s = buildSchedule(real, real.defaultStartDate);
-    expect(s).toHaveLength(91);
-    expect(finishDate(s)).toBe("2027-01-24");
-    expect(new Set(s.map((d) => d.planDayId)).size).toBe(91);
+    expect(s).toHaveLength(90);
+    expect(finishDate(s)).toBe("2027-01-23");
+    expect(new Set(s.map((d) => d.planDayId)).size).toBe(90);
+    expect(s.filter((d) => d.week === 13)).toHaveLength(6);
+    expect(s.filter((d) => d.week < 13).every((d, _, all) => all.filter((x) => x.week === d.week).length === 7)).toBe(true);
+    expect(s.at(-1)).toMatchObject({ planDayId: "w13-d6", date: "2027-01-23" });
     const items = s.flatMap((d) => itemsForDay(real, d.planDayId));
-    expect(items.filter((i) => i.kind === "problem")).toHaveLength(161);
-    expect(items.filter((i) => i.kind === "learn")).toHaveLength(91);
-    expect(items.filter((i) => i.kind === "slot")).toHaveLength(26); // two per day 7
+    expect(items.filter((i) => i.kind === "problem")).toHaveLength(118 + 36); // core + old-topic; no fallbacks
+    expect(items.filter((i) => i.kind === "learn" && i.mock)).toHaveLength(45);
+    expect(items.filter((i) => i.kind === "slot")).toHaveLength(0); // no slots on plan days
+    expect(items.some((i) => i.itemId.endsWith("-fb"))).toBe(false); // a fallback is never an item
     expect(new Set(items.map((i) => i.itemId)).size).toBe(items.length);
+  });
+
+  it("flags a mock on odd plan days only; extension days never have one", () => {
+    const real = realCurriculum as unknown as Curriculum;
+    const withExt = buildSchedule(real, real.defaultStartDate, [ext(1, 12, 2)]);
+    const mockDays = withExt.filter((d) => itemsForDay(real, d.planDayId).some((i) => i.mock));
+    expect(mockDays).toHaveLength(45);
+    expect(mockDays.every((d) => d.kind === "plan")).toBe(true);
+    const [x1] = itemsForDay(real, "w12-x1");
+    expect(x1?.kind).toBe("slot");
+    const odd = real.weeks.flatMap((w) => w.days).filter((d) => d.mock);
+    expect(odd.every((d) => d.planDay % 2 === 1)).toBe(true);
+  });
+
+  it("extending Week 12 by 2 days moves Week 13 by 2 days", () => {
+    const real = realCurriculum as unknown as Curriculum;
+    const before = buildSchedule(real, real.defaultStartDate);
+    const after = buildSchedule(real, real.defaultStartDate, [ext(1, 12, 2)]);
+    const w13 = (s: typeof before) => s.find((d) => d.planDayId === "w13-d1")!.date;
+    expect(w13(after)).toBe(addDays(w13(before), 2));
+    expect(finishDate(after)).toBe("2027-01-25");
+  });
+
+  it("gives the wrap-up day one manual item, and a day with no learn item just its problems", () => {
+    const real = realCurriculum as unknown as Curriculum;
+    expect(itemsForDay(real, "w13-d6").map((i) => [i.itemId, i.kind])).toEqual([["w13-d6:wrapup", "learn"]]);
+    const noLearn = itemsForDay(real, "w01-d2");
+    expect(noLearn.map((i) => i.kind)).toEqual(["problem", "problem", "problem"]);
   });
 });
 
 describe("itemsForDay", () => {
-  it("gives learn + problems, plus two slots on day 7", () => {
+  it("gives learn + problems; day 7 has no slots and its fallback is not an item", () => {
     expect(itemsForDay(curriculum, "w01-d1").map((i) => i.itemId)).toEqual(["w01-d1:learn", "w01-d1-p1"]);
-    expect(itemsForDay(curriculum, "w01-d7").map((i) => i.itemId)).toEqual([
-      "w01-d7:learn",
-      "w01-d7:s1",
-      "w01-d7:s2",
-    ]);
+    expect(itemsForDay(curriculum, "w01-d7").map((i) => i.itemId)).toEqual(["w01-d7:learn"]);
+  });
+
+  it("marks a mock day's learn item with its mock and day kind", () => {
+    expect(itemsForDay(curriculum, "w01-d1")[0]).toMatchObject({ dayKind: "topic", mock: { number: 1 } });
+    expect(itemsForDay(curriculum, "w01-d2")[0]!.mock).toBeUndefined();
   });
 
   it("gives extension days two slots", () => {
@@ -205,16 +249,23 @@ describe("dayStatus", () => {
     expect(status("2026-10-26", tickDay("w01-d1", "2026-10-26"), ["2026-10-26"])).toBe("done");
   });
 
-  it("day 7 has a normal status: its two slots must be ticked too", () => {
+  it("day 7 counts only its learn item (the fallback and redos never affect status)", () => {
     const d7 = { planDayId: "w01-d7", week: 1, kind: "plan" as const, date: "2026-11-01" };
     const i7 = itemsForDay(curriculum, "w01-d7");
     const s = (done: ItemCompletion[]) =>
       dayStatus({ day: d7, items: i7, completions: indexCompletions(done), restDates: new Set(), today: "2026-11-05" });
     expect(s([])).toBe("missed");
-    expect(s([tick("w01-d7:learn", "2026-11-01")])).toBe("partial");
-    expect(s([tick("w01-d7:learn", "2026-11-01"), tick("w01-d7:s1", "2026-11-01")])).toBe("partial");
     expect(s(tickDay("w01-d7", "2026-11-01"))).toBe("done");
     expect(s(tickDay("w01-d7", "2026-11-04"))).toBe("done-late");
+  });
+
+  it("extension days need both slots ticked too", () => {
+    const x1 = { planDayId: "w01-x1", week: 1, kind: "extension" as const, date: "2026-11-02" };
+    const items = itemsForDay(curriculum, "w01-x1");
+    const s = (done: ItemCompletion[]) =>
+      dayStatus({ day: x1, items, completions: indexCompletions(done), restDates: new Set(), today: "2026-11-05" });
+    expect(s([tick("w01-x1:s1", "2026-11-02")])).toBe("partial");
+    expect(s(tickDay("w01-x1", "2026-11-02"))).toBe("done");
   });
 });
 
@@ -243,10 +294,11 @@ describe("catchUpQueue", () => {
     expect(catchUpQueue(q2.days, q2.completions, base.today).map((c) => c.item.itemId)).not.toContain("w01-d2-p1");
   });
 
-  it("never queues slots", () => {
-    const { days, completions } = evaluate({ today: "2026-11-10" });
+  it("never queues slots or fallbacks", () => {
+    const { days, completions } = evaluate({ today: "2026-11-10", extensions: [ext(1, 1, 1)] });
     const q = catchUpQueue(days, completions, "2026-11-10");
     expect(q.some((c) => c.item.kind === "slot")).toBe(false);
+    expect(q.some((c) => c.item.itemId.endsWith("-fb"))).toBe(false);
     expect(q.some((c) => c.item.itemId === "w01-d7:learn")).toBe(true);
   });
 });
@@ -316,21 +368,6 @@ describe("fillSlots", () => {
     return catchUpQueue(days, completions, today);
   }
 
-  it("day 7: redo queue first, then catch-up (any week)", () => {
-    const catchUp = setup("2026-11-10").filter((c) => c.week === 1);
-    const day = { planDayId: "w02-d7", week: 2, kind: "plan" as const, date: "2026-11-08" };
-    const fills = fillSlots({
-      day,
-      slots: itemsForDay(curriculum, "w02-d7").filter((i) => i.kind === "slot"),
-      redoDue: [redo("w01-d3-p1")],
-      catchUp,
-    });
-    expect(fills).toEqual([
-      { slotId: "w02-d7:s1", source: "redo", problemId: "w01-d3-p1" },
-      { slotId: "w02-d7:s2", source: "catchup", problemId: "w01-d1-p1" },
-    ]);
-  });
-
   it("extension day: this week's catch-up first, ignoring other weeks, then redos, then free", () => {
     const catchUp = setup("2026-11-10"); // weeks 1 and 2 are missed
     const day = { planDayId: "w02-x1", week: 2, kind: "extension" as const, date: "2026-11-09" };
@@ -347,14 +384,14 @@ describe("fillSlots", () => {
 
   it("uses each problem at most once", () => {
     const catchUp = setup("2026-10-29").filter((c) => c.item.kind === "problem");
-    const day = { planDayId: "w01-d7", week: 1, kind: "plan" as const, date: "2026-11-01" };
+    const day = { planDayId: "w01-x1", week: 1, kind: "extension" as const, date: "2026-11-02" };
     const fills = fillSlots({
       day,
-      slots: itemsForDay(curriculum, "w01-d7").filter((i) => i.kind === "slot"),
+      slots: itemsForDay(curriculum, "w01-x1"),
       redoDue: [redo(catchUp[0]!.item.problem!.id)],
       catchUp: catchUp.slice(0, 1),
     });
-    expect(fills.map((f) => f.source)).toEqual(["redo", "free"]);
+    expect(fills.map((f) => f.source)).toEqual(["catchup", "free"]); // the same problem is not offered twice
   });
 });
 

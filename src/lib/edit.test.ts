@@ -21,6 +21,7 @@ import {
   buildProblemRows,
   filterProblems,
   matchesSearch,
+  revealedWeek,
   sortProblems,
 } from "./problems";
 import {
@@ -51,10 +52,10 @@ const custom = (over: Partial<CustomItem>): CustomItem => ({
 
 describe("itemsForDay with custom items and moves", () => {
   it("appends custom items after plan items and before slots", () => {
-    const items = itemsForDay(curriculum, day(7), { customItems: [custom({ planDayId: day(7) })] });
-    const kinds = items.map((i) => i.kind);
-    expect(kinds.at(-3)).toBe("task");
-    expect(kinds.slice(-2)).toEqual(["slot", "slot"]);
+    const items = itemsForDay(curriculum, "w01-x1", { customItems: [custom({ planDayId: "w01-x1" })] });
+    expect(items.map((i) => i.kind)).toEqual(["task", "slot", "slot"]);
+    // plan days have no slots: the custom item simply follows the day's own items
+    expect(itemsForDay(curriculum, day(7), { customItems: [custom({ planDayId: day(7) })] }).map((i) => i.kind)).toEqual(["learn", "task"]);
   });
 
   it("builds a custom problem as a problem item", () => {
@@ -122,7 +123,7 @@ describe("canMoveItem / canTickOn", () => {
   it("rejects other weeks, the same day, slots and ticked items", () => {
     expect(canMoveItem({ ...base, toPlanDayId: day(1, 2) }).ok).toBe(false);
     expect(canMoveItem({ ...base, toPlanDayId: day(1) }).ok).toBe(false);
-    const slot = itemsForDay(curriculum, day(7)).find((i) => i.kind === "slot")!;
+    const slot = itemsForDay(curriculum, "w01-x1").find((i) => i.kind === "slot")!;
     expect(canMoveItem({ ...base, item: slot, toPlanDayId: day(2) }).ok).toBe(false);
     const ticked = indexCompletions([{ itemId: item.itemId, planDayId: day(1), completedOn: START }]);
     expect(canMoveItem({ ...base, completions: ticked, toPlanDayId: day(2) }).ok).toBe(false);
@@ -156,6 +157,74 @@ describe("extension guard with custom and moved items", () => {
   });
   it("allows it once nothing is on the day", () => {
     expect(removeExtension(ctx({}), 1).ok).toBe(true);
+  });
+});
+
+describe("old-topic and pool problems hide their topic", () => {
+  const all = curriculum.weeks.flatMap((w) => w.days.flatMap((d) => d.problems));
+  const old = all.find((p) => p.role === "old-topic")!;
+  const pool = curriculum.weeks[0]!.pool[0]!;
+  it("reveals the origin week only once attempted", () => {
+    expect(revealedWeek(old, false)).toBeUndefined();
+    expect(revealedWeek(old, true)).toBe(old.fromWeek);
+    expect(revealedWeek(pool, false)).toBeUndefined();
+    expect(revealedWeek(pool, true)).toBe(1);
+    expect(revealedWeek(all[0]!, false)).toBe(1); // core problems always carry their week
+  });
+  it("lists a pool problem only after it has been attempted, still without a week", async () => {
+    expect(buildProblemRows(await planAt("2026-10-28")).some((r) => r.id === pool.id)).toBe(false);
+    await logAttempt(db, { problemId: pool.id, date: "2026-10-28", outcome: "alone", minutes: 20, isRedo: false, completes: [] });
+    const row = buildProblemRows(await planAt("2026-10-28")).find((r) => r.id === pool.id);
+    expect(row).toMatchObject({ attempts: 1, week: undefined });
+  });
+});
+
+describe("redo due and fallback logging (v2: redos and fallbacks are not day items)", () => {
+  const statusAndQueue = async (today: string) => {
+    const plan = await planAt(today);
+    return { status: plan.days.map((d) => d.status), queue: plan.catchUp.map((c) => c.item.itemId), completions: plan.completions.size };
+  };
+
+  it("logging a redo from the Redo due list closes that task and applies the outcome rules", async () => {
+    await db.redos.add({ problemId: "w01-d3-p1", dueOn: "2026-10-31" });
+    await db.redos.add({ problemId: "w01-d3-p1", dueOn: "2026-11-04" }); // the same chain's second redo stays pending
+    const before = await statusAndQueue("2026-11-01");
+    expect((await planAt("2026-11-01")).redoDue).toHaveLength(1);
+
+    await logAttempt(db, { problemId: "w01-d3-p1", date: "2026-11-01", outcome: "alone", minutes: 20, isRedo: true, completes: [] });
+    const redos = await db.redos.orderBy("dueOn").toArray();
+    expect(redos[0]).toMatchObject({ dueOn: "2026-10-31", doneOn: "2026-11-01", closedByAttemptId: expect.any(Number) }); // closed as completed
+    expect(redos[1]).toMatchObject({ dueOn: "2026-11-04" }); // not due yet: only due redos complete
+    expect(redos[1]!.doneOn).toBeUndefined();
+    expect((await planAt("2026-11-01")).redoDue).toHaveLength(0);
+    expect(await statusAndQueue("2026-11-01")).toEqual(before); // no day item, status or catch-up changed
+
+    // a hint instead: closes as attempted and starts one fresh chain (3 days)
+    await db.redos.clear();
+    await db.redos.add({ problemId: "w01-d3-p1", dueOn: "2026-10-31" });
+    await logAttempt(db, { problemId: "w01-d3-p1", date: "2026-11-01", outcome: "hint", minutes: 20, isRedo: true, completes: [] });
+    const after = await db.redos.toArray();
+    expect(after.filter((r) => r.attemptedOn === "2026-11-01")).toHaveLength(1);
+    expect(after.filter((r) => !r.attemptedOn && !r.doneOn).map((r) => r.dueOn)).toEqual(["2026-11-04"]);
+  });
+
+  it("logging the fallback saves a normal attempt (Problems page, journal) but never changes day status or catch-up", async () => {
+    const before = await statusAndQueue("2026-11-01");
+    const fb = "w01-d7-fb";
+    const attemptId = await logAttempt(db, { problemId: fb, date: "2026-11-01", outcome: "hint", minutes: 25, isRedo: false, completes: [] });
+
+    expect(await db.attempts.get(attemptId)).toMatchObject({ problemId: fb, outcome: "hint", minutes: 25 });
+    expect(await db.completions.count()).toBe(0);
+    expect(await statusAndQueue("2026-11-01")).toEqual(before);
+    expect((await db.redos.toArray()).map((r) => [r.problemId, r.dueOn])).toEqual([[fb, "2026-11-04"]]); // normal redo rules
+
+    const plan = await planAt("2026-11-01");
+    expect(plan.problemOf(fb)).toMatchObject({ title: "Set Matrix Zeroes", role: "fallback" }); // resolves for the journal and redo list
+    const row = buildProblemRows(plan).find((r) => r.id === fb)!;
+    expect(row).toMatchObject({ attempts: 1, week: 1, title: "Set Matrix Zeroes" });
+    await saveProblemEntry(db, { problemId: fb, approach: "use first row/col as markers", tags: ["Matrix"] }, "2026-11-01");
+    expect(buildProblemRows(await planAt("2026-11-01")).find((r) => r.id === fb)!.tags).toEqual(["Matrix"]);
+    expect(await statusAndQueue("2026-11-01")).toEqual(before);
   });
 });
 
@@ -331,7 +400,9 @@ describe("problems list", () => {
     await addCustomItem(db, { planDayId: day(1), week: 1, kind: "task", title: "A task" }, "2026-10-27");
     await saveProblemEntry(db, { problemId: "w01-d1-p1", code: "seen = set()  # my Solution", comments: "Tricky TLE", confidence: 2, tags: ["Hash Set"] }, "2026-10-27");
     const rows = buildProblemRows(await planAt("2026-10-28"));
-    expect(rows.filter((r) => r.source === "plan")).toHaveLength(161);
+    expect(rows.filter((r) => r.source === "plan")).toHaveLength(118 + 36 + 6); // core + old-topic + fallbacks; pool is hidden
+    expect(rows.filter((r) => r.source === "plan" && r.week === undefined)).toHaveLength(36); // old-topic: no week label
+    expect(rows.find((r) => r.id === "w01-d7-fb")).toMatchObject({ week: 1, platform: "LeetCode" });
     expect(rows.filter((r) => r.source === "found")).toHaveLength(1);
     expect(rows.filter((r) => r.source === "custom")).toHaveLength(1); // the task is not a problem
 

@@ -2,9 +2,10 @@
 //
 // Item ids (ItemCompletion.itemId):
 //   problem              "w03-d2-p1"
-//   learn item           "w03-d2:learn"
-//   redo slot            "w03-d7:s1", "w03-d7:s2"   (day 7 of every week)
-//                        "w03-x1:s1", "w03-x1:s2"   (every extension day)
+//   learn item           "w03-d2:learn"   (a mock day's "Mock N" row is its learn item)
+//   wrap-up item         "w13-d6:wrapup"  (the last day has no learn item or problems; one manual tick)
+//   redo slot            "w03-x1:s1", "w03-x1:s2"   (every extension day; plan days have none)
+// A day's fallback problem is not an item: it never counts towards status or the catch-up queue.
 // Slots are filled at runtime from the redo / catch-up queues (see fillSlots). They count
 // towards day status, but are never themselves put in the catch-up queue (they consume it).
 
@@ -12,8 +13,10 @@ import { addDays, compareDates } from "./dates";
 import type {
   Curriculum,
   CustomItem,
+  DayKind,
   ItemCompletion,
   ItemMove,
+  MockSlot,
   Problem,
   ProblemAttempt,
   RedoTask,
@@ -36,6 +39,9 @@ export interface DayItem {
   problem?: Problem;
   custom?: CustomItem; // set for custom problems and tasks
   movedFrom?: string; // plan day id the item was moved from
+  /** Learn items only: the curriculum day's kind and mock, copied from its home day so a moved item keeps them. */
+  dayKind?: DayKind;
+  mock?: MockSlot;
 }
 
 /** Edits layered over the curriculum (SPEC 3.13). */
@@ -51,7 +57,8 @@ export function customProblem(c: CustomItem): Problem {
     title: c.title,
     difficulty: c.difficulty ?? "Medium",
     url: c.url ?? "",
-    source: "added",
+    platform: "LeetCode", // only the curriculum's own platforms are typed; a custom item keeps its own `platform` text
+    role: "core",
   };
 }
 
@@ -131,14 +138,22 @@ export function finishDate(schedule: readonly ScheduledDay[]): string | null {
   return schedule.at(-1)?.date ?? null;
 }
 
-/** Curriculum items of a plan day, before moves: learn item + problems. Extension days have none. */
+/**
+ * Curriculum items of a plan day, before moves: the learn item (when the day has one) + problems.
+ * The wrap-up day has neither, so it gets one manual item. Fallbacks are not items. Extension days have none.
+ */
 function curriculumItems(curriculum: Curriculum, id: string): DayItem[] {
   const { week, kind, n } = parsePlanDayId(id);
   if (kind === "extension") return [];
   const d = curriculum.weeks.find((x) => x.week === week)?.days.find((x) => x.day === n);
   if (!d) throw new Error(`Unknown plan day "${id}"`);
+  const learn: DayItem[] = d.learn
+    ? [{ itemId: `${id}:learn`, planDayId: id, kind: "learn", dayKind: d.kind, ...(d.mock ? { mock: d.mock } : {}) }]
+    : d.kind === "wrap-up"
+      ? [{ itemId: `${id}:wrapup`, planDayId: id, kind: "learn", dayKind: d.kind }]
+      : [];
   return [
-    { itemId: `${id}:learn`, planDayId: id, kind: "learn" },
+    ...learn,
     ...d.problems.map((p): DayItem => ({ itemId: p.id, planDayId: id, kind: "problem", problem: p })),
   ];
 }
@@ -148,11 +163,11 @@ const slotItems = (id: string): DayItem[] =>
 
 /**
  * Items on one day, in order: learn item, problems, items moved here, custom items, then redo
- * slots (day 7 and every extension day). Items moved away are left out.
+ * slots (extension days only). Items moved away are left out.
  */
 export function itemsForDay(curriculum: Curriculum, id: string, edits: DayEdits = {}): DayItem[] {
   const { customItems = [], moves = [] } = edits;
-  const { kind, n } = parsePlanDayId(id);
+  const { kind } = parsePlanDayId(id);
   const movedAway = new Set(moves.filter((m) => m.fromPlanDayId === id && m.toPlanDayId !== id).map((m) => m.itemId));
   const own = curriculumItems(curriculum, id).filter((i) => !movedAway.has(i.itemId));
   const movedIn = moves
@@ -170,7 +185,7 @@ export function itemsForDay(curriculum: Curriculum, id: string, edits: DayEdits 
           ? { itemId: c.id, planDayId: id, kind: "problem", problem: customProblem(c), custom: c }
           : { itemId: c.id, planDayId: id, kind: "task", custom: c },
     );
-  const hasSlots = kind === "extension" || n === 7;
+  const hasSlots = kind === "extension";
   return [...own, ...movedIn, ...custom, ...(hasSlots ? slotItems(id) : [])];
 }
 
@@ -232,9 +247,8 @@ export interface SlotFill {
 }
 
 /**
- * Decide what each slot of a day holds.
- *  - Day 7:        redo queue first, then the catch-up queue (any week).
- *  - Extension day: this week's catch-up first, then redos due, then free.
+ * Decide what each slot of an extension day holds (plan days have no slots):
+ * this week's catch-up first, then redos due, then free.
  * Only problems fill slots (they are coding slots). A problem is used at most once.
  * Ticking a filled slot should also tick the underlying catch-up item / complete the redo.
  */
@@ -248,10 +262,10 @@ export function fillSlots(args: {
   const redo = redoDue.map((r) => ({ source: "redo" as const, problemId: r.problemId }));
   const catchUpProblems = catchUp
     .filter((c) => c.item.kind === "problem" && c.item.problem)
-    .filter((c) => day.kind === "plan" || c.week === day.week)
+    .filter((c) => c.week === day.week)
     .map((c) => ({ source: "catchup" as const, problemId: c.item.problem!.id }));
 
-  const candidates = day.kind === "plan" ? [...redo, ...catchUpProblems] : [...catchUpProblems, ...redo];
+  const candidates = [...catchUpProblems, ...redo];
   const used = new Set<string>();
   const queue = candidates.filter((c) => !used.has(c.problemId) && !!used.add(c.problemId));
 

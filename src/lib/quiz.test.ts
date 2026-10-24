@@ -1,12 +1,11 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { recordAnswer, setCustomItemDay, tickItem } from "./actions";
+import { recordAnswer, setCustomItemDay } from "./actions";
 import { curriculum } from "./curriculum";
 import { DsaDB } from "./db";
 import { itemsForDay } from "./schedule";
 import { derivePlan, type Snapshot } from "./plan";
-import { learnItemToTick, learnKind } from "./learn";
-import { itemLabel } from "./labels";
+import { learnKind } from "./learn";
 import { bank, buildBank, patternOf } from "./questions";
 import {
   BOX_INTERVAL_DAYS,
@@ -185,14 +184,14 @@ describe("question bank (real content)", () => {
   });
 });
 
-describe("learn items", () => {
-  it("classifies every curriculum learn item", () => {
-    const kinds = new Set(curriculum.weeks.flatMap((w) => w.days.map((d) => learnKind(d.learn))));
-    expect(kinds).toEqual(new Set(["other", "weekly-quiz", "drill", "review"]));
-    expect(learnKind("Weekly quiz (30+ MCQs)")).toBe("weekly-quiz");
-    expect(learnKind("Pattern drill (5 min)")).toBe("drill");
-    expect(learnKind("Review quiz (15 questions from past weeks, weighted to mistakes)")).toBe("review");
-    expect(learnKind("Visuals + Python templates")).toBe("other");
+describe("learnKind", () => {
+  it("is read from the curriculum day, never from label text", () => {
+    const kinds = new Set(curriculum.weeks.flatMap((w) => w.days.flatMap((d) => itemsForDay(curriculum, `w${String(w.week).padStart(2, "0")}-d${d.day}`).filter((i) => i.kind === "learn").map((i) => learnKind(i)))));
+    expect(kinds).toEqual(new Set(["mock", "new-topic", "other"]));
+    expect(learnKind(itemsForDay(curriculum, "w01-d1")[0]!)).toBe("mock"); // a mock beats the new-topic kind
+    expect(learnKind(itemsForDay(curriculum, "w02-d1")[0]!)).toBe("new-topic"); // no mock on Week 2 Day 1
+    expect(learnKind(itemsForDay(curriculum, "w13-d6")[0]!)).toBe("other"); // wrap-up
+    expect(learnKind({ kind: "problem" })).toBe("other");
   });
 });
 
@@ -219,34 +218,6 @@ async function planAt(today: string) {
   };
   return derivePlan(curriculum, snap, today);
 }
-
-describe("learnItemToTick", () => {
-  it("picks today's open learn item when its kind matches", async () => {
-    const plan = await planAt("2026-10-27"); // week 1 day 2 = weekly quiz
-    expect(learnItemToTick(plan, "weekly-quiz", 1)).toEqual({ itemId: "w01-d2:learn", planDayId: "w01-d2" });
-    expect(learnItemToTick(plan, "drill")).toBeNull(); // nothing open for it yet
-  });
-  it("does not tick today's item for another week's weekly quiz", async () => {
-    const plan = await planAt("2026-11-03"); // week 2 day 2 = weekly quiz of week 2
-    expect(learnItemToTick(plan, "weekly-quiz", 1)?.itemId).toBe("w01-d2:learn"); // oldest missed week-1 quiz, from catch-up
-    expect(learnItemToTick(plan, "weekly-quiz", 2)?.itemId).toBe("w02-d2:learn");
-  });
-  it("prefers today's item, then the oldest matching catch-up item, and never re-ticks a done one", async () => {
-    let plan = await planAt("2026-10-30"); // week 1 day 5 = drill; days 3, 4 drills missed
-    expect(learnItemToTick(plan, "drill")?.itemId).toBe("w01-d5:learn"); // today's item first
-    await tickItem(db, { itemId: "w01-d5:learn", planDayId: "w01-d5" }, "2026-10-30");
-    plan = await planAt("2026-10-30");
-    expect(learnItemToTick(plan, "drill")?.itemId).toBe("w01-d3:learn");
-  });
-  it("returns null outside the plan", async () => {
-    expect(learnItemToTick(await planAt("2026-10-01"), "drill")).toBeNull();
-  });
-  it("uses the learn label from the curriculum", async () => {
-    const plan = await planAt("2026-10-27");
-    const item = itemsForDay(curriculum, "w01-d2").find((i) => i.kind === "learn")!;
-    expect(learnKind(itemLabel(plan, item))).toBe("weekly-quiz");
-  });
-});
 
 describe("recordAnswer", () => {
   it("saves the answer and moves the Leitner card for weekly/review answers", async () => {

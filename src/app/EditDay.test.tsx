@@ -97,11 +97,11 @@ describe("Edit day", () => {
 
   it("moves a problem to tomorrow: it leaves its day, shows 'moved from' there, and can be moved back", async () => {
     const { db, user } = await renderApp({ today: "2026-10-26", path: "/day/w01-d1" });
-    const select = items().getByLabelText("Move Contains Duplicate to");
+    const select = items().getByLabelText("Move Plus One to");
     await user.selectOptions(select, "Tue 27 Oct");
     await user.click(within(select.parentElement!).getByRole("button", { name: "Move" }));
     await waitFor(async () => expect(await db.itemMoves.get("w01-d1-p1")).toMatchObject({ fromPlanDayId: "w01-d1", toPlanDayId: "w01-d2" }));
-    await waitFor(() => expect(items().queryByRole("checkbox", { name: "Contains Duplicate" })).not.toBeInTheDocument());
+    await waitFor(() => expect(items().queryByRole("checkbox", { name: "Plus One" })).not.toBeInTheDocument());
   });
 
   it("shows a moved item on its new day with 'moved from'", async () => {
@@ -111,27 +111,30 @@ describe("Edit day", () => {
       seed: async (d) => void (await d.itemMoves.put({ itemId: "w01-d1-p1", fromPlanDayId: "w01-d1", toPlanDayId: "w01-d2", movedOn: "2026-10-26" })),
     });
     const checklist = within(screen.getByRole("region", { name: "Today's checklist" }));
-    expect(checklist.getByRole("checkbox", { name: "Contains Duplicate" })).toBeInTheDocument();
+    expect(checklist.getByRole("checkbox", { name: "Plus One" })).toBeInTheDocument();
     expect(checklist.getByText(/moved from Mon 26 Oct/)).toBeInTheDocument();
   });
 
   it("ticking with yesterday's date keeps the day 'done', not 'done late'", async () => {
     const { db, user } = await renderApp({ today: "2026-10-28", path: "/day/w01-d2" });
-    const dayItems = ["w01-d2:learn", "w01-d2-p1", "w01-d2-p2"];
-    // learn item: date dialog (defaults to the day's date)
-    await user.click(items().getAllByRole("checkbox")[0]!);
-    await user.click(within(screen.getByRole("dialog", { name: "Mark as done" })).getByRole("button", { name: "Save" }));
-    await waitFor(async () => expect(await db.completions.get("w01-d2:learn")).toMatchObject({ completedOn: "2026-10-27" }));
-    for (const i of [1, 2]) {
+    const dayItems = ["w01-d2-p1", "w01-d2-p2", "w01-d2-p3"];
+    for (const [i, id] of dayItems.entries()) {
       await user.click(items().getAllByRole("checkbox")[i]!);
       const dialog = within(screen.getByRole("dialog", { name: "Log problem" }));
       expect(dialog.getByLabelText("Date done")).toHaveValue("2026-10-27");
       await user.click(dialog.getByRole("button", { name: "Save" }));
-      await waitFor(async () => expect(await db.completions.get(dayItems[i]!)).toBeTruthy());
+      await waitFor(async () => expect(await db.completions.get(id)).toBeTruthy());
     }
     expect((await db.completions.toArray()).every((c) => c.completedOn === "2026-10-27")).toBe(true);
     expect(await screen.findByText(new RegExp(`${STATUS_META.done.glyph} ${STATUS_META.done.label}$`))).toBeInTheDocument();
     expect(screen.queryByText(/Done late/)).not.toBeInTheDocument();
+  });
+
+  it("ticks a Mock row with a chosen date through the date dialog", async () => {
+    const { db, user } = await renderApp({ today: "2026-10-28", path: "/day/w01-d1" });
+    await user.click(items().getAllByRole("checkbox")[0]!); // the learn item of a mock day
+    await user.click(within(screen.getByRole("dialog", { name: "Mark as done" })).getByRole("button", { name: "Save" }));
+    await waitFor(async () => expect(await db.completions.get("w01-d1:learn")).toMatchObject({ completedOn: "2026-10-26" }));
   });
 
   it("rejects a tick date after today and disables ticking on a future day", async () => {
@@ -229,7 +232,7 @@ describe("Problem journal", () => {
       },
     });
     const list = () => within(screen.getByRole("list", { name: "Problems" }));
-    expect(main().getByRole("status")).toHaveTextContent("162 of 162 problems");
+    expect(main().getByRole("status")).toHaveTextContent("161 of 161 problems");
     await user.selectOptions(main().getByLabelText("Source"), "found");
     expect(list().getAllByRole("listitem")).toHaveLength(1);
     await user.selectOptions(main().getByLabelText("Source"), "");
@@ -242,7 +245,7 @@ describe("Problem journal", () => {
 
   it("saves a journal entry on a plan problem and logs another attempt, scheduling redos", async () => {
     const { db, user } = await renderApp({ today: "2026-10-28", path: "/problems/w01-d1-p1" });
-    expect(await main().findByRole("heading", { level: 1, name: "Contains Duplicate" })).toBeInTheDocument();
+    expect(await main().findByRole("heading", { level: 1, name: "Plus One" })).toBeInTheDocument();
     const journal = within(screen.getByRole("form", { name: "Journal" }));
     await user.type(journal.getByLabelText(/My solution/), "def f(nums):\n    return len(set(nums)) != len(nums)");
     await user.type(journal.getByLabelText("Time complexity"), "O(n)");
@@ -265,6 +268,22 @@ describe("Problem journal", () => {
     await user.type(main().getByLabelText("Redo on"), "2026-11-10");
     await user.click(main().getByRole("button", { name: "Redo later" }));
     await waitFor(async () => expect((await db.redos.toArray()).map((r) => r.dueOn)).toContain("2026-11-10"));
+  });
+
+  it("an old-topic problem's page hides its origin week until it has been attempted", async () => {
+    const { user } = await renderApp({ today: "2026-11-05", path: "/problems/w02-d4-p1" });
+    expect(await main().findByRole("heading", { level: 1, name: "Reverse Words in a String" })).toBeInTheDocument();
+    expect(main().getByText(/^Plan/).textContent).toBe("Plan · LeetCode"); // no week yet
+    await user.click(main().getByRole("button", { name: "Log another attempt" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(main().getByText(/^Plan/).textContent).toBe("Plan · Week 1 · LeetCode")); // revealed after the attempt
+  });
+
+  it("the Problems list shows no week for an old-topic problem", async () => {
+    await renderApp({ today: "2026-11-05", path: "/problems" });
+    const row = within(screen.getByRole("list", { name: "Problems" })).getByRole("link", { name: "Reverse Words in a String" }).closest("li")!;
+    expect(row.textContent).not.toMatch(/Week/);
+    expect(row.textContent).toMatch(/LeetCode/);
   });
 
   it("an unknown problem shows a not-found message", async () => {

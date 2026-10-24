@@ -25,7 +25,7 @@ export function WeeklyQuizPage() {
       ) : questions.length === 0 ? (
         <p className="mt-4 text-slate-500">No questions for Week {week} yet.</p>
       ) : (
-        <QuizSession key={week} title={`Week ${week} quiz`} kind="weekly-quiz" week={week} mode="weekly" questions={questions} />
+        <QuizSession key={week} title={`Week ${week} quiz`} mode="weekly" questions={questions} />
       )}
     </div>
   );
@@ -58,7 +58,7 @@ export function ReviewQuizPage() {
       ) : questions.length === 0 ? (
         <p className="mt-4 text-slate-500">No questions to review yet.</p>
       ) : (
-        <QuizSession title="Review quiz" kind="review" mode="review" questions={questions} />
+        <QuizSession title="Review quiz" mode="review" questions={questions} />
       )}
     </div>
   );

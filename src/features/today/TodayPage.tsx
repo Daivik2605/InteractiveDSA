@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { logAttempt, setRestDay, tickItem, undoAttempt, untickItem, type LogInput } from "../../lib/actions";
-import { problemsUpTo } from "../../lib/curriculum";
+import { curriculumDay, DAY_KIND_LABEL, problemsUpTo } from "../../lib/curriculum";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
-import { itemLabel } from "../../lib/labels";
+import { itemLabel, platformOf } from "../../lib/labels";
 import type { Plan } from "../../lib/plan";
 import { learnKind } from "../../lib/learn";
-import { canAddRestDay, fillSlots, parsePlanDayId, type DayItem } from "../../lib/schedule";
+import { canAddRestDay, fillSlots, type DayItem } from "../../lib/schedule";
 import type { Problem } from "../../types/content";
 import { STATUS_META } from "../calendar/status";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
@@ -33,14 +33,15 @@ export function TodayPage() {
   );
 }
 
-/** A "Start …" link for learn items that are a quiz, drill or review. */
-function learnLink(plan: Plan, item: DayItem) {
-  const kind = learnKind(itemLabel(plan, item));
-  if (kind === "other" || plan.completions.has(item.itemId)) return undefined;
-  const { week } = parsePlanDayId(item.planDayId);
-  const to = kind === "weekly-quiz" ? `/quiz/week/${week}` : kind === "drill" ? "/quiz/drill" : "/quiz/review";
-  const text = kind === "weekly-quiz" ? "Start weekly quiz" : kind === "drill" ? "Start pattern drill" : "Start review quiz";
-  return <Link to={to} className="text-indigo-700 underline dark:text-indigo-300">{text}</Link>;
+/** A mock day's learn item is its "Mock N" row; the plan's own text (if more than "Mock N") becomes the subtitle. */
+function learnRow(plan: Plan, item: DayItem): { label: string; meta: string } {
+  const text = itemLabel(plan, item);
+  const moved = item.movedFrom ? ` · moved from ${movedLabel(plan, item.movedFrom)}` : "";
+  if (learnKind(item) !== "mock") return { label: text, meta: `${item.dayKind === "wrap-up" ? "Wrap-up" : "Learn"}${moved}` };
+  const m = item.mock!;
+  const badge = m.diagnostic ? "Diagnostic: your score is the baseline" : m.final ? "Final mock" : "";
+  const extra = text === `Mock ${m.number}` ? "" : text;
+  return { label: `Mock ${m.number}`, meta: [badge, extra].filter(Boolean).join(" · ") + (moved && ` ${moved}`) };
 }
 
 function movedLabel(plan: Plan, planDayId: string) {
@@ -164,6 +165,9 @@ function TodayBody() {
   );
 
   const redoProblems = [...new Map(plan.redoDue.map((r) => [r.problemId, r])).values()];
+  const curDay = kind === "plan" ? curriculumDay(planDayId) : undefined;
+  const fallback = curDay?.fallback && plan.redoDue.length === 0 ? curDay.fallback : null;
+  const fallbackTries = fallback ? plan.snapshot.attempts.filter((a) => a.problemId === fallback.id).length : 0;
   const restOn = plan.restDates.has(today);
   const restCheck = canAddRestDay(plan.schedule, plan.restDates, today);
 
@@ -173,12 +177,19 @@ function TodayBody() {
         {kind === "extension" ? `Week ${week} · Extension day ${n}` : `Week ${week} · Day ${n}`} · {formatShort(today)}
         <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">{meta.glyph} {meta.label}</span>
       </p>
+      {(curDay || kind === "extension") && (
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400" aria-label="Day type">
+          {curDay ? DAY_KIND_LABEL[curDay.kind] : "Extension day"}
+          {curDay?.timedMinutes ? ` · ${curDay.timedMinutes} min per problem` : ""}
+        </p>
+      )}
+      {curDay?.codingNote && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{curDay.codingNote}</p>}
       {error && <p role="alert" className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
 
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={itemLabel(plan, item)} meta={item.movedFrom ? `Learn · moved from ${movedLabel(plan, item.movedFrom)}` : "Learn"} actions={learnLink(plan, item)} />
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} />
           ) : item.kind === "task" ? (
             <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
           ) : item.kind === "problem" ? (
@@ -188,6 +199,7 @@ function TodayBody() {
               onToggle={() => askProblem(item)}
               label={item.problem!.title}
               problem={item.problem}
+              platform={platformOf(plan, item.problem!)}
               meta={item.movedFrom ? `moved from ${movedLabel(plan, item.movedFrom)}` : item.custom ? "Added by you" : undefined}
             />
           ) : (
@@ -250,6 +262,24 @@ function TodayBody() {
         </Section>
       )}
 
+      {fallback && (
+        <Section title="Try this instead" hint="No redos are due. This is logged as a normal attempt, but it never counts toward today's checklist or the catch-up queue.">
+          <li className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+            <div>
+              <a href={fallback.url} target="_blank" rel="noopener noreferrer" className="font-medium text-indigo-700 hover:underline dark:text-indigo-300">{fallback.title}<span className="sr-only"> (opens in a new tab)</span></a>
+              <p className="text-xs text-slate-500">{fallback.difficulty} · {fallback.platform}{fallbackTries > 0 ? ` · ${fallbackTries} attempt${fallbackTries === 1 ? "" : "s"} logged` : ""}</p>
+            </div>
+            <button
+              type="button"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700"
+              onClick={() => setLogging({ title: "Log fallback problem", problem: fallback, build: base(fallback, {}) })}
+            >
+              Log attempt
+            </button>
+          </li>
+        </Section>
+      )}
+
       {plan.catchUp.length > 0 && (
         <Section title="Catch-up queue" hint="Unfinished items from earlier days, oldest first.">
           {plan.catchUp.map((c) => (
@@ -257,8 +287,9 @@ function TodayBody() {
               key={c.item.itemId}
               checked={false}
               onToggle={() => (c.item.kind === "problem" ? askProblem(c.item, "Log catch-up problem") : tickItem(db, { itemId: c.item.itemId, planDayId: c.planDayId }, today))}
-              label={itemLabel(plan, c.item)}
+              label={c.item.kind === "learn" ? learnRow(plan, c.item).label : itemLabel(plan, c.item)}
               problem={c.item.problem}
+              platform={c.item.problem ? platformOf(plan, c.item.problem) : undefined}
               meta={`from ${formatShort(c.fromDate)}${c.item.movedFrom ? ` · moved from ${movedLabel(plan, c.item.movedFrom)}` : ""}`}
             />
           ))}
@@ -287,6 +318,7 @@ function TodayBody() {
         <LogModal
           title={logging.title}
           problem={logging.problem}
+          platform={logging.problem ? platformOf(plan, logging.problem) : undefined}
           choices={logging.choices}
           onCancel={() => setLogging(null)}
           onSubmit={async (v) => {

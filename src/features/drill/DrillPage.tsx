@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Markdown } from "../../components/Markdown";
-import { recordAnswer, tickItem } from "../../lib/actions";
-import { learnItemToTick } from "../../lib/learn";
+import { recordAnswer } from "../../lib/actions";
 import { currentWeek } from "../../lib/plan";
 import { bank } from "../../lib/questions";
 import { DRILL_SECONDS, patternStats, selectDrill, type DrillItem } from "../../lib/quiz";
@@ -22,15 +21,10 @@ export function DrillPage() {
   const { plan, db } = usePlanContext();
   const [round, setRound] = useState(0);
   const items = useMemo(() => selectDrill({ bank, upToWeek: currentWeek(plan), rng: Math.random }), [round]); // eslint-disable-line react-hooks/exhaustive-deps
-  const ticked = useRef(false);
   const [finished, setFinished] = useState<DrillResult[] | null>(null);
 
-  async function onFinish(results: DrillResult[]) {
+  function onFinish(results: DrillResult[]) {
     setFinished(results);
-    if (ticked.current) return;
-    ticked.current = true;
-    const target = learnItemToTick(plan, "drill");
-    if (target) await tickItem(db, target, plan.today);
   }
 
   return (

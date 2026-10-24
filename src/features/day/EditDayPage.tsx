@@ -14,7 +14,7 @@ import {
   untickItem,
 } from "../../lib/actions";
 import { formatShort } from "../../lib/dates";
-import { itemLabel } from "../../lib/labels";
+import { itemLabel, platformOf } from "../../lib/labels";
 import { canMoveItem, parsePlanDayId, type DayItem, type EvaluatedDay } from "../../lib/schedule";
 import type { Difficulty } from "../../types/content";
 import { AddDayButton } from "../calendar/AddDayButton";
@@ -92,6 +92,7 @@ function EditDay({ day }: { day: EvaluatedDay }) {
               }}
               label={itemLabel(plan, item)}
               problem={item.problem}
+              platform={item.problem ? platformOf(plan, item.problem) : undefined}
               meta={[
                 item.kind === "learn" ? "Learn" : item.kind === "task" ? "Task" : item.custom ? "Added by you" : undefined,
                 item.movedFrom ? `moved from ${formatShort(plan.schedule.find((d) => d.planDayId === item.movedFrom)?.date ?? item.movedFrom)}` : undefined,

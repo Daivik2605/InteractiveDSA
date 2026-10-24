@@ -1,1059 +1,2237 @@
 {
-  "version": 1,
+  "version": 2,
   "defaultStartDate": "2026-10-26",
+  "totalPlanDays": 90,
+  "mockSpec": {
+    "rule": "A plan day is a mock day when its planDay number is odd. Extension days never have a mock.",
+    "parts": [
+      {
+        "part": "A",
+        "name": "MCQs",
+        "minutes": 20,
+        "mix": {
+          "python": 7,
+          "currentAndLastWeek": 6,
+          "spacedReview": 5
+        }
+      },
+      {
+        "part": "B",
+        "name": "Program 1",
+        "minutes": 25,
+        "source": "Unlabelled problem from an earlier week's pool not yet attempted (Weeks 1-2: HackerRank Python domain or the Week 1 pool)"
+      },
+      {
+        "part": "C",
+        "name": "Program 2",
+        "minutes": 30,
+        "when": "program2 = true",
+        "source": "practicalTasks unlocked by this week, else a CodeSignal-style implementation problem"
+      },
+      {
+        "part": "D",
+        "name": "Extra",
+        "minutes": 10,
+        "rotation": [
+          "debug",
+          "explain-aloud",
+          "complexity-check"
+        ]
+      }
+    ],
+    "pythonThemes": [
+      {
+        "id": 1,
+        "title": "Types, mutability, identity (is vs ==), truthiness"
+      },
+      {
+        "id": 2,
+        "title": "Lists: slicing, shallow vs deep copy, the [[0]*n]*m trap, cost of common operations"
+      },
+      {
+        "id": 3,
+        "title": "Strings: immutability, join vs +=, slicing, common methods, f-strings"
+      },
+      {
+        "id": 4,
+        "title": "Dicts and sets: hashability, insertion order, get/setdefault, defaultdict, Counter"
+      },
+      {
+        "id": 5,
+        "title": "Comprehensions, generator expressions, any/all, zip, enumerate"
+      },
+      {
+        "id": 6,
+        "title": "Functions: mutable default arguments, *args/**kwargs, keyword-only parameters, LEGB scope, global/nonlocal"
+      },
+      {
+        "id": 7,
+        "title": "Sorting: key functions, stability, sort vs sorted, tuple comparison, cmp_to_key"
+      },
+      {
+        "id": 8,
+        "title": "collections, heapq, bisect: deque, max-heap and tuple tricks, bisect_left vs bisect_right"
+      },
+      {
+        "id": 9,
+        "title": "Numbers: // and % with negatives, big ints, float precision, bit operators, ~x"
+      },
+      {
+        "id": 10,
+        "title": "Recursion: call stack, recursion limit, functools.cache/lru_cache, recursion to iteration"
+      },
+      {
+        "id": 11,
+        "title": "Closures, late binding in loops, lambdas, decorators with functools.wraps"
+      },
+      {
+        "id": 12,
+        "title": "Iterators and generators: yield, yield from, StopIteration, itertools"
+      },
+      {
+        "id": 13,
+        "title": "OOP: __repr__, __eq__/__hash__, __lt__ for heaps, @dataclass, classmethod/staticmethod, super(), MRO"
+      },
+      {
+        "id": 14,
+        "title": "Exceptions and context managers: try/except/else/finally order, custom exceptions, with"
+      },
+      {
+        "id": 15,
+        "title": "Runtime: the GIL, threads vs processes, asyncio basics, generator vs list memory"
+      }
+    ]
+  },
+  "practicalTasks": [
+    {
+      "id": "pt-01",
+      "title": "Word stats",
+      "levels": [
+        "Count words in a text",
+        "Top k words ignoring stopwords",
+        "Most common bigrams"
+      ],
+      "unlockWeek": 2
+    },
+    {
+      "id": "pt-02",
+      "title": "Bank ledger",
+      "levels": [
+        "Apply transactions to balances",
+        "Reject overdrafts with a reason",
+        "Monthly statement per account"
+      ],
+      "unlockWeek": 2
+    },
+    {
+      "id": "pt-03",
+      "title": "Group-by report",
+      "levels": [
+        "Sum a list of dicts by key",
+        "Join two lists of dicts on id",
+        "Top 3 per group, sorted"
+      ],
+      "unlockWeek": 2
+    },
+    {
+      "id": "pt-04",
+      "title": "Log analyzer",
+      "levels": [
+        "Parse request log lines",
+        "Requests and average latency per endpoint",
+        "Sessionize users with a 30-minute gap"
+      ],
+      "unlockWeek": 4
+    },
+    {
+      "id": "pt-05",
+      "title": "Rover on a grid",
+      "levels": [
+        "Run L/R/F commands",
+        "Obstacles stop the rover",
+        "Several rovers that can't collide"
+      ],
+      "unlockWeek": 3
+    },
+    {
+      "id": "pt-06",
+      "title": "Rate limiter",
+      "levels": [
+        "Fixed window per user",
+        "Sliding window log",
+        "Token bucket with refill"
+      ],
+      "unlockWeek": 5
+    },
+    {
+      "id": "pt-07",
+      "title": "Key-value store",
+      "levels": [
+        "get/set/delete",
+        "Keys with TTL",
+        "begin/rollback/commit transactions"
+      ],
+      "unlockWeek": 5
+    },
+    {
+      "id": "pt-08",
+      "title": "Inventory system",
+      "levels": [
+        "Add and remove stock in a class",
+        "Orders that partly fill",
+        "Low-stock alerts in priority order"
+      ],
+      "unlockWeek": 6
+    },
+    {
+      "id": "pt-09",
+      "title": "LRU cache with stats",
+      "levels": [
+        "OrderedDict version",
+        "Own linked list + dict",
+        "Hit/miss rate and a size limit in bytes"
+      ],
+      "unlockWeek": 6
+    },
+    {
+      "id": "pt-10",
+      "title": "Org chart",
+      "levels": [
+        "Build a tree from (employee, manager) rows",
+        "Depth and team size per manager",
+        "Lowest common manager of two people"
+      ],
+      "unlockWeek": 7
+    },
+    {
+      "id": "pt-11",
+      "title": "Leaderboard",
+      "levels": [
+        "add_score and top(k)",
+        "Rank of a player",
+        "Reset, with ties broken by time"
+      ],
+      "unlockWeek": 8
+    },
+    {
+      "id": "pt-12",
+      "title": "Meeting booker",
+      "levels": [
+        "Book a room if free",
+        "Several rooms: pick the first free one",
+        "Fewest rooms needed for a day's requests"
+      ],
+      "unlockWeek": 8
+    },
+    {
+      "id": "pt-13",
+      "title": "Autocomplete",
+      "levels": [
+        "Insert words with counts",
+        "Top 3 by prefix",
+        "Update counts as words are typed"
+      ],
+      "unlockWeek": 9
+    },
+    {
+      "id": "pt-14",
+      "title": "Dependency resolver",
+      "levels": [
+        "Install order for packages",
+        "Detect cycles and name them",
+        "Parallel install batches"
+      ],
+      "unlockWeek": 10
+    },
+    {
+      "id": "pt-15",
+      "title": "Delivery routes",
+      "levels": [
+        "Fewest stops between cities (BFS)",
+        "Cheapest route with costs (Dijkstra)",
+        "Cheapest within k stops"
+      ],
+      "unlockWeek": 12
+    },
+    {
+      "id": "pt-16",
+      "title": "Embedding search",
+      "levels": [
+        "Cosine similarity of two vectors",
+        "Top k nearest from a list",
+        "Cache repeated queries"
+      ],
+      "unlockWeek": 8
+    }
+  ],
   "weeks": [
     {
       "week": 1,
-      "title": "Big-O + Arrays & Strings",
-      "goal": "Analyse the time and space of any loop or recursion; know what every Python list/str operation costs.",
+      "title": "Python toolkit, Big-O, arrays & strings",
+      "goal": "Analyse time and space of any loop or recursion; know what every list, str, dict and set operation costs; edit arrays and matrices in place.",
       "concepts": [
         "Big-O, Big-Θ, Big-Ω; dropping constants",
-        "Best / average / worst case",
-        "Space: auxiliary vs input, recursion stack",
-        "Amortized analysis (list.append)",
-        "Python list = dynamic array; str is immutable",
-        "Matrix traversal (rows, cols, layers)"
+        "Cost of list, str, dict and set operations in CPython",
+        "list as a dynamic array; amortized append",
+        "str is immutable; join vs +=",
+        "In-place edits and read/write pointers",
+        "Matrix traversal: rows, columns, layers"
       ],
       "visuals": [
-        "Growth-rate race: O(1) … O(n!) as n grows",
-        "Dynamic array: append, resize (capacity doubling), insert at front shifting",
+        "Growth-rate race: O(1) … O(n!)",
+        "Dynamic array append and resize",
         "Matrix rotate = transpose + reverse rows",
         "Spiral traversal shrinking boundaries"
       ],
       "templates": [
-        "Prefix/suffix product pass",
-        "In-place matrix transpose"
+        "Prefix/suffix pass",
+        "Read/write pointer",
+        "Transpose + reverse",
+        "Boundary-shrinking spiral"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 1,
+          "kind": "new-topic",
+          "mock": {
+            "number": 1,
+            "pythonTheme": 1,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": true,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 1 (diagnostic) + new topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 1,
-              "title": "Contains Duplicate",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/contains-duplicate/",
-              "source": "original",
-              "id": "w01-d1-p1"
-            },
-            {
-              "lcNumber": 140,
+              "platform": "LeetCode",
+              "lcNumber": 66,
               "title": "Plus One",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/plus-one/",
-              "source": "original",
-              "id": "w01-d1-p2"
+              "id": "w01-d1-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 2,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
+              "platform": "LeetCode",
+              "lcNumber": 88,
               "title": "Merge Sorted Array",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/merge-sorted-array/",
-              "source": "added",
-              "id": "w01-d2-p1"
+              "id": "w01-d2-p1",
+              "role": "core"
             },
             {
+              "platform": "LeetCode",
+              "lcNumber": 26,
+              "title": "Remove Duplicates from Sorted Array",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/",
+              "id": "w01-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 14,
               "title": "Longest Common Prefix",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/longest-common-prefix/",
-              "source": "added",
-              "id": "w01-d2-p2"
+              "id": "w01-d2-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 3,
+          "kind": "topic",
+          "mock": {
+            "number": 2,
+            "pythonTheme": 2,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 2",
           "problems": [
             {
-              "lcNumber": 2,
-              "title": "Product of Array Except Self",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/product-of-array-except-self/",
-              "source": "original",
-              "id": "w01-d3-p1"
-            },
-            {
-              "lcNumber": 3,
-              "title": "Valid Sudoku",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/valid-sudoku/",
-              "source": "original",
-              "id": "w01-d3-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 4,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 136,
-              "title": "Rotate Image",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/rotate-image/",
-              "source": "original",
-              "id": "w01-d4-p1"
-            },
-            {
-              "lcNumber": 137,
-              "title": "Spiral Matrix",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/spiral-matrix/",
-              "source": "original",
-              "id": "w01-d4-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 5,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 138,
-              "title": "Set Matrix Zeroes",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/set-matrix-zeroes/",
-              "source": "original",
-              "id": "w01-d5-p1"
-            },
-            {
-              "lcNumber": 142,
-              "title": "Multiply Strings",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/multiply-strings/",
-              "source": "original",
-              "id": "w01-d5-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 6,
-          "learn": "Timed session: 45 min per problem",
-          "problems": [
-            {
-              "lcNumber": 141,
-              "title": "Pow(x, n)",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/powx-n/",
-              "source": "original",
-              "id": "w01-d6-p1"
-            },
-            {
-              "title": "Rotate Array",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/rotate-array/",
-              "source": "added",
-              "id": "w01-d6-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
-        }
-      ],
-      "problemCount": 12
-    },
-    {
-      "week": 2,
-      "title": "Hashing, Prefix Sums & Bit Tricks",
-      "goal": "Turn O(n²) searches into O(n) with dict/set; use prefix sums and XOR tricks.",
-      "concepts": [
-        "Hash function, collisions, load factor, resizing",
-        "dict/set O(1) avg vs O(n) worst; hashable keys",
-        "Counter / defaultdict",
-        "Prefix sums + hashmap of prefix counts",
-        "Binary, &, |, ^, <<, >>; x & (x-1); 32-bit masking in Python"
-      ],
-      "visuals": [
-        "Hash table buckets with chaining and a resize",
-        "Prefix-sum array and the 'prefix − k' lookup",
-        "XOR cancelling pairs bit by bit"
-      ],
-      "templates": [
-        "Seen-set / complement lookup",
-        "Prefix sum + count map",
-        "Frequency bucket sort"
-      ],
-      "days": [
-        {
-          "day": 1,
-          "learn": "Visuals + Python templates",
-          "problems": [
-            {
-              "lcNumber": 4,
-              "title": "Valid Anagram",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/valid-anagram/",
-              "source": "original",
-              "id": "w02-d1-p1"
-            },
-            {
-              "lcNumber": 5,
-              "title": "Two Sum",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/two-sum/",
-              "source": "original",
-              "id": "w02-d1-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
-          "problems": [
-            {
-              "lcNumber": 139,
-              "title": "Happy Number",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/happy-number/",
-              "source": "original",
-              "id": "w02-d2-p1"
-            },
-            {
-              "lcNumber": 144,
-              "title": "Single Number",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/single-number/",
-              "source": "original",
-              "id": "w02-d2-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 3,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 145,
-              "title": "Number of 1 Bits",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/number-of-1-bits/",
-              "source": "original",
-              "id": "w02-d3-p1"
-            },
-            {
-              "lcNumber": 146,
-              "title": "Counting Bits",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/counting-bits/",
-              "source": "original",
-              "id": "w02-d3-p2"
-            },
-            {
-              "lcNumber": 147,
-              "title": "Reverse Bits",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/reverse-bits/",
-              "source": "original",
-              "id": "w02-d3-p3"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 4,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 148,
-              "title": "Missing Number",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/missing-number/",
-              "source": "original",
-              "id": "w02-d4-p1"
-            },
-            {
-              "lcNumber": 6,
-              "title": "Group Anagrams",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/group-anagrams/",
-              "source": "original",
-              "id": "w02-d4-p2"
-            },
-            {
-              "lcNumber": 7,
-              "title": "Top K Frequent Elements",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/top-k-frequent-elements/",
-              "source": "original",
-              "id": "w02-d4-p3"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 5,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 8,
-              "title": "Longest Consecutive Sequence",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/longest-consecutive-sequence/",
-              "source": "original",
-              "id": "w02-d5-p1"
-            },
-            {
-              "lcNumber": 9,
-              "title": "Subarray Sum Equals K",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/subarray-sum-equals-k/",
-              "source": "original",
-              "id": "w02-d5-p2"
-            },
-            {
-              "lcNumber": 143,
-              "title": "Detect Squares",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/detect-squares/",
-              "source": "original",
-              "id": "w02-d5-p3"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 6,
-          "learn": "Timed session: 45 min per problem",
-          "problems": [
-            {
-              "lcNumber": 149,
-              "title": "Sum of Two Integers",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/sum-of-two-integers/",
-              "source": "original",
-              "id": "w02-d6-p1"
-            },
-            {
-              "lcNumber": 150,
-              "title": "Reverse Integer (then redo your 5 weakest problems)",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/reverse-integer/",
-              "source": "original",
-              "id": "w02-d6-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
-        }
-      ],
-      "problemCount": 15
-    },
-    {
-      "week": 3,
-      "title": "Two Pointers & Sliding Window",
-      "goal": "Instantly recognise sorted-pair and contiguous-subarray/substring problems.",
-      "concepts": [
-        "Opposite-end pointers on sorted input",
-        "Fast/slow and read/write pointers",
-        "Fixed vs variable window",
-        "Why expand/shrink is O(n) (amortized)",
-        "Monotonic deque for window max"
-      ],
-      "visuals": [
-        "Two pointers closing in on a target sum",
-        "3Sum: fixed i + inner two pointers, skipping duplicates",
-        "Variable window expanding and shrinking over a string",
-        "Trapping rain water: left/right max"
-      ],
-      "templates": [
-        "Opposite-end two pointers",
-        "Variable sliding window with counts",
-        "Monotonic deque"
-      ],
-      "days": [
-        {
-          "day": 1,
-          "learn": "Visuals + Python templates",
-          "problems": [
-            {
-              "lcNumber": 10,
-              "title": "Valid Palindrome",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/valid-palindrome/",
-              "source": "original",
-              "id": "w03-d1-p1"
-            },
-            {
-              "lcNumber": 16,
+              "platform": "LeetCode",
+              "lcNumber": 121,
               "title": "Best Time to Buy and Sell Stock",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
-              "source": "original",
-              "id": "w03-d1-p2"
+              "id": "w01-d3-p1",
+              "role": "core"
             }
           ],
-          "codingNote": null
-        },
-        {
-          "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
-          "problems": [
-            {
-              "lcNumber": 11,
-              "title": "Two Sum II - Input Array Is Sorted",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
-              "source": "original",
-              "id": "w03-d2-p1"
-            },
-            {
-              "lcNumber": 12,
-              "title": "Sort Colors",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/sort-colors/",
-              "source": "original",
-              "id": "w03-d2-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 3,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 13,
-              "title": "3Sum",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/3sum/",
-              "source": "original",
-              "id": "w03-d3-p1"
-            },
-            {
-              "lcNumber": 14,
-              "title": "Container With Most Water",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/container-with-most-water/",
-              "source": "original",
-              "id": "w03-d3-p2"
-            },
-            {
-              "lcNumber": 17,
-              "title": "Longest Substring Without Repeating Characters",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
-              "source": "original",
-              "id": "w03-d3-p3"
-            }
-          ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 4,
+          "kind": "python-fluency",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 18,
-              "title": "Longest Repeating Character Replacement",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/longest-repeating-character-replacement/",
-              "source": "original",
-              "id": "w03-d4-p1"
+              "platform": "HackerRank",
+              "title": "Nested Lists",
+              "difficulty": "Easy",
+              "url": "https://www.hackerrank.com/challenges/nested-list/problem",
+              "id": "w01-d4-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 19,
-              "title": "Permutation in String",
+              "platform": "HackerRank",
+              "title": "Find the Runner-Up Score!",
+              "difficulty": "Easy",
+              "url": "https://www.hackerrank.com/challenges/find-second-maximum-number-in-a-list/problem",
+              "id": "w01-d4-p2",
+              "role": "core"
+            },
+            {
+              "platform": "HackerRank",
+              "title": "collections.Counter()",
+              "difficulty": "Easy",
+              "url": "https://www.hackerrank.com/challenges/collections-counter/problem",
+              "id": "w01-d4-p3",
+              "role": "core"
+            },
+            {
+              "platform": "HackerRank",
+              "title": "Word Order",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/permutation-in-string/",
-              "source": "original",
-              "id": "w03-d4-p2"
+              "url": "https://www.hackerrank.com/challenges/word-order/problem",
+              "id": "w01-d4-p4",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Python fluency on HackerRank"
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 5,
+          "kind": "topic",
+          "mock": {
+            "number": 3,
+            "pythonTheme": 3,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 3",
           "problems": [
             {
-              "lcNumber": 20,
-              "title": "Find All Anagrams in a String",
+              "platform": "LeetCode",
+              "lcNumber": 238,
+              "title": "Product of Array Except Self",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/find-all-anagrams-in-a-string/",
-              "source": "original",
-              "id": "w03-d5-p1"
-            },
-            {
-              "lcNumber": 15,
-              "title": "Trapping Rain Water",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/trapping-rain-water/",
-              "source": "original",
-              "id": "w03-d5-p2"
+              "url": "https://leetcode.com/problems/product-of-array-except-self/",
+              "id": "w01-d5-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 6,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 21,
-              "title": "Minimum Window Substring",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/minimum-window-substring/",
-              "source": "original",
-              "id": "w03-d6-p1"
+              "platform": "LeetCode",
+              "lcNumber": 48,
+              "title": "Rotate Image",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/rotate-image/",
+              "id": "w01-d6-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 22,
-              "title": "Sliding Window Maximum",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/sliding-window-maximum/",
-              "source": "original",
-              "id": "w03-d6-p2"
+              "platform": "LeetCode",
+              "lcNumber": 54,
+              "title": "Spiral Matrix",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/spiral-matrix/",
+              "id": "w01-d6-p2",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "planDay": 7,
+          "kind": "redo",
+          "mock": {
+            "number": 4,
+            "pythonTheme": 4,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 4",
           "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 73,
+            "title": "Set Matrix Zeroes",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/set-matrix-zeroes/",
+            "id": "w01-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
         }
       ],
-      "problemCount": 13
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 283,
+          "title": "Move Zeroes",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/move-zeroes/",
+          "id": "w01-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 118,
+          "title": "Pascal's Triangle",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/pascals-triangle/",
+          "id": "w01-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 228,
+          "title": "Summary Ranges",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/summary-ranges/",
+          "id": "w01-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 189,
+          "title": "Rotate Array",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/rotate-array/",
+          "id": "w01-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 6,
+          "title": "Zigzag Conversion",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/zigzag-conversion/",
+          "id": "w01-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 13,
+          "title": "Roman to Integer",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/roman-to-integer/",
+          "id": "w01-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 68,
+          "title": "Text Justification",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/text-justification/",
+          "id": "w01-pool-07",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 12,
+      "oldTopicCount": 0,
+      "mockCount": 4
+    },
+    {
+      "week": 2,
+      "title": "Hashing, counting, prefix sums",
+      "goal": "Turn O(n²) searches into O(n) with dict and set; count with Counter; answer subarray-sum questions with prefix sums.",
+      "concepts": [
+        "Hash table buckets, collisions, load factor, resizing",
+        "dict/set O(1) average vs O(n) worst",
+        "Hashable keys (tuples, frozenset)",
+        "Counter and defaultdict",
+        "Prefix sums + count map",
+        "Frequency bucket sort"
+      ],
+      "visuals": [
+        "Hash table buckets with a resize",
+        "Prefix-sum array and the prefix − k lookup"
+      ],
+      "templates": [
+        "Complement lookup",
+        "Prefix sum + count map",
+        "Frequency buckets"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "planDay": 8,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 1,
+              "title": "Two Sum",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/two-sum/",
+              "id": "w02-d1-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 242,
+              "title": "Valid Anagram",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/valid-anagram/",
+              "id": "w02-d1-p2",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "planDay": 9,
+          "kind": "topic",
+          "mock": {
+            "number": 5,
+            "pythonTheme": 5,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 5",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 49,
+              "title": "Group Anagrams",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/group-anagrams/",
+              "id": "w02-d2-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "planDay": 10,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 347,
+              "title": "Top K Frequent Elements",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/top-k-frequent-elements/",
+              "id": "w02-d3-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 128,
+              "title": "Longest Consecutive Sequence",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-consecutive-sequence/",
+              "id": "w02-d3-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 36,
+              "title": "Valid Sudoku",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/valid-sudoku/",
+              "id": "w02-d3-p3",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "planDay": 11,
+          "kind": "old-topics",
+          "mock": {
+            "number": 6,
+            "pythonTheme": 6,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 6",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 151,
+              "title": "Reverse Words in a String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/reverse-words-in-a-string/",
+              "id": "w02-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 1
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        },
+        {
+          "day": 5,
+          "planDay": 12,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 303,
+              "title": "Range Sum Query - Immutable",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/range-sum-query-immutable/",
+              "id": "w02-d5-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 560,
+              "title": "Subarray Sum Equals K",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/subarray-sum-equals-k/",
+              "id": "w02-d5-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 525,
+              "title": "Contiguous Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/contiguous-array/",
+              "id": "w02-d5-p3",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "planDay": 13,
+          "kind": "timed",
+          "mock": {
+            "number": 7,
+            "pythonTheme": 7,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 7",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 41,
+              "title": "First Missing Positive",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/first-missing-positive/",
+              "id": "w02-d6-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
+        },
+        {
+          "day": 7,
+          "planDay": 14,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 289,
+              "title": "Game of Life",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/game-of-life/",
+              "id": "w02-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 1
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 443,
+              "title": "String Compression",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/string-compression/",
+              "id": "w02-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 1
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        }
+      ],
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 217,
+          "title": "Contains Duplicate",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/contains-duplicate/",
+          "id": "w02-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 205,
+          "title": "Isomorphic Strings",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/isomorphic-strings/",
+          "id": "w02-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 290,
+          "title": "Word Pattern",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/word-pattern/",
+          "id": "w02-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 383,
+          "title": "Ransom Note",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/ransom-note/",
+          "id": "w02-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 202,
+          "title": "Happy Number",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/happy-number/",
+          "id": "w02-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 169,
+          "title": "Majority Element",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/majority-element/",
+          "id": "w02-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 724,
+          "title": "Find Pivot Index",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/find-pivot-index/",
+          "id": "w02-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 304,
+          "title": "Range Sum Query 2D - Immutable",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/range-sum-query-2d-immutable/",
+          "id": "w02-pool-08",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 229,
+          "title": "Majority Element II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/majority-element-ii/",
+          "id": "w02-pool-09",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 442,
+          "title": "Find All Duplicates in an Array",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/find-all-duplicates-in-an-array/",
+          "id": "w02-pool-10",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 10,
+      "oldTopicCount": 3,
+      "mockCount": 3
+    },
+    {
+      "week": 3,
+      "title": "Two pointers & sliding window",
+      "goal": "Recognise sorted-pair and contiguous-subarray/substring problems instantly and solve them in O(n).",
+      "concepts": [
+        "Opposite-end pointers on sorted input",
+        "Read/write and fast/slow pointers",
+        "Fixed vs variable window",
+        "Why expand/shrink is O(n) amortized",
+        "Skipping duplicates (3Sum)",
+        "Left-max / right-max (Trapping Rain Water)"
+      ],
+      "visuals": [
+        "Two pointers closing in on a target",
+        "Variable window expanding and shrinking",
+        "Trapping rain water left/right max"
+      ],
+      "templates": [
+        "Opposite-end two pointers",
+        "Variable window with a count map"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "planDay": 15,
+          "kind": "new-topic",
+          "mock": {
+            "number": 8,
+            "pythonTheme": 8,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 8 + new topic: cold try, then concepts and templates",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 125,
+              "title": "Valid Palindrome",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/valid-palindrome/",
+              "id": "w03-d1-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "planDay": 16,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 167,
+              "title": "Two Sum II - Input Array Is Sorted",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
+              "id": "w03-d2-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 15,
+              "title": "3Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/3sum/",
+              "id": "w03-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 11,
+              "title": "Container With Most Water",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/container-with-most-water/",
+              "id": "w03-d2-p3",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "planDay": 17,
+          "kind": "topic",
+          "mock": {
+            "number": 9,
+            "pythonTheme": 9,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 9",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 3,
+              "title": "Longest Substring Without Repeating Characters",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+              "id": "w03-d3-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "planDay": 18,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 12,
+              "title": "Integer to Roman",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/integer-to-roman/",
+              "id": "w03-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 1
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 451,
+              "title": "Sort Characters By Frequency",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/sort-characters-by-frequency/",
+              "id": "w03-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 2
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 523,
+              "title": "Continuous Subarray Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/continuous-subarray-sum/",
+              "id": "w03-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 2
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        },
+        {
+          "day": 5,
+          "planDay": 19,
+          "kind": "topic",
+          "mock": {
+            "number": 10,
+            "pythonTheme": 10,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 10",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 567,
+              "title": "Permutation in String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/permutation-in-string/",
+              "id": "w03-d5-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "planDay": 20,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 76,
+              "title": "Minimum Window Substring",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/minimum-window-substring/",
+              "id": "w03-d6-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 42,
+              "title": "Trapping Rain Water",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/trapping-rain-water/",
+              "id": "w03-d6-p2",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
+        },
+        {
+          "day": 7,
+          "planDay": 21,
+          "kind": "redo",
+          "mock": {
+            "number": 11,
+            "pythonTheme": 11,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 11",
+          "problems": [],
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 424,
+            "title": "Longest Repeating Character Replacement",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/longest-repeating-character-replacement/",
+            "id": "w03-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
+        }
+      ],
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 977,
+          "title": "Squares of a Sorted Array",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/squares-of-a-sorted-array/",
+          "id": "w03-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 392,
+          "title": "Is Subsequence",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/is-subsequence/",
+          "id": "w03-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 643,
+          "title": "Maximum Average Subarray I",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/maximum-average-subarray-i/",
+          "id": "w03-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 18,
+          "title": "4Sum",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/4sum/",
+          "id": "w03-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 209,
+          "title": "Minimum Size Subarray Sum",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/minimum-size-subarray-sum/",
+          "id": "w03-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1004,
+          "title": "Max Consecutive Ones III",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/max-consecutive-ones-iii/",
+          "id": "w03-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 30,
+          "title": "Substring with Concatenation of All Words",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/substring-with-concatenation-of-all-words/",
+          "id": "w03-pool-07",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 8,
+      "oldTopicCount": 3,
+      "mockCount": 4
     },
     {
       "week": 4,
-      "title": "Stacks, Queues & Monotonic Stack",
-      "goal": "Use LIFO/FIFO structures and monotonic stacks for 'next greater/smaller' problems.",
+      "title": "Sorting & binary search",
+      "goal": "Write merge sort and quickselect from memory; write bug-free binary search, including search on the answer.",
       "concepts": [
-        "Stack (list) vs queue (collections.deque) and why list.pop(0) is O(n)",
-        "Implementing a queue with two stacks (amortized O(1))",
-        "Min-stack pairing",
+        "Merge sort and quicksort: O(n log n), stability, worst cases",
+        "Quickselect: kth element in average O(n)",
+        "Python sort (Timsort): stable, key=",
+        "Closed vs half-open binary search; off-by-one",
+        "Lower/upper bound with bisect",
+        "Rotated arrays: one half is always sorted",
+        "Binary search on the answer with feasible()"
+      ],
+      "visuals": [
+        "Merge sort split and merge",
+        "lo/mid/hi narrowing",
+        "Answer-space feasible/infeasible line"
+      ],
+      "templates": [
+        "Merge sort",
+        "Quickselect",
+        "lower_bound",
+        "Binary search on answer"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "planDay": 22,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 912,
+              "title": "Sort an Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/sort-an-array/",
+              "id": "w04-d1-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 704,
+              "title": "Binary Search",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/binary-search/",
+              "id": "w04-d1-p2",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "planDay": 23,
+          "kind": "topic",
+          "mock": {
+            "number": 12,
+            "pythonTheme": 12,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 12",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 34,
+              "title": "Find First and Last Position of Element in Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
+              "id": "w04-d2-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 3,
+          "planDay": 24,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 74,
+              "title": "Search a 2D Matrix",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/search-a-2d-matrix/",
+              "id": "w04-d3-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 875,
+              "title": "Koko Eating Bananas",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/koko-eating-bananas/",
+              "id": "w04-d3-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 153,
+              "title": "Find Minimum in Rotated Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
+              "id": "w04-d3-p3",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "planDay": 25,
+          "kind": "old-topics",
+          "mock": {
+            "number": 13,
+            "pythonTheme": 13,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 13",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 75,
+              "title": "Sort Colors",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/sort-colors/",
+              "id": "w04-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 3
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        },
+        {
+          "day": 5,
+          "planDay": 26,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 33,
+              "title": "Search in Rotated Sorted Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+              "id": "w04-d5-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 215,
+              "title": "Kth Largest Element in an Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
+              "id": "w04-d5-p2",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "planDay": 27,
+          "kind": "timed",
+          "mock": {
+            "number": 14,
+            "pythonTheme": 14,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 14",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 4,
+              "title": "Median of Two Sorted Arrays",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+              "id": "w04-d6-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
+        },
+        {
+          "day": 7,
+          "planDay": 28,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 16,
+              "title": "3Sum Closest",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/3sum-closest/",
+              "id": "w04-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 3
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 380,
+              "title": "Insert Delete GetRandom O(1)",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/insert-delete-getrandom-o1/",
+              "id": "w04-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 2
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        }
+      ],
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 35,
+          "title": "Search Insert Position",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/search-insert-position/",
+          "id": "w04-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 852,
+          "title": "Peak Index in a Mountain Array",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/peak-index-in-a-mountain-array/",
+          "id": "w04-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 540,
+          "title": "Single Element in a Sorted Array",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/single-element-in-a-sorted-array/",
+          "id": "w04-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 179,
+          "title": "Largest Number",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/largest-number/",
+          "id": "w04-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 274,
+          "title": "H-Index",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/h-index/",
+          "id": "w04-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 410,
+          "title": "Split Array Largest Sum",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/split-array-largest-sum/",
+          "id": "w04-pool-06",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 9,
+      "oldTopicCount": 3,
+      "mockCount": 3
+    },
+    {
+      "week": 5,
+      "title": "Stacks, queues, monotonic stack & deque",
+      "goal": "Use LIFO/FIFO structures and monotonic stacks/deques for next-greater, span and window-max problems.",
+      "concepts": [
+        "list as a stack; deque as a queue; why list.pop(0) is O(n)",
+        "Queue from two stacks (amortized O(1))",
+        "Min-stack with pairs",
         "Monotonic increasing/decreasing stacks",
+        "Monotonic deque for window max",
         "Expression evaluation"
       ],
       "visuals": [
         "Bracket matching push/pop",
-        "Monotonic stack popping for Daily Temperatures",
+        "Monotonic stack for Daily Temperatures",
         "Largest rectangle: each pop computes an area"
       ],
       "templates": [
         "Monotonic stack of indices",
-        "Stack-based parser"
+        "Monotonic deque",
+        "Stack parser"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 29,
+          "kind": "new-topic",
+          "mock": {
+            "number": 15,
+            "pythonTheme": 15,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 15 + new topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 23,
+              "platform": "LeetCode",
+              "lcNumber": 20,
               "title": "Valid Parentheses",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/valid-parentheses/",
-              "source": "original",
-              "id": "w04-d1-p1"
-            },
-            {
-              "lcNumber": 24,
-              "title": "Implement Queue using Stacks",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/implement-queue-using-stacks/",
-              "source": "original",
-              "id": "w04-d1-p2"
+              "id": "w05-d1-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 30,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "title": "Next Greater Element I",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/next-greater-element-i/",
-              "source": "added",
-              "id": "w04-d2-p1"
-            },
-            {
-              "lcNumber": 25,
+              "platform": "LeetCode",
+              "lcNumber": 155,
               "title": "Min Stack",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/min-stack/",
-              "source": "original",
-              "id": "w04-d2-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 3,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
+              "id": "w05-d2-p1",
+              "role": "core"
+            },
             {
-              "lcNumber": 26,
+              "platform": "LeetCode",
+              "lcNumber": 150,
               "title": "Evaluate Reverse Polish Notation",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
-              "source": "original",
-              "id": "w04-d3-p1"
+              "id": "w05-d2-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 27,
-              "title": "Daily Temperatures",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/daily-temperatures/",
-              "source": "original",
-              "id": "w04-d3-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 4,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 28,
-              "title": "Generate Parentheses",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/generate-parentheses/",
-              "source": "original",
-              "id": "w04-d4-p1"
-            },
-            {
-              "lcNumber": 29,
-              "title": "Car Fleet",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/car-fleet/",
-              "source": "original",
-              "id": "w04-d4-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 5,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "title": "Asteroid Collision",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/asteroid-collision/",
-              "source": "added",
-              "id": "w04-d5-p1"
-            },
-            {
-              "title": "Online Stock Span",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/online-stock-span/",
-              "source": "added",
-              "id": "w04-d5-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 6,
-          "learn": "Timed session: 45 min per problem",
-          "problems": [
-            {
-              "lcNumber": 30,
-              "title": "Largest Rectangle in Histogram",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
-              "source": "original",
-              "id": "w04-d6-p1"
-            },
-            {
-              "title": "Basic Calculator",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/basic-calculator/",
-              "source": "added",
-              "id": "w04-d6-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
-        }
-      ],
-      "problemCount": 12
-    },
-    {
-      "week": 5,
-      "title": "Binary Search",
-      "goal": "Write bug-free binary search and apply it to answer spaces, not just arrays.",
-      "concepts": [
-        "Why O(log n)",
-        "Closed vs half-open templates; avoiding off-by-one",
-        "Lower/upper bound; bisect module",
-        "Rotated arrays: one half is always sorted",
-        "Binary search on the answer (monotonic predicate)"
-      ],
-      "visuals": [
-        "lo/mid/hi narrowing step by step",
-        "Rotated array with the sorted half highlighted",
-        "Answer-space search: feasible/infeasible line"
-      ],
-      "templates": [
-        "lower_bound",
-        "Binary search on answer with feasible()"
-      ],
-      "days": [
-        {
-          "day": 1,
-          "learn": "Visuals + Python templates",
-          "problems": [
-            {
-              "lcNumber": 31,
-              "title": "Binary Search",
+              "platform": "LeetCode",
+              "lcNumber": 232,
+              "title": "Implement Queue using Stacks",
               "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/binary-search/",
-              "source": "original",
-              "id": "w05-d1-p1"
-            },
-            {
-              "title": "Search Insert Position",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/search-insert-position/",
-              "source": "added",
-              "id": "w05-d1-p2"
+              "url": "https://leetcode.com/problems/implement-queue-using-stacks/",
+              "id": "w05-d2-p3",
+              "role": "core"
             }
           ],
-          "codingNote": null
-        },
-        {
-          "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
-          "problems": [
-            {
-              "lcNumber": 32,
-              "title": "Find First and Last Position in Sorted Array",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
-              "source": "original",
-              "id": "w05-d2-p1"
-            },
-            {
-              "lcNumber": 33,
-              "title": "Search a 2D Matrix",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/search-a-2d-matrix/",
-              "source": "original",
-              "id": "w05-d2-p2"
-            }
-          ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 31,
+          "kind": "topic",
+          "mock": {
+            "number": 16,
+            "pythonTheme": 1,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 16",
           "problems": [
             {
-              "lcNumber": 34,
-              "title": "Koko Eating Bananas",
+              "platform": "LeetCode",
+              "lcNumber": 739,
+              "title": "Daily Temperatures",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/koko-eating-bananas/",
-              "source": "original",
-              "id": "w05-d3-p1"
-            },
-            {
-              "lcNumber": 35,
-              "title": "Find Minimum in Rotated Sorted Array",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
-              "source": "original",
-              "id": "w05-d3-p2"
+              "url": "https://leetcode.com/problems/daily-temperatures/",
+              "id": "w05-d3-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 32,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 36,
-              "title": "Search in Rotated Sorted Array",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
-              "source": "original",
-              "id": "w05-d4-p1"
-            },
-            {
-              "lcNumber": 37,
-              "title": "Time Based Key-Value Store",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/time-based-key-value-store/",
-              "source": "original",
-              "id": "w05-d4-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 5,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "title": "Find Peak Element",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/find-peak-element/",
-              "source": "added",
-              "id": "w05-d5-p1"
-            },
-            {
+              "platform": "LeetCode",
+              "lcNumber": 1011,
               "title": "Capacity To Ship Packages Within D Days",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/",
-              "source": "added",
-              "id": "w05-d5-p2"
+              "id": "w05-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 4
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 438,
+              "title": "Find All Anagrams in a String",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-all-anagrams-in-a-string/",
+              "id": "w05-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 3
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 554,
+              "title": "Brick Wall",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/brick-wall/",
+              "id": "w05-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 2
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
+        },
+        {
+          "day": 5,
+          "planDay": 33,
+          "kind": "topic",
+          "mock": {
+            "number": 17,
+            "pythonTheme": 2,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 17",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 853,
+              "title": "Car Fleet",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/car-fleet/",
+              "id": "w05-d5-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 34,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 38,
-              "title": "Median of Two Sorted Arrays",
+              "platform": "LeetCode",
+              "lcNumber": 84,
+              "title": "Largest Rectangle in Histogram",
               "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
-              "source": "original",
-              "id": "w05-d6-p1"
+              "url": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
+              "id": "w05-d6-p1",
+              "role": "core"
             },
             {
-              "title": "Split Array Largest Sum",
+              "platform": "LeetCode",
+              "lcNumber": 239,
+              "title": "Sliding Window Maximum",
               "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/split-array-largest-sum/",
-              "source": "added",
-              "id": "w05-d6-p2"
+              "url": "https://leetcode.com/problems/sliding-window-maximum/",
+              "id": "w05-d6-p2",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "planDay": 35,
+          "kind": "redo",
+          "mock": {
+            "number": 18,
+            "pythonTheme": 3,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 18",
           "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 735,
+            "title": "Asteroid Collision",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/asteroid-collision/",
+            "id": "w05-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
         }
       ],
-      "problemCount": 12
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1047,
+          "title": "Remove All Adjacent Duplicates In String",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string/",
+          "id": "w05-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 496,
+          "title": "Next Greater Element I",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/next-greater-element-i/",
+          "id": "w05-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 933,
+          "title": "Number of Recent Calls",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/number-of-recent-calls/",
+          "id": "w05-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 503,
+          "title": "Next Greater Element II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/next-greater-element-ii/",
+          "id": "w05-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 227,
+          "title": "Basic Calculator II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/basic-calculator-ii/",
+          "id": "w05-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 224,
+          "title": "Basic Calculator",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/basic-calculator/",
+          "id": "w05-pool-06",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 8,
+      "oldTopicCount": 3,
+      "mockCount": 4
     },
     {
       "week": 6,
-      "title": "Linked Lists",
-      "goal": "Manipulate pointers confidently: reverse, merge, detect cycles, design an LRU cache.",
+      "title": "Recursion & linked lists",
+      "goal": "Think recursively (base case + smaller subproblem) and manipulate pointers confidently: reverse, merge, detect cycles, build an LRU cache.",
       "concepts": [
-        "Singly vs doubly linked lists vs arrays",
+        "Base case + smaller subproblem; the call stack",
+        "Python recursion limit",
+        "Divide and conquer (fast power)",
         "Dummy head node",
+        "Reversal in place, iterative and recursive",
         "Fast/slow pointers (Floyd)",
-        "Reversal in place",
-        "Hash map + doubly linked list (LRU)",
-        "Recursion and the call stack"
+        "Hash map + doubly linked list (LRU)"
       ],
       "visuals": [
-        "Reversal: prev/curr/next pointer flip",
-        "Floyd cycle detection meeting point",
-        "LRU: move-to-front and evict tail"
+        "Call stack growing and unwinding",
+        "Reversal: prev/curr/next flip",
+        "Floyd cycle detection",
+        "LRU move-to-front and evict"
       ],
       "templates": [
+        "Recursive skeleton",
         "Iterative reverse",
-        "Find middle with slow/fast",
+        "Slow/fast middle",
         "Dummy-node merge"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 36,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 39,
+              "platform": "LeetCode",
+              "lcNumber": 50,
+              "title": "Pow(x, n)",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/powx-n/",
+              "id": "w06-d1-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 206,
               "title": "Reverse Linked List",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/reverse-linked-list/",
-              "source": "original",
-              "id": "w06-d1-p1"
+              "id": "w06-d1-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 40,
+              "platform": "LeetCode",
+              "lcNumber": 21,
               "title": "Merge Two Sorted Lists",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/merge-two-sorted-lists/",
-              "source": "original",
-              "id": "w06-d1-p2"
+              "id": "w06-d1-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 37,
+          "kind": "topic",
+          "mock": {
+            "number": 19,
+            "pythonTheme": 4,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 19",
           "problems": [
             {
-              "lcNumber": 41,
-              "title": "Linked List Cycle",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/linked-list-cycle/",
-              "source": "original",
-              "id": "w06-d2-p1"
-            },
-            {
-              "lcNumber": 42,
-              "title": "Palindrome Linked List",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/palindrome-linked-list/",
-              "source": "original",
-              "id": "w06-d2-p2"
+              "platform": "LeetCode",
+              "lcNumber": 19,
+              "title": "Remove Nth Node From End of List",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/",
+              "id": "w06-d2-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 38,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 43,
+              "platform": "LeetCode",
+              "lcNumber": 141,
+              "title": "Linked List Cycle",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/linked-list-cycle/",
+              "id": "w06-d3-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 143,
               "title": "Reorder List",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/reorder-list/",
-              "source": "original",
-              "id": "w06-d3-p1"
+              "id": "w06-d3-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 44,
-              "title": "Remove Nth Node From End of List",
+              "platform": "LeetCode",
+              "lcNumber": 2,
+              "title": "Add Two Numbers",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/",
-              "source": "original",
-              "id": "w06-d3-p2"
+              "url": "https://leetcode.com/problems/add-two-numbers/",
+              "id": "w06-d3-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 39,
+          "kind": "old-topics",
+          "mock": {
+            "number": 20,
+            "pythonTheme": 5,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 20",
           "problems": [
             {
-              "lcNumber": 45,
-              "title": "Find the Duplicate Number",
+              "platform": "LeetCode",
+              "lcNumber": 394,
+              "title": "Decode String",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/find-the-duplicate-number/",
-              "source": "original",
-              "id": "w06-d4-p1"
-            },
-            {
-              "lcNumber": 46,
-              "title": "Add Two Numbers",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/add-two-numbers/",
-              "source": "original",
-              "id": "w06-d4-p2"
+              "url": "https://leetcode.com/problems/decode-string/",
+              "id": "w06-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 5
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 40,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 47,
+              "platform": "LeetCode",
+              "lcNumber": 138,
               "title": "Copy List with Random Pointer",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/copy-list-with-random-pointer/",
-              "source": "original",
-              "id": "w06-d5-p1"
+              "id": "w06-d5-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 48,
+              "platform": "LeetCode",
+              "lcNumber": 146,
               "title": "LRU Cache",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/lru-cache/",
-              "source": "original",
-              "id": "w06-d5-p2"
+              "id": "w06-d5-p2",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 41,
+          "kind": "timed",
+          "mock": {
+            "number": 21,
+            "pythonTheme": 6,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 21",
           "problems": [
             {
-              "lcNumber": 49,
-              "title": "Merge K Sorted Lists",
+              "platform": "LeetCode",
+              "lcNumber": 23,
+              "title": "Merge k Sorted Lists",
               "difficulty": "Hard",
               "url": "https://leetcode.com/problems/merge-k-sorted-lists/",
-              "source": "original",
-              "id": "w06-d6-p1"
-            },
-            {
-              "lcNumber": 50,
-              "title": "Reverse Nodes in K-Group",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
-              "source": "original",
-              "id": "w06-d6-p2"
+              "id": "w06-d6-p1",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Divide and conquer now; heap version in Week 8"
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "planDay": 42,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 162,
+              "title": "Find Peak Element",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/find-peak-element/",
+              "id": "w06-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 4
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 71,
+              "title": "Simplify Path",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/simplify-path/",
+              "id": "w06-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 5
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         }
       ],
-      "problemCount": 12
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 509,
+          "title": "Fibonacci Number",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/fibonacci-number/",
+          "id": "w06-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 876,
+          "title": "Middle of the Linked List",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/middle-of-the-linked-list/",
+          "id": "w06-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 234,
+          "title": "Palindrome Linked List",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/palindrome-linked-list/",
+          "id": "w06-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 160,
+          "title": "Intersection of Two Linked Lists",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/intersection-of-two-linked-lists/",
+          "id": "w06-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 779,
+          "title": "K-th Symbol in Grammar",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/k-th-symbol-in-grammar/",
+          "id": "w06-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 24,
+          "title": "Swap Nodes in Pairs",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/swap-nodes-in-pairs/",
+          "id": "w06-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 86,
+          "title": "Partition List",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/partition-list/",
+          "id": "w06-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 92,
+          "title": "Reverse Linked List II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/reverse-linked-list-ii/",
+          "id": "w06-pool-08",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 287,
+          "title": "Find the Duplicate Number",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/find-the-duplicate-number/",
+          "id": "w06-pool-09",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 25,
+          "title": "Reverse Nodes in k-Group",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
+          "id": "w06-pool-10",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 10,
+      "oldTopicCount": 3,
+      "mockCount": 3
     },
     {
       "week": 7,
       "title": "Trees & BST",
-      "goal": "Solve tree problems with DFS that returns values and BFS by level.",
+      "goal": "Solve tree problems with DFS that returns values and BFS by level; validate and search BSTs.",
       "concepts": [
         "Binary tree vs BST; height O(log n) vs O(n)",
-        "Pre/in/post-order and level-order",
-        "Recursive DFS returning values + global answer",
+        "Pre/in/post-order and level order",
+        "DFS returning a value + global answer",
         "Iterative traversal with a stack",
         "BST validation with bounds",
-        "Serialisation"
+        "Lowest common ancestor"
       ],
       "visuals": [
-        "DFS traversal order animation (pre/in/post)",
-        "BFS level by level with a queue",
-        "Max path sum: value returned vs answer updated"
+        "DFS order animation (pre/in/post)",
+        "BFS level by level",
+        "Max path sum: returned vs answer"
       ],
       "templates": [
         "Recursive DFS returning height",
@@ -1063,1168 +2241,2275 @@
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 43,
+          "kind": "new-topic",
+          "mock": {
+            "number": 22,
+            "pythonTheme": 7,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 22 + new topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 51,
+              "platform": "LeetCode",
+              "lcNumber": 226,
               "title": "Invert Binary Tree",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/invert-binary-tree/",
-              "source": "original",
-              "id": "w07-d1-p1"
-            },
-            {
-              "lcNumber": 52,
-              "title": "Maximum Depth of Binary Tree",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
-              "source": "original",
-              "id": "w07-d1-p2"
+              "id": "w07-d1-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 44,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 53,
-              "title": "Same Tree",
+              "platform": "LeetCode",
+              "lcNumber": 104,
+              "title": "Maximum Depth of Binary Tree",
               "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/same-tree/",
-              "source": "original",
-              "id": "w07-d2-p1"
+              "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+              "id": "w07-d2-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 54,
+              "platform": "LeetCode",
+              "lcNumber": 543,
               "title": "Diameter of Binary Tree",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/diameter-of-binary-tree/",
-              "source": "original",
-              "id": "w07-d2-p2"
+              "id": "w07-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 110,
+              "title": "Balanced Binary Tree",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/balanced-binary-tree/",
+              "id": "w07-d2-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 45,
+          "kind": "topic",
+          "mock": {
+            "number": 23,
+            "pythonTheme": 8,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 23",
           "problems": [
             {
-              "lcNumber": 55,
-              "title": "Balanced Binary Tree",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/balanced-binary-tree/",
-              "source": "original",
-              "id": "w07-d3-p1"
-            },
-            {
-              "lcNumber": 56,
-              "title": "Subtree of Another Tree",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/subtree-of-another-tree/",
-              "source": "original",
-              "id": "w07-d3-p2"
-            },
-            {
-              "lcNumber": 57,
-              "title": "Lowest Common Ancestor of a BST",
+              "platform": "LeetCode",
+              "lcNumber": 102,
+              "title": "Binary Tree Level Order Traversal",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
-              "source": "original",
-              "id": "w07-d3-p3"
+              "url": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+              "id": "w07-d3-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 46,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 58,
-              "title": "Binary Tree Level Order Traversal",
+              "platform": "LeetCode",
+              "lcNumber": 148,
+              "title": "Sort List",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
-              "source": "original",
-              "id": "w07-d4-p1"
+              "url": "https://leetcode.com/problems/sort-list/",
+              "id": "w07-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 6
             },
             {
-              "lcNumber": 59,
-              "title": "Binary Tree Right Side View",
+              "platform": "LeetCode",
+              "lcNumber": 402,
+              "title": "Remove K Digits",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/binary-tree-right-side-view/",
-              "source": "original",
-              "id": "w07-d4-p2"
+              "url": "https://leetcode.com/problems/remove-k-digits/",
+              "id": "w07-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 5
             },
             {
-              "lcNumber": 60,
-              "title": "Count Good Nodes in Binary Tree",
+              "platform": "LeetCode",
+              "lcNumber": 981,
+              "title": "Time Based Key-Value Store",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/",
-              "source": "original",
-              "id": "w07-d4-p3"
+              "url": "https://leetcode.com/problems/time-based-key-value-store/",
+              "id": "w07-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 4
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 47,
+          "kind": "topic",
+          "mock": {
+            "number": 24,
+            "pythonTheme": 9,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 24",
           "problems": [
             {
-              "lcNumber": 61,
+              "platform": "LeetCode",
+              "lcNumber": 98,
               "title": "Validate Binary Search Tree",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/validate-binary-search-tree/",
-              "source": "original",
-              "id": "w07-d5-p1"
-            },
-            {
-              "lcNumber": 62,
-              "title": "Kth Smallest Element in a BST",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/",
-              "source": "original",
-              "id": "w07-d5-p2"
-            },
-            {
-              "lcNumber": 63,
-              "title": "Construct Binary Tree from Preorder and Inorder",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
-              "source": "original",
-              "id": "w07-d5-p3"
+              "id": "w07-d5-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 48,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 64,
+              "platform": "LeetCode",
+              "lcNumber": 236,
+              "title": "Lowest Common Ancestor of a Binary Tree",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/",
+              "id": "w07-d6-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 124,
               "title": "Binary Tree Maximum Path Sum",
               "difficulty": "Hard",
               "url": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
-              "source": "original",
-              "id": "w07-d6-p1"
-            },
-            {
-              "lcNumber": 65,
-              "title": "Serialize and Deserialize Binary Tree",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
-              "source": "original",
-              "id": "w07-d6-p2"
+              "id": "w07-d6-p2",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "planDay": 49,
+          "kind": "redo",
+          "mock": {
+            "number": 25,
+            "pythonTheme": 10,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 25",
           "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 230,
+            "title": "Kth Smallest Element in a BST",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/",
+            "id": "w07-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
         }
       ],
-      "problemCount": 15
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 100,
+          "title": "Same Tree",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/same-tree/",
+          "id": "w07-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 572,
+          "title": "Subtree of Another Tree",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/subtree-of-another-tree/",
+          "id": "w07-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 235,
+          "title": "Lowest Common Ancestor of a Binary Search Tree",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/",
+          "id": "w07-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 103,
+          "title": "Binary Tree Zigzag Level Order Traversal",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/",
+          "id": "w07-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 113,
+          "title": "Path Sum II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/path-sum-ii/",
+          "id": "w07-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 114,
+          "title": "Flatten Binary Tree to Linked List",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/flatten-binary-tree-to-linked-list/",
+          "id": "w07-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 129,
+          "title": "Sum Root to Leaf Numbers",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/sum-root-to-leaf-numbers/",
+          "id": "w07-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 450,
+          "title": "Delete Node in a BST",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/delete-node-in-a-bst/",
+          "id": "w07-pool-08",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 8,
+      "oldTopicCount": 3,
+      "mockCount": 4
     },
     {
       "week": 8,
-      "title": "Heaps & Intervals",
-      "goal": "Use heapq for top-k, k-way merge and streaming medians; solve interval problems by sorting.",
+      "title": "Heaps, intervals & greedy",
+      "goal": "Use heapq for top-k, k-way merge and running medians; solve interval problems by sorting; know when greedy is safe.",
       "concepts": [
         "Binary heap as an array; sift up/down",
-        "heapq is a min-heap; negate for max",
+        "heapq is a min-heap: negate for max, tuples for ties",
         "heapify O(n); push/pop O(log n)",
-        "Top-k with a size-k heap",
+        "Size-k heap for top-k",
         "Two heaps for the median",
-        "Intervals: sort by start (merge) vs by end (scheduling)"
+        "Intervals: sort by start (merge) vs by end (scheduling)",
+        "Greedy choice and the exchange argument"
       ],
       "visuals": [
-        "Heap push/pop sifting in tree + array views",
+        "Heap push/pop in tree + array views",
         "Two-heap median balancing",
-        "Merging overlapping intervals on a timeline"
+        "Merging intervals on a timeline",
+        "Jump Game farthest reach"
       ],
       "templates": [
         "Size-k heap",
         "Two heaps",
-        "Merge intervals"
+        "Merge intervals",
+        "Greedy farthest reach"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 50,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 66,
+              "platform": "LeetCode",
+              "lcNumber": 703,
               "title": "Kth Largest Element in a Stream",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/kth-largest-element-in-a-stream/",
-              "source": "original",
-              "id": "w08-d1-p1"
+              "id": "w08-d1-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 67,
+              "platform": "LeetCode",
+              "lcNumber": 1046,
               "title": "Last Stone Weight",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/last-stone-weight/",
-              "source": "original",
-              "id": "w08-d1-p2"
+              "id": "w08-d1-p2",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 51,
+          "kind": "topic",
+          "mock": {
+            "number": 26,
+            "pythonTheme": 11,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 26",
           "problems": [
             {
-              "lcNumber": 68,
+              "platform": "LeetCode",
+              "lcNumber": 973,
               "title": "K Closest Points to Origin",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/k-closest-points-to-origin/",
-              "source": "original",
-              "id": "w08-d2-p1"
-            },
-            {
-              "lcNumber": 69,
-              "title": "Kth Largest Element in an Array",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
-              "source": "original",
-              "id": "w08-d2-p2"
+              "id": "w08-d2-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 52,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 70,
-              "title": "Task Scheduler",
+              "platform": "LeetCode",
+              "lcNumber": 56,
+              "title": "Merge Intervals",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/task-scheduler/",
-              "source": "original",
-              "id": "w08-d3-p1"
+              "url": "https://leetcode.com/problems/merge-intervals/",
+              "id": "w08-d3-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 71,
-              "title": "Design Twitter",
+              "platform": "LeetCode",
+              "lcNumber": 57,
+              "title": "Insert Interval",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/design-twitter/",
-              "source": "original",
-              "id": "w08-d3-p2"
+              "url": "https://leetcode.com/problems/insert-interval/",
+              "id": "w08-d3-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 435,
+              "title": "Non-overlapping Intervals",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/non-overlapping-intervals/",
+              "id": "w08-d3-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 53,
+          "kind": "old-topics",
+          "mock": {
+            "number": 27,
+            "pythonTheme": 12,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 27",
           "problems": [
             {
-              "lcNumber": 132,
-              "title": "Insert Interval",
+              "platform": "LeetCode",
+              "lcNumber": 105,
+              "title": "Construct Binary Tree from Preorder and Inorder Traversal",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/insert-interval/",
-              "source": "original",
-              "id": "w08-d4-p1"
-            },
-            {
-              "lcNumber": 133,
-              "title": "Merge Intervals",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/merge-intervals/",
-              "source": "original",
-              "id": "w08-d4-p2"
+              "url": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
+              "id": "w08-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 7
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 54,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 134,
-              "title": "Non-overlapping Intervals",
+              "platform": "LeetCode",
+              "lcNumber": 621,
+              "title": "Task Scheduler",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/non-overlapping-intervals/",
-              "source": "original",
-              "id": "w08-d5-p1"
+              "url": "https://leetcode.com/problems/task-scheduler/",
+              "id": "w08-d5-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 72,
-              "title": "Find Median from Data Stream",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/find-median-from-data-stream/",
-              "source": "original",
-              "id": "w08-d5-p2"
+              "platform": "LeetCode",
+              "lcNumber": 55,
+              "title": "Jump Game",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/jump-game/",
+              "id": "w08-d5-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 134,
+              "title": "Gas Station",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/gas-station/",
+              "id": "w08-d5-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 55,
+          "kind": "timed",
+          "mock": {
+            "number": 28,
+            "pythonTheme": 13,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 28",
           "problems": [
             {
-              "lcNumber": 135,
-              "title": "Minimum Interval to Include Each Query",
+              "platform": "LeetCode",
+              "lcNumber": 295,
+              "title": "Find Median from Data Stream",
               "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/minimum-interval-to-include-each-query/",
-              "source": "original",
-              "id": "w08-d6-p1"
+              "url": "https://leetcode.com/problems/find-median-from-data-stream/",
+              "id": "w08-d6-p1",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "planDay": 56,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 199,
+              "title": "Binary Tree Right Side View",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/binary-tree-right-side-view/",
+              "id": "w08-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 7
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 61,
+              "title": "Rotate List",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/rotate-list/",
+              "id": "w08-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 6
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         }
       ],
-      "problemCount": 11
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 767,
+          "title": "Reorganize String",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/reorganize-string/",
+          "id": "w08-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 355,
+          "title": "Design Twitter",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/design-twitter/",
+          "id": "w08-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1094,
+          "title": "Car Pooling",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/car-pooling/",
+          "id": "w08-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 452,
+          "title": "Minimum Number of Arrows to Burst Balloons",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/",
+          "id": "w08-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 45,
+          "title": "Jump Game II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/jump-game-ii/",
+          "id": "w08-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1899,
+          "title": "Merge Triplets to Form Target Triplet",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/merge-triplets-to-form-target-triplet/",
+          "id": "w08-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 678,
+          "title": "Valid Parenthesis String",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/valid-parenthesis-string/",
+          "id": "w08-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 502,
+          "title": "IPO",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/ipo/",
+          "id": "w08-pool-08",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1851,
+          "title": "Minimum Interval to Include Each Query",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/minimum-interval-to-include-each-query/",
+          "id": "w08-pool-09",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 10,
+      "oldTopicCount": 3,
+      "mockCount": 3
     },
     {
       "week": 9,
-      "title": "Backtracking & Tries",
-      "goal": "Apply one choose/explore/un-choose template to subsets, permutations and grid search; build a trie.",
+      "title": "Backtracking & tries",
+      "goal": "Apply one choose/explore/un-choose template to subsets, permutations and grid search; build and use a trie.",
       "concepts": [
         "Recursion trees and their size (2ⁿ, n!)",
         "Choose → explore → un-choose",
         "Skipping duplicates after sorting",
         "Pruning",
-        "Trie nodes: children dict + end flag"
+        "Marking and restoring grid cells",
+        "Trie node: children dict + end flag"
       ],
       "visuals": [
         "Recursion tree for subsets of [1,2,3]",
-        "Word Search DFS marking and restoring cells",
+        "Word Search marking and restoring cells",
         "Trie insert/search path"
       ],
       "templates": [
-        "Backtracking template",
+        "Backtracking skeleton",
+        "Grid DFS with restore",
         "Trie class"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 57,
+          "kind": "new-topic",
+          "mock": {
+            "number": 29,
+            "pythonTheme": 14,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 29 + new topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 73,
+              "platform": "LeetCode",
+              "lcNumber": 78,
               "title": "Subsets",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/subsets/",
-              "source": "original",
-              "id": "w09-d1-p1"
-            },
-            {
-              "lcNumber": 74,
-              "title": "Subsets II",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/subsets-ii/",
-              "source": "original",
-              "id": "w09-d1-p2"
+              "id": "w09-d1-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 58,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 75,
+              "platform": "LeetCode",
+              "lcNumber": 39,
               "title": "Combination Sum",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/combination-sum/",
-              "source": "original",
-              "id": "w09-d2-p1"
+              "id": "w09-d2-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 76,
-              "title": "Combination Sum II",
+              "platform": "LeetCode",
+              "lcNumber": 46,
+              "title": "Permutations",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/combination-sum-ii/",
-              "source": "original",
-              "id": "w09-d2-p2"
+              "url": "https://leetcode.com/problems/permutations/",
+              "id": "w09-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 90,
+              "title": "Subsets II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/subsets-ii/",
+              "id": "w09-d2-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 59,
+          "kind": "topic",
+          "mock": {
+            "number": 30,
+            "pythonTheme": 15,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 30",
           "problems": [
             {
-              "lcNumber": 77,
-              "title": "Permutations",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/permutations/",
-              "source": "original",
-              "id": "w09-d3-p1"
-            },
-            {
-              "lcNumber": 78,
+              "platform": "LeetCode",
+              "lcNumber": 79,
               "title": "Word Search",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/word-search/",
-              "source": "original",
-              "id": "w09-d3-p2"
+              "id": "w09-d3-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 60,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 79,
-              "title": "Palindrome Partitioning",
+              "platform": "LeetCode",
+              "lcNumber": 763,
+              "title": "Partition Labels",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/palindrome-partitioning/",
-              "source": "original",
-              "id": "w09-d4-p1"
+              "url": "https://leetcode.com/problems/partition-labels/",
+              "id": "w09-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 8
             },
             {
-              "lcNumber": 80,
-              "title": "Letter Combinations of a Phone Number",
+              "platform": "LeetCode",
+              "lcNumber": 1448,
+              "title": "Count Good Nodes in Binary Tree",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/",
-              "source": "original",
-              "id": "w09-d4-p2"
+              "url": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/",
+              "id": "w09-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 7
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 901,
+              "title": "Online Stock Span",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/online-stock-span/",
+              "id": "w09-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 5
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 61,
+          "kind": "topic",
+          "mock": {
+            "number": 31,
+            "pythonTheme": 1,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 31",
           "problems": [
             {
-              "lcNumber": 82,
+              "platform": "LeetCode",
+              "lcNumber": 208,
               "title": "Implement Trie (Prefix Tree)",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/implement-trie-prefix-tree/",
-              "source": "original",
-              "id": "w09-d5-p1"
-            },
-            {
-              "lcNumber": 83,
-              "title": "Design Add and Search Words Data Structure",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/design-add-and-search-words-data-structure/",
-              "source": "original",
-              "id": "w09-d5-p2"
+              "id": "w09-d5-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 62,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 81,
+              "platform": "LeetCode",
+              "lcNumber": 211,
+              "title": "Design Add and Search Words Data Structure",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/design-add-and-search-words-data-structure/",
+              "id": "w09-d6-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 51,
               "title": "N-Queens",
               "difficulty": "Hard",
               "url": "https://leetcode.com/problems/n-queens/",
-              "source": "original",
-              "id": "w09-d6-p1"
-            },
-            {
-              "lcNumber": 84,
-              "title": "Word Search II",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/word-search-ii/",
-              "source": "original",
-              "id": "w09-d6-p2"
+              "id": "w09-d6-p2",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "planDay": 63,
+          "kind": "redo",
+          "mock": {
+            "number": 32,
+            "pythonTheme": 2,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 32",
           "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 17,
+            "title": "Letter Combinations of a Phone Number",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/",
+            "id": "w09-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
         }
       ],
-      "problemCount": 12
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 77,
+          "title": "Combinations",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/combinations/",
+          "id": "w09-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 216,
+          "title": "Combination Sum III",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/combination-sum-iii/",
+          "id": "w09-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 47,
+          "title": "Permutations II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/permutations-ii/",
+          "id": "w09-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 93,
+          "title": "Restore IP Addresses",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/restore-ip-addresses/",
+          "id": "w09-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 648,
+          "title": "Replace Words",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/replace-words/",
+          "id": "w09-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 212,
+          "title": "Word Search II",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/word-search-ii/",
+          "id": "w09-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 37,
+          "title": "Sudoku Solver",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/sudoku-solver/",
+          "id": "w09-pool-07",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 8,
+      "oldTopicCount": 3,
+      "mockCount": 4
     },
     {
       "week": 10,
-      "title": "Graphs I: BFS, DFS, Topological Sort, Union-Find",
-      "goal": "Model problems as graphs and traverse them in O(V+E).",
+      "title": "Graphs I: BFS, DFS, grids, topological sort, union-find",
+      "goal": "Model problems as graphs and traverse them in O(V + E).",
       "concepts": [
-        "Adjacency list vs matrix",
-        "BFS (shortest path unweighted) vs DFS",
-        "Grids as graphs; visited handling",
+        "Adjacency list vs matrix; building with defaultdict(list)",
+        "BFS (unweighted shortest path) vs DFS",
+        "Grids as graphs; when to mark visited",
         "Multi-source BFS",
         "Topological sort (Kahn) and cycle detection",
-        "Union-Find with path compression + rank"
+        "Union-find with path compression + rank"
       ],
       "visuals": [
-        "BFS wave spreading across a grid",
-        "Topological sort removing zero in-degree nodes",
-        "Union-Find merging components"
+        "BFS wave across a grid",
+        "Kahn's algorithm removing zero in-degree nodes",
+        "Union-find merging components"
       ],
       "templates": [
-        "Grid DFS/BFS",
+        "Grid BFS/DFS",
         "Kahn's algorithm",
         "UnionFind class"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 64,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 85,
+              "platform": "LeetCode",
+              "lcNumber": 200,
               "title": "Number of Islands",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/number-of-islands/",
-              "source": "original",
-              "id": "w10-d1-p1"
+              "id": "w10-d1-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 86,
-              "title": "Max Area of Island",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/max-area-of-island/",
-              "source": "original",
-              "id": "w10-d1-p2"
+              "platform": "LeetCode",
+              "lcNumber": 733,
+              "title": "Flood Fill",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/flood-fill/",
+              "id": "w10-d1-p2",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 65,
+          "kind": "topic",
+          "mock": {
+            "number": 33,
+            "pythonTheme": 3,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 33",
           "problems": [
             {
-              "lcNumber": 87,
-              "title": "Clone Graph",
+              "platform": "LeetCode",
+              "lcNumber": 695,
+              "title": "Max Area of Island",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/clone-graph/",
-              "source": "original",
-              "id": "w10-d2-p1"
-            },
-            {
-              "lcNumber": 88,
-              "title": "Number of Provinces",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/number-of-provinces/",
-              "source": "original",
-              "id": "w10-d2-p2"
+              "url": "https://leetcode.com/problems/max-area-of-island/",
+              "id": "w10-d2-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 66,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 89,
+              "platform": "LeetCode",
+              "lcNumber": 133,
+              "title": "Clone Graph",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/clone-graph/",
+              "id": "w10-d3-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 994,
               "title": "Rotting Oranges",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/rotting-oranges/",
-              "source": "original",
-              "id": "w10-d3-p1"
+              "id": "w10-d3-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 90,
+              "platform": "LeetCode",
+              "lcNumber": 417,
               "title": "Pacific Atlantic Water Flow",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/pacific-atlantic-water-flow/",
-              "source": "original",
-              "id": "w10-d3-p2"
+              "id": "w10-d3-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 67,
+          "kind": "old-topics",
+          "mock": {
+            "number": 34,
+            "pythonTheme": 4,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 34",
           "problems": [
             {
-              "lcNumber": 91,
-              "title": "Surrounded Regions",
+              "platform": "LeetCode",
+              "lcNumber": 22,
+              "title": "Generate Parentheses",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/surrounded-regions/",
-              "source": "original",
-              "id": "w10-d4-p1"
-            },
-            {
-              "lcNumber": 92,
-              "title": "Course Schedule",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/course-schedule/",
-              "source": "original",
-              "id": "w10-d4-p2"
+              "url": "https://leetcode.com/problems/generate-parentheses/",
+              "id": "w10-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 9
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 68,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 93,
+              "platform": "LeetCode",
+              "lcNumber": 207,
+              "title": "Course Schedule",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/course-schedule/",
+              "id": "w10-d5-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 210,
               "title": "Course Schedule II",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/course-schedule-ii/",
-              "source": "original",
-              "id": "w10-d5-p1"
+              "id": "w10-d5-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 94,
+              "platform": "LeetCode",
+              "lcNumber": 684,
               "title": "Redundant Connection",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/redundant-connection/",
-              "source": "original",
-              "id": "w10-d5-p2"
+              "id": "w10-d5-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 69,
+          "kind": "timed",
+          "mock": {
+            "number": 35,
+            "pythonTheme": 5,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 35",
           "problems": [
             {
-              "lcNumber": 95,
+              "platform": "LeetCode",
+              "lcNumber": 127,
               "title": "Word Ladder",
               "difficulty": "Hard",
               "url": "https://leetcode.com/problems/word-ladder/",
-              "source": "original",
-              "id": "w10-d6-p1"
+              "id": "w10-d6-p1",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "planDay": 70,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 846,
+              "title": "Hand of Straights",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/hand-of-straights/",
+              "id": "w10-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 8
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 131,
+              "title": "Palindrome Partitioning",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/palindrome-partitioning/",
+              "id": "w10-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 9
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         }
       ],
-      "problemCount": 11
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 997,
+          "title": "Find the Town Judge",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/find-the-town-judge/",
+          "id": "w10-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1971,
+          "title": "Find if Path Exists in Graph",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/find-if-path-exists-in-graph/",
+          "id": "w10-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 841,
+          "title": "Keys and Rooms",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/keys-and-rooms/",
+          "id": "w10-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 130,
+          "title": "Surrounded Regions",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/surrounded-regions/",
+          "id": "w10-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 542,
+          "title": "01 Matrix",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/01-matrix/",
+          "id": "w10-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1091,
+          "title": "Shortest Path in Binary Matrix",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/shortest-path-in-binary-matrix/",
+          "id": "w10-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 785,
+          "title": "Is Graph Bipartite?",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/is-graph-bipartite/",
+          "id": "w10-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1376,
+          "title": "Time Needed to Inform All Employees",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/time-needed-to-inform-all-employees/",
+          "id": "w10-pool-08",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 10,
+      "oldTopicCount": 3,
+      "mockCount": 3
     },
     {
       "week": 11,
-      "title": "Graphs II (Weighted) & Greedy",
-      "goal": "Run Dijkstra / Bellman-Ford / Prim and recognise when greedy is provably correct.",
+      "title": "DP I (1D) + Kadane",
+      "goal": "Define state, transition and base case; go recursion → memo → table → O(1) space.",
       "concepts": [
-        "Dijkstra with heapq O(E log V)",
-        "Bellman-Ford and k-limited relaxations",
-        "MST: Prim vs Kruskal",
-        "Eulerian path (Hierholzer)",
-        "Greedy choice + exchange argument; greedy vs DP"
+        "Overlapping subproblems + optimal substructure",
+        "State, transition, base case",
+        "Top-down @cache vs bottom-up",
+        "Rolling variables for O(1) space",
+        "Kadane's running best",
+        "LIS in O(n²) and O(n log n) with bisect"
       ],
       "visuals": [
-        "Dijkstra relaxing edges with a priority queue",
-        "Kadane's running sum",
-        "Jump Game farthest reach"
+        "Fibonacci recursion tree vs memo",
+        "1D table filling for House Robber",
+        "Kadane's running sum"
       ],
       "templates": [
-        "Dijkstra",
+        "Memoised recursion",
+        "Bottom-up 1D with rolling variables",
         "Kadane"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 71,
+          "kind": "new-topic",
+          "mock": {
+            "number": 36,
+            "pythonTheme": 6,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 36 + new topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 96,
-              "title": "Network Delay Time",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/network-delay-time/",
-              "source": "original",
-              "id": "w11-d1-p1"
-            },
-            {
-              "lcNumber": 97,
-              "title": "Min Cost to Connect All Points",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/min-cost-to-connect-all-points/",
-              "source": "original",
-              "id": "w11-d1-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
-          "problems": [
-            {
-              "lcNumber": 98,
-              "title": "Cheapest Flights Within K Stops",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
-              "source": "original",
-              "id": "w11-d2-p1"
-            },
-            {
-              "lcNumber": 124,
-              "title": "Maximum Subarray",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/maximum-subarray/",
-              "source": "original",
-              "id": "w11-d2-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 3,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 125,
-              "title": "Jump Game",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/jump-game/",
-              "source": "original",
-              "id": "w11-d3-p1"
-            },
-            {
-              "lcNumber": 126,
-              "title": "Jump Game II",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/jump-game-ii/",
-              "source": "original",
-              "id": "w11-d3-p2"
-            },
-            {
-              "lcNumber": 127,
-              "title": "Gas Station",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/gas-station/",
-              "source": "original",
-              "id": "w11-d3-p3"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 4,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 128,
-              "title": "Hand of Straights",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/hand-of-straights/",
-              "source": "original",
-              "id": "w11-d4-p1"
-            },
-            {
-              "lcNumber": 129,
-              "title": "Merge Triplets to Form Target Triplet",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/merge-triplets-to-form-target-triplet/",
-              "source": "original",
-              "id": "w11-d4-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 5,
-          "learn": "Pattern drill (5 min)",
-          "problems": [
-            {
-              "lcNumber": 130,
-              "title": "Partition Labels",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/partition-labels/",
-              "source": "original",
-              "id": "w11-d5-p1"
-            },
-            {
-              "lcNumber": 131,
-              "title": "Valid Parenthesis String",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/valid-parenthesis-string/",
-              "source": "original",
-              "id": "w11-d5-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 6,
-          "learn": "Timed session: 45 min per problem",
-          "problems": [
-            {
-              "lcNumber": 99,
-              "title": "Swim in Rising Water",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/swim-in-rising-water/",
-              "source": "original",
-              "id": "w11-d6-p1"
-            },
-            {
-              "lcNumber": 100,
-              "title": "Reconstruct Itinerary",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/reconstruct-itinerary/",
-              "source": "original",
-              "id": "w11-d6-p2"
-            }
-          ],
-          "codingNote": null
-        },
-        {
-          "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
-        }
-      ],
-      "problemCount": 13
-    },
-    {
-      "week": 12,
-      "title": "Dynamic Programming I (1D)",
-      "goal": "Define state, transition and base case; go recursion → memo → table → O(1) space.",
-      "concepts": [
-        "Overlapping subproblems + optimal substructure",
-        "Top-down @lru_cache vs bottom-up",
-        "State compression",
-        "0/1 knapsack (subset sum)",
-        "LIS in O(n log n)"
-      ],
-      "visuals": [
-        "Fibonacci recursion tree vs memo",
-        "1D DP table filling for House Robber",
-        "Coin Change table"
-      ],
-      "templates": [
-        "Memoised recursion",
-        "Bottom-up 1D with rolling variables"
-      ],
-      "days": [
-        {
-          "day": 1,
-          "learn": "Visuals + Python templates",
-          "problems": [
-            {
-              "lcNumber": 101,
+              "platform": "LeetCode",
+              "lcNumber": 70,
               "title": "Climbing Stairs",
               "difficulty": "Easy",
               "url": "https://leetcode.com/problems/climbing-stairs/",
-              "source": "original",
-              "id": "w12-d1-p1"
-            },
-            {
-              "lcNumber": 102,
-              "title": "Min Cost Climbing Stairs",
-              "difficulty": "Easy",
-              "url": "https://leetcode.com/problems/min-cost-climbing-stairs/",
-              "source": "original",
-              "id": "w12-d1-p2"
+              "id": "w11-d1-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 72,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 103,
+              "platform": "LeetCode",
+              "lcNumber": 198,
               "title": "House Robber",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/house-robber/",
-              "source": "original",
-              "id": "w12-d2-p1"
+              "id": "w11-d2-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 104,
+              "platform": "LeetCode",
+              "lcNumber": 213,
               "title": "House Robber II",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/house-robber-ii/",
-              "source": "original",
-              "id": "w12-d2-p2"
+              "id": "w11-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 746,
+              "title": "Min Cost Climbing Stairs",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/min-cost-climbing-stairs/",
+              "id": "w11-d2-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 73,
+          "kind": "topic",
+          "mock": {
+            "number": 37,
+            "pythonTheme": 7,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 37",
           "problems": [
             {
-              "lcNumber": 105,
-              "title": "Longest Palindromic Substring",
+              "platform": "LeetCode",
+              "lcNumber": 322,
+              "title": "Coin Change",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/longest-palindromic-substring/",
-              "source": "original",
-              "id": "w12-d3-p1"
-            },
-            {
-              "lcNumber": 106,
-              "title": "Palindromic Substrings",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/palindromic-substrings/",
-              "source": "original",
-              "id": "w12-d3-p2"
+              "url": "https://leetcode.com/problems/coin-change/",
+              "id": "w11-d3-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 74,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 107,
-              "title": "Decode Ways",
+              "platform": "LeetCode",
+              "lcNumber": 721,
+              "title": "Accounts Merge",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/decode-ways/",
-              "source": "original",
-              "id": "w12-d4-p1"
+              "url": "https://leetcode.com/problems/accounts-merge/",
+              "id": "w11-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 10
             },
             {
-              "lcNumber": 108,
-              "title": "Coin Change",
+              "platform": "LeetCode",
+              "lcNumber": 692,
+              "title": "Top K Frequent Words",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/coin-change/",
-              "source": "original",
-              "id": "w12-d4-p2"
+              "url": "https://leetcode.com/problems/top-k-frequent-words/",
+              "id": "w11-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 8
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 40,
+              "title": "Combination Sum II",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/combination-sum-ii/",
+              "id": "w11-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 9
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 75,
+          "kind": "topic",
+          "mock": {
+            "number": 38,
+            "pythonTheme": 8,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 38",
           "problems": [
             {
-              "lcNumber": 109,
-              "title": "Maximum Product Subarray",
+              "platform": "LeetCode",
+              "lcNumber": 53,
+              "title": "Maximum Subarray",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/maximum-product-subarray/",
-              "source": "original",
-              "id": "w12-d5-p1"
-            },
-            {
-              "lcNumber": 110,
-              "title": "Word Break",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/word-break/",
-              "source": "original",
-              "id": "w12-d5-p2"
+              "url": "https://leetcode.com/problems/maximum-subarray/",
+              "id": "w11-d5-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Timed session: 45 min per problem",
+          "planDay": 76,
+          "kind": "timed",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 111,
+              "platform": "LeetCode",
+              "lcNumber": 139,
+              "title": "Word Break",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/word-break/",
+              "id": "w11-d6-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 300,
               "title": "Longest Increasing Subsequence",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/longest-increasing-subsequence/",
-              "source": "original",
-              "id": "w12-d6-p1"
-            },
-            {
-              "lcNumber": 112,
-              "title": "Partition Equal Subset Sum",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/partition-equal-subset-sum/",
-              "source": "original",
-              "id": "w12-d6-p2"
+              "id": "w11-d6-p2",
+              "role": "core"
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Review quiz (15 questions from past weeks, weighted to mistakes)",
+          "planDay": 77,
+          "kind": "redo",
+          "mock": {
+            "number": 39,
+            "pythonTheme": 9,
+            "extra": "complexity-check",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 39",
           "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "fallback": {
+            "platform": "LeetCode",
+            "lcNumber": 91,
+            "title": "Decode Ways",
+            "difficulty": "Medium",
+            "url": "https://leetcode.com/problems/decode-ways/",
+            "id": "w11-d7-fb",
+            "role": "fallback"
+          },
+          "timedMinutes": null,
+          "codingNote": "Redos from the queue first; do the fallback only if the queue is empty."
         }
       ],
-      "problemCount": 12
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1137,
+          "title": "N-th Tribonacci Number",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/n-th-tribonacci-number/",
+          "id": "w11-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 647,
+          "title": "Palindromic Substrings",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/palindromic-substrings/",
+          "id": "w11-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 918,
+          "title": "Maximum Sum Circular Subarray",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/maximum-sum-circular-subarray/",
+          "id": "w11-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 740,
+          "title": "Delete and Earn",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/delete-and-earn/",
+          "id": "w11-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 279,
+          "title": "Perfect Squares",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/perfect-squares/",
+          "id": "w11-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 377,
+          "title": "Combination Sum IV",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/combination-sum-iv/",
+          "id": "w11-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 343,
+          "title": "Integer Break",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/integer-break/",
+          "id": "w11-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 673,
+          "title": "Number of Longest Increasing Subsequence",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/number-of-longest-increasing-subsequence/",
+          "id": "w11-pool-08",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 8,
+      "oldTopicCount": 3,
+      "mockCount": 4
     },
     {
-      "week": 13,
-      "title": "Dynamic Programming II (2D) + Mock Interviews",
-      "goal": "Solve grid/two-string/interval DP and perform under interview conditions.",
+      "week": 12,
+      "title": "DP II (2D) + weighted graphs",
+      "goal": "Solve grid, two-string and knapsack DP; run Dijkstra, Bellman-Ford (k stops) and Prim.",
       "concepts": [
-        "2D state tables (grid, two strings)",
-        "Unbounded knapsack and combinations vs permutations",
-        "State machines (cooldown)",
-        "Interval DP (Burst Balloons)",
-        "Interview communication: brute force → optimal → complexity → code → test"
+        "2D tables: grids and two strings",
+        "Rolling 2D → 1D",
+        "0/1 vs unbounded knapsack",
+        "Counting combinations vs permutations",
+        "Dijkstra with heapq O(E log V)",
+        "Bellman-Ford with k-limited relaxations",
+        "Prim's MST"
       ],
       "visuals": [
         "LCS / Edit Distance table with arrows",
-        "Rolling 2D → 1D array"
+        "Dijkstra relaxing edges with a priority queue"
       ],
       "templates": [
-        "2D DP over two strings",
-        "Interval DP"
+        "Two-string DP",
+        "Knapsack",
+        "Dijkstra"
       ],
       "days": [
         {
           "day": 1,
-          "learn": "Visuals + Python templates",
+          "planDay": 78,
+          "kind": "new-topic",
+          "mock": null,
+          "learn": "New topic: cold try, then concepts and templates",
           "problems": [
             {
-              "lcNumber": 113,
+              "platform": "LeetCode",
+              "lcNumber": 62,
               "title": "Unique Paths",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/unique-paths/",
-              "source": "original",
-              "id": "w13-d1-p1"
+              "id": "w12-d1-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 114,
+              "platform": "LeetCode",
+              "lcNumber": 1143,
               "title": "Longest Common Subsequence",
               "difficulty": "Medium",
               "url": "https://leetcode.com/problems/longest-common-subsequence/",
-              "source": "original",
-              "id": "w13-d1-p2"
+              "id": "w12-d1-p2",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 2,
-          "learn": "Weekly quiz (30+ MCQs)",
+          "planDay": 79,
+          "kind": "topic",
+          "mock": {
+            "number": 40,
+            "pythonTheme": 10,
+            "extra": "debug",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 40",
           "problems": [
             {
-              "lcNumber": 115,
-              "title": "Coin Change II",
+              "platform": "LeetCode",
+              "lcNumber": 72,
+              "title": "Edit Distance",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/coin-change-ii/",
-              "source": "original",
-              "id": "w13-d2-p1"
-            },
-            {
-              "lcNumber": 116,
-              "title": "Target Sum",
-              "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/target-sum/",
-              "source": "original",
-              "id": "w13-d2-p2"
+              "url": "https://leetcode.com/problems/edit-distance/",
+              "id": "w12-d2-p1",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 3,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 80,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 117,
-              "title": "Best Time to Buy and Sell Stock with Cooldown",
+              "platform": "LeetCode",
+              "lcNumber": 518,
+              "title": "Coin Change II",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/",
-              "source": "original",
-              "id": "w13-d3-p1"
+              "url": "https://leetcode.com/problems/coin-change-ii/",
+              "id": "w12-d3-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 118,
-              "title": "Edit Distance",
+              "platform": "LeetCode",
+              "lcNumber": 494,
+              "title": "Target Sum",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/edit-distance/",
-              "source": "original",
-              "id": "w13-d3-p2"
+              "url": "https://leetcode.com/problems/target-sum/",
+              "id": "w12-d3-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 416,
+              "title": "Partition Equal Subset Sum",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/partition-equal-subset-sum/",
+              "id": "w12-d3-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 4,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 81,
+          "kind": "old-topics",
+          "mock": {
+            "number": 41,
+            "pythonTheme": 11,
+            "extra": "explain-aloud",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 41",
           "problems": [
             {
-              "lcNumber": 119,
-              "title": "Interleaving String",
+              "platform": "LeetCode",
+              "lcNumber": 152,
+              "title": "Maximum Product Subarray",
               "difficulty": "Medium",
-              "url": "https://leetcode.com/problems/interleaving-string/",
-              "source": "original",
-              "id": "w13-d4-p1"
-            },
-            {
-              "lcNumber": 120,
-              "title": "Longest Increasing Path in a Matrix",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
-              "source": "original",
-              "id": "w13-d4-p2"
+              "url": "https://leetcode.com/problems/maximum-product-subarray/",
+              "id": "w12-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 11
             }
           ],
-          "codingNote": null
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         },
         {
           "day": 5,
-          "learn": "Pattern drill (5 min)",
+          "planDay": 82,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
           "problems": [
             {
-              "lcNumber": 121,
-              "title": "Distinct Subsequences",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/distinct-subsequences/",
-              "source": "original",
-              "id": "w13-d5-p1"
+              "platform": "LeetCode",
+              "lcNumber": 743,
+              "title": "Network Delay Time",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/network-delay-time/",
+              "id": "w12-d5-p1",
+              "role": "core"
             },
             {
-              "lcNumber": 122,
-              "title": "Burst Balloons",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/burst-balloons/",
-              "source": "original",
-              "id": "w13-d5-p2"
+              "platform": "LeetCode",
+              "lcNumber": 1584,
+              "title": "Min Cost to Connect All Points",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/min-cost-to-connect-all-points/",
+              "id": "w12-d5-p2",
+              "role": "core"
             },
             {
-              "lcNumber": 123,
-              "title": "Regular Expression Matching",
-              "difficulty": "Hard",
-              "url": "https://leetcode.com/problems/regular-expression-matching/",
-              "source": "original",
-              "id": "w13-d5-p3"
+              "platform": "LeetCode",
+              "lcNumber": 787,
+              "title": "Cheapest Flights Within K Stops",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
+              "id": "w12-d5-p3",
+              "role": "core"
             }
           ],
+          "fallback": null,
+          "timedMinutes": null,
           "codingNote": null
         },
         {
           "day": 6,
-          "learn": "Mock interview: 2 random Mediums + 1 Hard from any week, 45 min each",
-          "problems": [],
-          "codingNote": "Pick from mock pool"
+          "planDay": 83,
+          "kind": "timed",
+          "mock": {
+            "number": 42,
+            "pythonTheme": 12,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 42",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 329,
+              "title": "Longest Increasing Path in a Matrix",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+              "id": "w12-d6-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Timed: 45 minutes per problem."
         },
         {
           "day": 7,
-          "learn": "Final review quiz across all weeks",
-          "problems": [],
-          "codingNote": "Redo 2–3 problems from your catch-up / 'needed hint' list"
+          "planDay": 84,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 5,
+              "title": "Longest Palindromic Substring",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/longest-palindromic-substring/",
+              "id": "w12-d7-p1",
+              "role": "old-topic",
+              "fromWeek": 11
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 399,
+              "title": "Evaluate Division",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/evaluate-division/",
+              "id": "w12-d7-p2",
+              "role": "old-topic",
+              "fromWeek": 10
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Earlier-topic problems: the app hides which week they come from."
         }
       ],
-      "problemCount": 11
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 63,
+          "title": "Unique Paths II",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/unique-paths-ii/",
+          "id": "w12-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 64,
+          "title": "Minimum Path Sum",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/minimum-path-sum/",
+          "id": "w12-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 221,
+          "title": "Maximal Square",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/maximal-square/",
+          "id": "w12-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 97,
+          "title": "Interleaving String",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/interleaving-string/",
+          "id": "w12-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 309,
+          "title": "Best Time to Buy and Sell Stock with Cooldown",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/",
+          "id": "w12-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1631,
+          "title": "Path With Minimum Effort",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/path-with-minimum-effort/",
+          "id": "w12-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 778,
+          "title": "Swim in Rising Water",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/swim-in-rising-water/",
+          "id": "w12-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 332,
+          "title": "Reconstruct Itinerary",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/reconstruct-itinerary/",
+          "id": "w12-pool-08",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 115,
+          "title": "Distinct Subsequences",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/distinct-subsequences/",
+          "id": "w12-pool-09",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 312,
+          "title": "Burst Balloons",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/burst-balloons/",
+          "id": "w12-pool-10",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 10,
+          "title": "Regular Expression Matching",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/regular-expression-matching/",
+          "id": "w12-pool-11",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 10,
+      "oldTopicCount": 3,
+      "mockCount": 3
+    },
+    {
+      "week": 13,
+      "title": "Bit tricks, practical class design, final mocks",
+      "goal": "Use XOR and bit masks; design small classes the way pairing rounds expect; perform under interview conditions.",
+      "concepts": [
+        "Binary; & | ^ << >> ~",
+        "x & (x - 1); XOR cancelling pairs",
+        "Python's unbounded ints and 32-bit masking",
+        "Designing a class: state, methods, cost of each method"
+      ],
+      "visuals": [
+        "XOR cancelling pairs bit by bit"
+      ],
+      "templates": [
+        "Bit mask helpers",
+        "Class design checklist"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "planDay": 85,
+          "kind": "new-topic",
+          "mock": {
+            "number": 43,
+            "pythonTheme": 13,
+            "extra": "debug",
+            "program2": false,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 43 + new topic: cold try, then concepts and templates",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 136,
+              "title": "Single Number",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/single-number/",
+              "id": "w13-d1-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 268,
+              "title": "Missing Number",
+              "difficulty": "Easy",
+              "url": "https://leetcode.com/problems/missing-number/",
+              "id": "w13-d1-p2",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 2,
+          "planDay": 86,
+          "kind": "topic",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 1472,
+              "title": "Design Browser History",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/design-browser-history/",
+              "id": "w13-d2-p1",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 1396,
+              "title": "Design Underground System",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/design-underground-system/",
+              "id": "w13-d2-p2",
+              "role": "core"
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 1146,
+              "title": "Snapshot Array",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/snapshot-array/",
+              "id": "w13-d2-p3",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Class design"
+        },
+        {
+          "day": 3,
+          "planDay": 87,
+          "kind": "topic",
+          "mock": {
+            "number": 44,
+            "pythonTheme": 14,
+            "extra": "explain-aloud",
+            "program2": true,
+            "diagnostic": false,
+            "final": false,
+            "mcqCount": 18
+          },
+          "learn": "Mock 44",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 2034,
+              "title": "Stock Price Fluctuation",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/stock-price-fluctuation/",
+              "id": "w13-d3-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 4,
+          "planDay": 88,
+          "kind": "old-topics",
+          "mock": null,
+          "learn": null,
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 1268,
+              "title": "Search Suggestions System",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/search-suggestions-system/",
+              "id": "w13-d4-p1",
+              "role": "old-topic",
+              "fromWeek": 9
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 547,
+              "title": "Number of Provinces",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/number-of-provinces/",
+              "id": "w13-d4-p2",
+              "role": "old-topic",
+              "fromWeek": 10
+            },
+            {
+              "platform": "LeetCode",
+              "lcNumber": 297,
+              "title": "Serialize and Deserialize Binary Tree",
+              "difficulty": "Hard",
+              "url": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
+              "id": "w13-d4-p3",
+              "role": "old-topic",
+              "fromWeek": 7
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": 45,
+          "codingNote": "Interview simulation: 45 min each, unlabelled"
+        },
+        {
+          "day": 5,
+          "planDay": 89,
+          "kind": "topic",
+          "mock": {
+            "number": 45,
+            "pythonTheme": 15,
+            "extra": "complexity-check",
+            "program2": true,
+            "diagnostic": false,
+            "final": true,
+            "mcqCount": 20
+          },
+          "learn": "Mock 45 (final: 20 MCQs + 2 programs)",
+          "problems": [
+            {
+              "platform": "LeetCode",
+              "lcNumber": 43,
+              "title": "Multiply Strings",
+              "difficulty": "Medium",
+              "url": "https://leetcode.com/problems/multiply-strings/",
+              "id": "w13-d5-p1",
+              "role": "core"
+            }
+          ],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": null
+        },
+        {
+          "day": 6,
+          "planDay": 90,
+          "kind": "wrap-up",
+          "mock": null,
+          "learn": null,
+          "problems": [],
+          "fallback": null,
+          "timedMinutes": null,
+          "codingNote": "Wrap-up: redo the 5 lowest-confidence problems in your journal, then write a one-page sheet of every pattern and its trigger"
+        }
+      ],
+      "pool": [
+        {
+          "platform": "LeetCode",
+          "lcNumber": 191,
+          "title": "Number of 1 Bits",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/number-of-1-bits/",
+          "id": "w13-pool-01",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 338,
+          "title": "Counting Bits",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/counting-bits/",
+          "id": "w13-pool-02",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 190,
+          "title": "Reverse Bits",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/reverse-bits/",
+          "id": "w13-pool-03",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 371,
+          "title": "Sum of Two Integers",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/sum-of-two-integers/",
+          "id": "w13-pool-04",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 1603,
+          "title": "Design Parking System",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/design-parking-system/",
+          "id": "w13-pool-05",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 2353,
+          "title": "Design a Food Rating System",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/design-a-food-rating-system/",
+          "id": "w13-pool-06",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 341,
+          "title": "Flatten Nested List Iterator",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/flatten-nested-list-iterator/",
+          "id": "w13-pool-07",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 284,
+          "title": "Peeking Iterator",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/peeking-iterator/",
+          "id": "w13-pool-08",
+          "role": "pool"
+        },
+        {
+          "platform": "LeetCode",
+          "lcNumber": 460,
+          "title": "LFU Cache",
+          "difficulty": "Hard",
+          "url": "https://leetcode.com/problems/lfu-cache/",
+          "id": "w13-pool-09",
+          "role": "pool"
+        }
+      ],
+      "problemCount": 7,
+      "oldTopicCount": 3,
+      "mockCount": 3
     }
   ]
 }

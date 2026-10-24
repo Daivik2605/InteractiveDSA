@@ -94,7 +94,7 @@ export function ProblemsPage() {
               <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-800">{SOURCE_LABEL[r.source]}</span>
             </div>
             <p className="mt-0.5 text-xs text-slate-500">
-              Week {r.week} · {r.attempts} attempt{r.attempts === 1 ? "" : "s"}
+              {r.week !== undefined && `Week ${r.week} · `}{r.platform && `${r.platform} · `}{r.attempts} attempt{r.attempts === 1 ? "" : "s"}
               {r.lastAttempt && ` · last: ${OUTCOME_LABEL[r.lastAttempt.outcome]} on ${formatDayMonth(r.lastAttempt.date)}`}
               {r.confidence !== undefined && ` · confidence ${r.confidence}/5`}
               {r.tags.length > 0 && ` · ${r.tags.join(", ")}`}

@@ -54,7 +54,7 @@ async function answer(user: ReturnType<typeof userEvent.setup>, wantCorrect: boo
 }
 
 describe("weekly quiz", () => {
-  it("runs end to end by keyboard: saves answers and cards, shows results, retries missed, ticks the learn item once", async () => {
+  it("runs end to end by keyboard: saves answers and cards, shows results, retries missed, ticks no plan item", async () => {
     const { db, user } = await renderApp({ today: "2026-10-27", path: "/quiz/week/1" });
     const total = bank.questions.filter((q) => q.week === 1).length;
     expect(await screen.findByRole("region", { name: "Question" })).toHaveTextContent(`Question 1 of ${total}`);
@@ -77,16 +77,16 @@ describe("weekly quiz", () => {
     expect(saved.filter((a) => !a.correct).map((a) => a.questionId).sort()).toEqual([...wrongIds].sort());
     expect(await db.cards.count()).toBe(total);
     for (const id of wrongIds) expect((await db.cards.get(id))!.box).toBe(1);
-    await waitFor(async () => expect(await db.completions.get("w01-d2:learn")).toMatchObject({ completedOn: "2026-10-27", planDayId: "w01-d2" }));
+    expect(await db.completions.count()).toBe(0); // the v2 plan has no quiz learn items: mocks replace them (Phase B)
 
-    // retry missed: only the missed ones, saved too, and nothing else gets ticked
+    // retry missed: only the missed ones, saved too, and nothing gets ticked
     await user.click(results.getByRole("button", { name: "Retry missed (2)" }));
     expect(await screen.findByRole("region", { name: "Question" })).toHaveTextContent("Question 1 of 2");
     await answer(user, true);
     await answer(user, true);
     expect(await screen.findByRole("heading", { name: /\(retry\): 2 \/ 2/ })).toBeInTheDocument();
     expect(await db.quizAnswers.count()).toBe(total + 2);
-    expect(await db.completions.count()).toBe(1);
+    expect(await db.completions.count()).toBe(0);
     expect(screen.queryByRole("button", { name: /Retry missed/ })).not.toBeInTheDocument();
   });
 
@@ -106,10 +106,11 @@ describe("weekly quiz", () => {
     expect(await main().findByText(/No questions for Week 2 yet/)).toBeInTheDocument();
   });
 
-  it("is linked from Today's learn item and the hub", async () => {
+  it("is linked from Today's hub link, not from the checklist", async () => {
     const { user } = await renderApp({ today: "2026-10-27", path: "/" });
-    await user.click(within(screen.getByRole("region", { name: "Today's checklist" })).getByRole("link", { name: "Start weekly quiz" }));
-    expect(await main().findByRole("heading", { level: 1, name: /Weekly quiz · Week 1/ })).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Today's checklist" })).queryByRole("link", { name: /Start weekly quiz/ })).not.toBeInTheDocument();
+    await user.click(main().getByRole("link", { name: "Quizzes & drills" }));
+    expect(await main().findByRole("heading", { level: 1, name: "Quizzes & drills" })).toBeInTheDocument();
   });
 
   it("hub lists every week at any time: startable ones link to their quiz, others say there are no questions yet", async () => {
@@ -169,7 +170,7 @@ describe("review quiz", () => {
     expect(onScreen().id).toBe("w01-q05"); // next due card (box 3); q02 isn't due
   });
 
-  it("on week 1 day 7 (no earlier weeks) asks last time's wrong answers first, then ticks the review learn item", async () => {
+  it("on week 1 day 7 (no earlier weeks) asks last time's wrong answers first", async () => {
     const { db, user } = await renderApp({
       today: "2026-11-01", // w01-d7
       path: "/quiz/review",
@@ -181,7 +182,7 @@ describe("review quiz", () => {
     const total = bank.questions.filter((q) => q.week === 1).length;
     for (let i = 0; i < total; i++) await answer(user, true);
     await screen.findByRole("region", { name: "Results" });
-    await waitFor(async () => expect(await db.completions.get("w01-d7:learn")).toMatchObject({ completedOn: "2026-11-01" }));
+    expect(await db.completions.count()).toBe(0);
     const modes = new Set((await db.quizAnswers.toArray()).slice(1).map((a) => a.mode));
     expect(modes).toEqual(new Set(["review"]));
     expect((await db.cards.get("w01-q04"))!.box).toBe(1); // right answer from no card starts at box 1
@@ -200,7 +201,7 @@ describe("pattern drill", () => {
   }
   const options = () => within(screen.getByRole("group", { name: "Pattern options" })).getAllByRole("button");
 
-  it("runs ten (here: all available) prompts with six options, records time, shows per-pattern results and ticks the drill item", async () => {
+  it("runs ten (here: all available) prompts with six options, records time, shows per-pattern results", async () => {
     const { db, user } = await renderApp({ today: "2026-10-28", path: "/quiz/drill" }); // w01-d3 = pattern drill
     const expected = bank.drill.length + bank.questions.filter((q) => q.type === "pattern").length;
     await screen.findByRole("region", { name: "Drill prompt" });
@@ -220,10 +221,9 @@ describe("pattern drill", () => {
     expect(saved).toHaveLength(expected);
     expect(saved.every((a) => a.mode === "drill" && typeof a.ms === "number" && a.ms >= 0 && a.ms <= 20000)).toBe(true);
     expect(await db.cards.count()).toBe(0); // drill answers don't move Leitner boxes
-    await waitFor(async () => expect(await db.completions.get("w01-d3:learn")).toMatchObject({ completedOn: "2026-10-28" }));
     await user.click(results.getByRole("button", { name: "Drill again" }));
     expect(await screen.findByRole("region", { name: "Drill prompt" })).toBeInTheDocument();
-    expect(await db.completions.count()).toBe(1);
+    expect(await db.completions.count()).toBe(0);
   });
 
   it("running out of time (20 s) counts as wrong and records the full time", async () => {
@@ -341,7 +341,7 @@ describe("attach or detach a found problem", () => {
 
   it("isn't offered for plan problems", async () => {
     await renderApp({ today: "2026-10-27", path: "/problems/w01-d1-p1" });
-    await screen.findByRole("heading", { level: 1, name: "Contains Duplicate" });
+    await screen.findByRole("heading", { level: 1, name: "Plus One" });
     expect(screen.queryByRole("region", { name: "Day" })).not.toBeInTheDocument();
   });
 });

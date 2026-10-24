@@ -7,11 +7,12 @@ export const DIFF_STYLE: Record<Problem["difficulty"], string> = {
   Hard: "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200",
 };
 
-export function Row({ checked, onToggle, label, problem, meta, caption, actions, disabled }: {
+export function Row({ checked, onToggle, label, problem, platform, meta, caption, actions, disabled }: {
   checked: boolean;
   onToggle: () => void;
   label: string;
   problem?: Problem;
+  platform?: string; // LeetCode / HackerRank badge
   meta?: string;
   caption?: ReactNode;
   actions?: ReactNode;
@@ -38,6 +39,7 @@ export function Row({ checked, onToggle, label, problem, meta, caption, actions,
             <span className="font-medium">{label}</span>
           )}
           {problem && <span className={`rounded px-1.5 py-0.5 text-xs ${DIFF_STYLE[problem.difficulty]}`}>{problem.difficulty}</span>}
+          {platform && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-800">{platform}</span>}
         </div>
         {(meta || caption) && <p className="mt-0.5 text-xs text-slate-500">{meta}{caption}</p>}
         {actions && <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">{actions}</div>}
