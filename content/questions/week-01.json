@@ -1,0 +1,178 @@
+{
+  "week": 1,
+  "questions": [
+    {
+      "id": "w01-q01",
+      "week": 1,
+      "type": "pattern",
+      "pattern": "Two Pointers",
+      "difficulty": "medium",
+      "prompt": "A sorted array and a target are given. Find two values that sum to the target using O(n) time and O(1) extra space. Which pattern fits?",
+      "options": [
+        "Two Pointers",
+        "Sliding Window",
+        "Hash Map lookup",
+        "Binary Search per element"
+      ],
+      "answer": 0,
+      "explanation": "Start one pointer at each end. If the sum is too small move the left pointer right, if too large move the right pointer left; each step discards one candidate, so it is O(n) time and O(1) space. A hash map is also O(n) time but needs O(n) space, and binary search per element is O(n log n).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q02",
+      "week": 1,
+      "type": "pattern",
+      "pattern": "Prefix/Suffix Pass",
+      "difficulty": "medium",
+      "prompt": "Return an array where out[i] is the product of every element except nums[i], without using division, in O(n) time. Which pattern fits?",
+      "options": [
+        "Prefix/Suffix Pass",
+        "Sliding Window",
+        "Monotonic Stack",
+        "Two Pointers"
+      ],
+      "answer": 0,
+      "explanation": "One left-to-right pass stores the product of everything before each index, then a right-to-left pass multiplies in the product of everything after it. Two passes give O(n) time, and the output array is the only extra space (O(1) auxiliary).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1) auxiliary"
+      }
+    },
+    {
+      "id": "w01-q03",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Hash Map",
+      "difficulty": "medium",
+      "prompt": "What are the worst-case time and extra space of this function for a list of n integers?",
+      "code": "def has_dup(nums):\n    seen = set()\n    for x in nums:\n        if x in seen:\n            return True\n        seen.add(x)\n    return False",
+      "options": [
+        "O(n) time, O(n) space",
+        "O(n) time, O(1) space",
+        "O(n²) time, O(n) space",
+        "O(n log n) time, O(1) space"
+      ],
+      "answer": 0,
+      "explanation": "Set membership and insertion are O(1) on average, so the loop is O(n). When all values are distinct the set grows to n elements, so extra space is O(n). Sorting first would give O(n log n) time but O(1) extra space, which is a different trade-off.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w01-q04",
+      "week": 1,
+      "type": "output",
+      "pattern": "Prefix/Suffix Pass",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "nums = [1, 2, 3, 4]\nout = [1] * len(nums)\nfor i in range(1, len(nums)):\n    out[i] = out[i - 1] * nums[i - 1]\nprint(out)",
+      "options": [
+        "[1, 1, 2, 6]",
+        "[1, 2, 6, 24]",
+        "[24, 12, 8, 6]",
+        "[1, 1, 2, 3]"
+      ],
+      "answer": 0,
+      "explanation": "out[i] is the product of nums[0..i-1]: out[1]=1, out[2]=1*2=2, out[3]=2*3=6. This is the prefix half of Product of Array Except Self. Time O(n), space O(n) for out."
+    },
+    {
+      "id": "w01-q05",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Array Rotation",
+      "difficulty": "hard",
+      "prompt": "This function should rotate nums right by k steps in place, but it gives a wrong result for some inputs (for example nums=[1,2,3], k=4). What is the bug?",
+      "code": "def rotate(nums, k):\n    nums[:] = nums[-k:] + nums[:-k]",
+      "options": [
+        "k is not reduced with k %= len(nums), so k larger than the length does nothing",
+        "The slice assignment builds a new list instead of changing nums in place",
+        "nums[-k:] raises IndexError when k is 0",
+        "It should be nums[k:] + nums[:k]"
+      ],
+      "answer": 0,
+      "explanation": "When k > len(nums), nums[-k:] is the whole list and nums[:-k] is empty, so the list is unchanged instead of rotating by k % n. Add k %= len(nums) first (and guard against an empty list). The slice assignment nums[:] = ... does mutate in place, and slicing never raises IndexError. Time O(n), space O(n) for the temporary list; the three-reversal trick gets O(1) extra space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w01-q06",
+      "week": 1,
+      "type": "approach",
+      "pattern": "In-place Marking",
+      "difficulty": "hard",
+      "prompt": "You must set an entire row and column to 0 whenever a matrix cell is 0, modifying the m×n matrix in place. Which approach achieves O(1) extra space?",
+      "options": [
+        "Use the first row and first column as markers, tracking separately whether they themselves need zeroing",
+        "Store the zero rows and zero columns in two sets, then zero them",
+        "Copy the matrix and fill zeros into the copy",
+        "Zero rows and columns immediately while scanning"
+      ],
+      "answer": 0,
+      "explanation": "Reuse the first row and column as flag storage (after recording two booleans for whether they originally contained a zero), then zero the interior from those flags and finally the first row and column if needed. Time O(m·n), space O(1). Sets cost O(m+n), a copy costs O(m·n), and zeroing while scanning corrupts cells you have not read yet.",
+      "complexity": {
+        "time": "O(m·n)",
+        "space": "O(1)"
+      }
+    }
+  ],
+  "drill": [
+    {
+      "id": "w01-dr01",
+      "week": 1,
+      "description": "Given a string, find the length of the longest substring that contains no repeated characters.",
+      "answer": "Sliding Window",
+      "distractors": [
+        "Two Pointers",
+        "Hash Map",
+        "Binary Search",
+        "Prefix/Suffix Pass",
+        "Monotonic Stack"
+      ]
+    },
+    {
+      "id": "w01-dr02",
+      "week": 1,
+      "description": "Reverse an array in place by swapping elements from both ends, moving toward the middle.",
+      "answer": "Two Pointers",
+      "distractors": [
+        "Sliding Window",
+        "Hash Map",
+        "Binary Search",
+        "Prefix/Suffix Pass",
+        "Sorting"
+      ]
+    },
+    {
+      "id": "w01-dr03",
+      "week": 1,
+      "description": "Count the number of contiguous subarrays whose elements add up to exactly k, in a single pass.",
+      "answer": "Prefix Sum",
+      "distractors": [
+        "Sliding Window",
+        "Two Pointers",
+        "Binary Search",
+        "Monotonic Stack",
+        "Sorting"
+      ]
+    },
+    {
+      "id": "w01-dr04",
+      "week": 1,
+      "description": "Return all elements of an m×n matrix in spiral order, starting from the top-left corner.",
+      "answer": "Matrix Traversal",
+      "distractors": [
+        "Sliding Window",
+        "Two Pointers",
+        "Binary Search",
+        "Hash Map",
+        "Prefix Sum"
+      ]
+    }
+  ]
+}

@@ -9,3 +9,14 @@ html {
 html.dark {
   color-scheme: dark;
 }
+
+/* Shiki dual-theme output: both colours are CSS variables; the `dark` class picks one. */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  background-color: transparent;
+}
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark);
+}

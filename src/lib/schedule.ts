@@ -469,3 +469,24 @@ export function canTickOn(day: ScheduledDay, date: string, today: string): Resul
   if (compareDates(date, day.date) < 0) return { ok: false, reason: `Choose a date on or after the day's planned date.` };
   return { ok: true };
 }
+
+/**
+ * Attach a custom problem to a day of its own week (extension days included), or detach it
+ * (`planDayId` undefined) so it becomes journal-only. Blocked while ticked: changing days would
+ * silently change a day's status.
+ */
+export function canAttach(args: {
+  schedule: readonly ScheduledDay[];
+  item: CustomItem;
+  planDayId: string | undefined;
+  completions: Completions;
+}): Result<object> {
+  const { schedule, item, planDayId, completions } = args;
+  if (item.kind !== "problem") return { ok: false, reason: "Only problems can be attached or detached." };
+  if (completions.has(item.id)) return { ok: false, reason: "Untick it before changing its day." };
+  if (planDayId === undefined) return { ok: true };
+  const day = schedule.find((d) => d.planDayId === planDayId);
+  if (!day) return { ok: false, reason: "That day is not part of the plan." };
+  if (day.week !== item.week) return { ok: false, reason: `Choose a day in Week ${item.week}, the problem's topic week.` };
+  return { ok: true };
+}

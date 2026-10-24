@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Markdown } from "../../components/Markdown";
 import { usePlanContext } from "../../app/PlanContext";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
@@ -32,7 +33,7 @@ export function DayDetails({ day }: { day: EvaluatedDay }) {
           <p className="font-medium">
             What I studied{plan.dayLogs.get(planDayId)!.minutes > 0 ? ` · ${plan.dayLogs.get(planDayId)!.minutes} min` : ""}
           </p>
-          {plan.dayLogs.get(planDayId)!.notes && <p className="mt-0.5 whitespace-pre-wrap">{plan.dayLogs.get(planDayId)!.notes}</p>}
+          {plan.dayLogs.get(planDayId)!.notes && <Markdown className="mt-0.5 text-xs">{plan.dayLogs.get(planDayId)!.notes}</Markdown>}
           {plan.dayLogs.get(planDayId)!.links.map((l) => (
             <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="block truncate text-indigo-700 underline dark:text-indigo-300">{l}</a>
           ))}

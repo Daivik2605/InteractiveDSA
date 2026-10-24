@@ -6,7 +6,8 @@ import { problemsUpTo } from "../../lib/curriculum";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
 import { itemLabel } from "../../lib/labels";
 import type { Plan } from "../../lib/plan";
-import { canAddRestDay, fillSlots, type DayItem } from "../../lib/schedule";
+import { learnKind } from "../../lib/learn";
+import { canAddRestDay, fillSlots, parsePlanDayId, type DayItem } from "../../lib/schedule";
 import type { Problem } from "../../types/content";
 import { STATUS_META } from "../calendar/status";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
@@ -32,6 +33,16 @@ export function TodayPage() {
   );
 }
 
+/** A "Start …" link for learn items that are a quiz, drill or review. */
+function learnLink(plan: Plan, item: DayItem) {
+  const kind = learnKind(itemLabel(plan, item));
+  if (kind === "other" || plan.completions.has(item.itemId)) return undefined;
+  const { week } = parsePlanDayId(item.planDayId);
+  const to = kind === "weekly-quiz" ? `/quiz/week/${week}` : kind === "drill" ? "/quiz/drill" : "/quiz/review";
+  const text = kind === "weekly-quiz" ? "Start weekly quiz" : kind === "drill" ? "Start pattern drill" : "Start review quiz";
+  return <Link to={to} className="text-indigo-700 underline dark:text-indigo-300">{text}</Link>;
+}
+
 function movedLabel(plan: Plan, planDayId: string) {
   const d = plan.schedule.find((x) => x.planDayId === planDayId);
   return d ? formatShort(d.date) : planDayId;
@@ -43,9 +54,14 @@ function BeforeStart({ plan }: { plan: Plan }) {
     <div className="mt-4 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
       <p className="text-3xl font-semibold tabular-nums">{n} day{n === 1 ? "" : "s"}</p>
       <p className="text-slate-600 dark:text-slate-400">until the plan starts on {formatShort(plan.startDate)}.</p>
-      <Link to="/weeks" className="mt-3 inline-block text-indigo-700 underline dark:text-indigo-300">
-        Preview the Week 1 lesson
-      </Link>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <Link to="/weeks" className="text-indigo-700 underline dark:text-indigo-300">
+          Preview the Week 1 lesson
+        </Link>
+        <Link to="/quiz" className="text-indigo-700 underline dark:text-indigo-300">
+          Quizzes &amp; drills
+        </Link>
+      </div>
     </div>
   );
 }
@@ -162,7 +178,7 @@ function TodayBody() {
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={itemLabel(plan, item)} meta={item.movedFrom ? `Learn · moved from ${movedLabel(plan, item.movedFrom)}` : "Learn"} />
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={itemLabel(plan, item)} meta={item.movedFrom ? `Learn · moved from ${movedLabel(plan, item.movedFrom)}` : "Learn"} actions={learnLink(plan, item)} />
           ) : item.kind === "task" ? (
             <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
           ) : item.kind === "problem" ? (
@@ -189,6 +205,7 @@ function TodayBody() {
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link to={`/day/${planDayId}`} className="text-sm text-indigo-700 underline dark:text-indigo-300">Edit day</Link>
+        <Link to="/quiz" className="text-sm text-indigo-700 underline dark:text-indigo-300">Quizzes &amp; drills</Link>
         <button type="button" onClick={() => setFinding(true)} className="text-sm text-indigo-700 underline dark:text-indigo-300">Log a problem I found</button>
         {restOn ? (
           <button type="button" className="text-sm text-indigo-700 underline dark:text-indigo-300" onClick={() => setRestDay(db, plan.schedule, plan.restDates, today, false)}>

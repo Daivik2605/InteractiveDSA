@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Modal } from "../../app/Modal";
+import { Markdown } from "../../components/Markdown";
 import { usePlanContext } from "../../app/PlanContext";
 import {
   addCustomItem,
@@ -204,6 +205,7 @@ function StudyLog({ day }: { day: EvaluatedDay }) {
   const [minutes, setMinutes] = useState(String(log?.minutes ?? 0));
   const [links, setLinks] = useState((log?.links ?? []).join("\n"));
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(!log);
   const mins = Number(minutes);
   const valid = Number.isInteger(mins) && mins >= 0 && mins <= 1440;
 
@@ -212,20 +214,35 @@ function StudyLog({ day }: { day: EvaluatedDay }) {
     if (!valid) return;
     await saveDayLog(db, { planDayId, notes, minutes: mins, links: links.split("\n") }, plan.today);
     setSaved(true);
+    setEditing(false);
   }
   return (
     <section className="mt-8" aria-label="Study log">
       <h2 className="text-lg font-semibold">What I studied</h2>
       {log && log.updatedOn > date && <p className="text-xs text-slate-500">edited on {formatShort(log.updatedOn)}</p>}
+      {!editing ? (
+        <div className="mt-3 space-y-2 text-sm">
+          {log?.notes ? <Markdown>{log.notes}</Markdown> : <p className="text-slate-500">No notes.</p>}
+          {log && log.minutes > 0 && <p className="text-slate-600 dark:text-slate-400">{log.minutes} minutes studied</p>}
+          {log?.links.map((l) => (
+            <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="block truncate text-indigo-700 underline dark:text-indigo-300">{l}</a>
+          ))}
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => { setSaved(false); setEditing(true); }} className="rounded-md border border-slate-300 px-3 py-1.5 dark:border-slate-700">Edit log</button>
+            {saved && <span role="status" className="text-slate-500">Saved</span>}
+          </div>
+        </div>
+      ) : (
       <form className="mt-3 space-y-3 text-sm" onSubmit={submit}>
-        <label className="block">Notes (markdown)<textarea value={notes} onChange={(e) => { setNotes(e.target.value); setSaved(false); }} rows={4} className={field} /></label>
+        <label className="block">Notes (markdown supported)<textarea value={notes} onChange={(e) => { setNotes(e.target.value); setSaved(false); }} rows={4} className={field} /></label>
         <label className="block">Minutes studied<input type="number" min={0} max={1440} value={minutes} onChange={(e) => { setMinutes(e.target.value); setSaved(false); }} className={field} /></label>
         <label className="block">Links (one per line)<textarea value={links} onChange={(e) => { setLinks(e.target.value); setSaved(false); }} rows={2} className={field} /></label>
         <div className="flex items-center gap-3">
           <button type="submit" disabled={!valid} className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium text-white disabled:opacity-40">Save log</button>
-          {saved && <span role="status" className="text-slate-500">Saved</span>}
+          {log && <button type="button" onClick={() => setEditing(false)} className="rounded-md px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>}
         </div>
       </form>
+      )}
     </section>
   );
 }

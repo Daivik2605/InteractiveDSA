@@ -2,10 +2,12 @@
 
 import type { DsaDB } from "./db";
 import { saveSettings } from "./db";
+import { nextCard } from "./quiz";
 import { isValidDate } from "./dates";
 import {
   addExtension,
   canAddRestDay,
+  canAttach,
   canTickOn,
   extensionDayId,
   extraDaysByWeek,
@@ -19,6 +21,7 @@ import type {
   ItemCompletion,
   ProblemAttempt,
   ProblemEntry,
+  QuizAnswer,
   ScheduledDay,
   WeekExtension,
 } from "../types/content";
@@ -289,4 +292,52 @@ export async function logFoundProblem(db: DsaDB, input: FoundProblemInput, today
       return id;
     },
   );
+}
+
+/** Attach/detach a custom problem to/from a day (same rules as at creation; see canAttach). */
+export async function setCustomItemDay(
+  db: DsaDB,
+  args: { itemId: string; planDayId: string | undefined; schedule: readonly ScheduledDay[] },
+): Promise<Result<object>> {
+  return db.transaction("rw", [db.customItems, db.completions], async () => {
+    const item = await db.customItems.get(args.itemId);
+    if (!item) return { ok: false as const, reason: "Problem not found." };
+    const completions = new Map((await db.completions.toArray()).map((c) => [c.itemId, c]));
+    const check = canAttach({ schedule: args.schedule, item, planDayId: args.planDayId, completions });
+    if (!check.ok) return check;
+    if (args.planDayId === undefined) {
+      const { planDayId: _drop, ...rest } = item;
+      await db.customItems.put(rest);
+    } else {
+      await db.customItems.update(args.itemId, { planDayId: args.planDayId });
+    }
+    return { ok: true as const };
+  });
+}
+
+// ── quizzes (SPEC 3.6–3.8) ───────────────────────────────────────────────────
+
+/**
+ * Saves one answer. Weekly, review and targeted answers also move the question's Leitner card
+ * (wrong → box 1, right → one up); drill answers are only recorded.
+ */
+export async function recordAnswer(
+  db: DsaDB,
+  input: { questionId: string; correct: boolean; mode: QuizAnswer["mode"]; ms?: number },
+  answeredAt: string,
+  today: string,
+): Promise<void> {
+  await db.transaction("rw", [db.quizAnswers, db.cards], async () => {
+    await db.quizAnswers.add({
+      questionId: input.questionId,
+      correct: input.correct,
+      mode: input.mode,
+      answeredAt,
+      ...(input.ms !== undefined ? { ms: input.ms } : {}),
+    });
+    if (input.mode !== "drill") {
+      const prev = await db.cards.get(input.questionId);
+      await db.cards.put(nextCard(input.questionId, prev, input.correct, today));
+    }
+  });
 }
