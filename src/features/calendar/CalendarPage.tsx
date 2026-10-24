@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { curriculum } from "../../lib/curriculum";
-import { addMonths, formatDayMonth, monthLabel, parseDate } from "../../lib/dates";
+import { addMonths, formatDayMonth, formatShort, monthLabel, parseDate } from "../../lib/dates";
 import { DayDetails } from "./DayDetails";
 import { MonthGrid } from "./MonthGrid";
 import { STATUS_META, weekHue } from "./status";
@@ -17,6 +18,15 @@ export function CalendarPage() {
     const days = plan.schedule.filter((d) => d.week === w.week);
     return { ...w, first: days[0]?.date, last: days.at(-1)?.date, extra: days.filter((d) => d.kind === "extension").length };
   });
+  const [search, setSearch] = useState("");
+  const logHits = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [];
+    return plan.snapshot.dayLogs
+      .filter((l) => [l.notes, ...l.links].some((t) => t.toLowerCase().includes(q)))
+      .map((l) => ({ log: l, day: plan.schedule.find((d) => d.planDayId === l.planDayId) }))
+      .sort((a, b) => (a.day?.date ?? "").localeCompare(b.day?.date ?? ""));
+  }, [plan, search]);
   const stats: [string, number][] = [
     ["Current streak", plan.streak.current],
     ["Longest streak", plan.streak.longest],
@@ -59,6 +69,31 @@ export function CalendarPage() {
           {selectedDay ? <DayDetails day={selectedDay} /> : <p className="text-sm text-slate-500">Select a day to see its items.</p>}
         </div>
       </div>
+
+      <section className="mt-8" aria-label="Search study logs">
+        <h2 className="text-lg font-semibold">Search study logs</h2>
+        <input
+          type="search"
+          aria-label="Search study logs"
+          placeholder="Search what you studied"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="mt-2 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+        />
+        {search.trim() && (
+          <ul className="mt-2 space-y-2 text-sm" aria-label="Study log results">
+            {logHits.length === 0 && <li className="text-slate-500">No matches.</li>}
+            {logHits.map(({ log, day }) => (
+              <li key={log.planDayId} className="rounded-lg border border-slate-200 p-2 dark:border-slate-800">
+                <Link to={`/day/${log.planDayId}`} className="font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                  {day ? formatShort(day.date) : log.planDayId}
+                </Link>
+                <p className="line-clamp-2 whitespace-pre-wrap text-slate-600 dark:text-slate-400">{log.notes || log.links.join(", ")}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-8" aria-label="Weeks">
         <h2 className="text-lg font-semibold">Weeks</h2>

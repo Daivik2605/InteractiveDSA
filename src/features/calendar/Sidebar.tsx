@@ -3,6 +3,8 @@ import { usePlanContext } from "../../app/PlanContext";
 import { addMonths, formatShort, monthLabel, parseDate } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
 import { currentWeek } from "../../lib/plan";
+import { FoundProblemModal } from "../problems/FoundProblemModal";
+import { AddDayButton } from "./AddDayButton";
 import { DayDetails } from "./DayDetails";
 import { MonthGrid } from "./MonthGrid";
 
@@ -24,6 +26,7 @@ export function Sidebar() {
   const anchor = plan.phase === "before" ? plan.startDate : plan.phase === "after" && plan.finish ? plan.finish : plan.today;
   const [month, setMonth] = useState(() => ({ y: parseDate(anchor).y, m: parseDate(anchor).m }));
   const [selected, setSelected] = useState<string | null>(null);
+  const [finding, setFinding] = useState(false);
   const selectedDay = selected ? plan.byDate.get(selected) : undefined;
   const topic = curriculum.weeks.find((w) => w.week === currentWeek(plan))?.title;
 
@@ -75,6 +78,15 @@ export function Sidebar() {
       >
         Need more time on this topic?
       </button>
+      <AddDayButton week={currentWeek(plan)} className="w-full rounded-md border border-indigo-300 px-3 py-2 text-indigo-800 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-200 dark:hover:bg-indigo-950" />
+      <button
+        type="button"
+        onClick={() => setFinding(true)}
+        className="w-full rounded-md border border-slate-300 px-3 py-2 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+      >
+        Log a problem I found
+      </button>
+      {finding && <FoundProblemModal onClose={() => setFinding(false)} />}
     </div>
   );
 }

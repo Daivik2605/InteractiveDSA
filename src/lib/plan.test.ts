@@ -9,6 +9,10 @@ const snap = (over: Partial<Snapshot> = {}): Snapshot => ({
   restDays: [],
   redos: [],
   attempts: [],
+  customItems: [],
+  moves: [],
+  dayLogs: [],
+  problemEntries: [],
   ...over,
 });
 

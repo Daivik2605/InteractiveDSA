@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
@@ -26,13 +27,28 @@ export function DayDetails({ day }: { day: EvaluatedDay }) {
         {formatShort(date)} · {kind === "extension" ? `Week ${week} extension day ${n}` : `Week ${week} · Day ${n}`}
       </p>
       <p className="text-xs text-slate-500">{w?.title} — {meta.glyph} {meta.label}</p>
+      {plan.dayLogs.get(planDayId) && (
+        <div className="mt-2 rounded bg-slate-50 p-2 text-xs dark:bg-slate-900" aria-label="Study log">
+          <p className="font-medium">
+            What I studied{plan.dayLogs.get(planDayId)!.minutes > 0 ? ` · ${plan.dayLogs.get(planDayId)!.minutes} min` : ""}
+          </p>
+          {plan.dayLogs.get(planDayId)!.notes && <p className="mt-0.5 whitespace-pre-wrap">{plan.dayLogs.get(planDayId)!.notes}</p>}
+          {plan.dayLogs.get(planDayId)!.links.map((l) => (
+            <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="block truncate text-indigo-700 underline dark:text-indigo-300">{l}</a>
+          ))}
+          {plan.dayLogs.get(planDayId)!.updatedOn > date && <p className="mt-0.5 text-slate-500">edited on {formatShort(plan.dayLogs.get(planDayId)!.updatedOn)}</p>}
+        </div>
+      )}
       <ul className="mt-2 space-y-1">
         {day.items.map((item) => {
           const c = plan.completions.get(item.itemId);
           const label = itemLabel(plan, item);
           return (
             <li key={item.itemId} className="flex justify-between gap-2">
-              <span className={c ? "text-slate-500 line-through" : ""}>{label}</span>
+              <span className={c ? "text-slate-500 line-through" : ""}>
+                {label}
+                {item.movedFrom && <span className="text-xs text-slate-500"> (moved)</span>}
+              </span>
               <span className="shrink-0 text-xs text-slate-500">
                 {c ? `✓ ${formatDayMonth(c.completedOn)}${c.completedOn > date ? " (late)" : ""}` : "not done"}
               </span>
@@ -40,6 +56,12 @@ export function DayDetails({ day }: { day: EvaluatedDay }) {
           );
         })}
       </ul>
+      <Link
+        to={`/day/${planDayId}`}
+        className="mt-3 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-center hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+      >
+        Edit day
+      </Link>
       {canExtendUntil && (
         <button
           type="button"

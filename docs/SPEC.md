@@ -46,7 +46,9 @@ Week 13 day 6 is a mock interview (random problems from any week).
 
 ### 3.4 Problem log & redo scheduling
 - One record per problem attempt.
-- Outcome rules: **Needed hint** → redo in 3 days. **Needed solution** → redo in 3 and 7 days. **Solved alone** but over 40 min → redo in 7 days.
+- Outcomes: **Solved alone**, **Needed hint**, **Needed solution**, **Failed** (gave up / couldn't finish).
+- Outcome rules: **Needed hint** → redo in 3 days. **Needed solution** or **Failed** → redo in 3 and 7 days. **Solved alone** but over 40 min → redo in 7 days.
+- Every outcome, **Failed** included, ticks the item and counts the day as worked on; a failed attempt never sends the item to the catch-up queue. It records the outcome and schedules the redos above. A problem never has more than one pending redo chain: a new attempt that earns redos closes the old pending ones as attempted.
 - A redo is complete when re-solved alone. Redos due appear on Today in a "Redo due" section.
 - Problems page: filter by week, pattern, difficulty, outcome; shows attempts history.
 
@@ -135,6 +137,29 @@ Every day (past, today or future) has an **Edit day** view, opened from the Toda
 **Add a day for this topic**:
 - "+ Add a day to Week N" on the Edit day view, the week page and the sidebar. It is a shortcut for a +1 extension (3.12) and follows the same rules.
 - After adding, the new extension day opens in Edit day so items can be added straight away. Extension days can hold custom items in addition to their two redo slots.
+
+### 3.14 Problem journal
+
+A record of every problem you work on: plan problems, custom problems on a day, and problems you find on your own.
+
+**Log a problem I found** (button on Today, Problems page, sidebar and Edit day):
+- Link (URL), title, platform (LeetCode / other), difficulty.
+- Topic: the week it belongs to (defaults to the current week) and pattern tags (e.g. "Prefix Sum", "Two Pointers").
+- Problem description (markdown; paste or summarise).
+- Attach to a day (optional). Attached → it appears on that day's checklist and counts toward its status, like any custom item (3.13). Not attached → journal only; it never affects day status or catch-up.
+- First attempt (optional): outcome, minutes, date.
+
+**Every problem's journal entry** (plan, custom or found) has a detail page:
+- Description, my approach (markdown), my solution (Python code with highlighting), time and space complexity I worked out, key insight / what I missed, comments.
+- Confidence 1–5 ("could I solve this cold in an interview?").
+- Attempt history: every attempt with date, outcome, minutes and note. "Log another attempt" uses the normal problem log, so redo scheduling applies.
+- "Redo later" button adds a manual redo task (pick a date).
+- Plan problems get the same fields; their title/link come from the curriculum and can't be edited.
+
+**Problems page** (replaces the simple list in 3.4):
+- Table of all problems with last outcome, attempts, confidence, week, pattern tags, difficulty, source (plan / custom / found).
+- Filters: week, pattern tag, difficulty, last outcome, source, confidence ≤ N. Search over title, description, comments and code.
+- Sort by last attempted, confidence, or attempts.
 
 ## 4. Non-functional
 - Works offline after first load; all data in IndexedDB.

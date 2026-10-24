@@ -49,6 +49,7 @@ src/
 ```
 
 ## Rules
+- **Never run git commands** (no add, commit, push, checkout, reset, stash). The user handles all version control. When a phase is done, say so and stop.
 - Content lives in `content/` as data. Components never hard-code questions or problems.
 - Every content change must pass `npm run validate` (schema) and `python3 scripts/check_outputs.py` (output questions).
 - All dates are local calendar dates as `YYYY-MM-DD` strings. Never store `Date` objects or UTC timestamps for days.

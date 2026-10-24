@@ -1,6 +1,7 @@
 // Derives everything the UI shows from a snapshot of the database. Pure: no Dexie, no clock.
 
 import { addDays, diffDays } from "./dates";
+import { problemsById } from "./curriculum";
 import {
   buildSchedule,
   catchUpQueue,
@@ -9,10 +10,26 @@ import {
   indexCompletions,
   redosDue,
   streaks,
+  customProblem,
   type CatchUpItem,
   type EvaluatedDay,
+  type ScheduleContext,
 } from "./schedule";
-import type { Curriculum, ItemCompletion, ProblemAttempt, RedoTask, RestDay, ScheduledDay, Settings, WeekExtension } from "../types/content";
+import type {
+  Curriculum,
+  CustomItem,
+  DayLog,
+  ItemCompletion,
+  ItemMove,
+  Problem,
+  ProblemAttempt,
+  ProblemEntry,
+  RedoTask,
+  RestDay,
+  ScheduledDay,
+  Settings,
+  WeekExtension,
+} from "../types/content";
 
 export interface Snapshot {
   settings: Settings;
@@ -21,6 +38,10 @@ export interface Snapshot {
   restDays: RestDay[];
   redos: RedoTask[];
   attempts: ProblemAttempt[];
+  customItems: CustomItem[];
+  moves: ItemMove[];
+  dayLogs: DayLog[];
+  problemEntries: ProblemEntry[];
 }
 
 export interface Plan {
@@ -45,6 +66,11 @@ export interface Plan {
   finish: string | null;
   originalFinish: string | null;
   daysAdded: number; // finish date shift caused by extensions
+  customById: ReadonlyMap<string, CustomItem>;
+  dayLogs: ReadonlyMap<string, DayLog>;
+  entries: ReadonlyMap<string, ProblemEntry>;
+  /** Plan or custom problem by id (undefined for tasks and unknown ids). */
+  problemOf: (id: string) => Problem | undefined;
 }
 
 export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: string): Plan {
@@ -52,7 +78,9 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
   const completions = indexCompletions(snapshot.completions);
   const restDates = new Set(snapshot.restDays.map((r) => r.date));
   const schedule = buildSchedule(curriculum, settings.startDate, snapshot.extensions);
-  const days = evaluateDays({ curriculum, schedule, completions, restDates, today });
+  const edits = { customItems: snapshot.customItems, moves: snapshot.moves };
+  const days = evaluateDays({ curriculum, schedule, completions, restDates, today, edits });
+  const customById = new Map(snapshot.customItems.map((c) => [c.id, c]));
   const catchUp = catchUpQueue(days, completions, today);
   const finish = finishDate(schedule);
   const planOnly = schedule.filter((d) => d.kind === "plan").length;
@@ -85,6 +113,13 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
     finish,
     originalFinish,
     daysAdded: finish && originalFinish ? diffDays(originalFinish, finish) : 0,
+    customById,
+    dayLogs: new Map(snapshot.dayLogs.map((l) => [l.planDayId, l])),
+    entries: new Map(snapshot.problemEntries.map((e) => [e.problemId, e])),
+    problemOf: (id) => {
+      const c = customById.get(id);
+      return c ? (c.kind === "problem" ? customProblem(c) : undefined) : problemsById.get(id);
+    },
   };
 }
 
@@ -92,4 +127,16 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
 export function currentWeek(plan: Plan): number {
   if (plan.todayDay) return plan.todayDay.day.week;
   return plan.phase === "after" ? (plan.schedule.at(-1)?.week ?? 1) : (plan.schedule[0]?.week ?? 1);
+}
+
+/** What the pure extension rules need: start date, extensions, ticks and custom/moved items. */
+export function scheduleContext(plan: Plan, curriculum_: Curriculum): ScheduleContext {
+  return {
+    curriculum: curriculum_,
+    startDate: plan.startDate,
+    extensions: plan.snapshot.extensions,
+    completions: plan.completions,
+    today: plan.today,
+    edits: { customItems: plan.snapshot.customItems, moves: plan.snapshot.moves },
+  };
 }

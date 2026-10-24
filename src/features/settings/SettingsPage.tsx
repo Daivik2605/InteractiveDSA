@@ -5,7 +5,8 @@ import { saveExtensions, setStartDate } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
 import { formatDayMonth } from "../../lib/dates";
 import { exportAll, importAll, resetAll, saveSettings, TABLE_NAMES } from "../../lib/db";
-import { removeExtension, shortenExtension, type ScheduleContext } from "../../lib/schedule";
+import { scheduleContext } from "../../lib/plan";
+import { removeExtension, shortenExtension } from "../../lib/schedule";
 import type { Settings } from "../../types/content";
 
 const input = "rounded-md border border-slate-300 bg-white px-2 py-1.5 dark:border-slate-700 dark:bg-slate-950";
@@ -32,13 +33,7 @@ export function SettingsPage() {
   const [typed, setTyped] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const ctx: ScheduleContext = {
-    curriculum,
-    startDate: plan.startDate,
-    extensions: plan.snapshot.extensions,
-    completions: plan.completions,
-    today: plan.today,
-  };
+  const ctx = scheduleContext(plan, curriculum);
 
   async function applyExtensionChange(r: ReturnType<typeof removeExtension>) {
     if (!r.ok) return setExtError(r.reason);

@@ -98,7 +98,7 @@ export interface ProblemAttempt {
   id?: number;
   problemId: string;
   date: string;
-  outcome: "alone" | "hint" | "solution";
+  outcome: "alone" | "hint" | "solution" | "failed";
   minutes: number;
   note?: string;
   isRedo: boolean;
@@ -112,6 +112,49 @@ export interface RedoTask {
   attemptedOn?: string; // closed as attempted (hint/solution): a fresh redo chain replaced it
   createdByAttemptId?: number;
   closedByAttemptId?: number;
+}
+
+// Added in Dexie schema v2 (SPEC 3.13, 3.14)
+export interface CustomItem {
+  id: string; // "c-<uuid>"; used as itemId in completions and problemId in attempts/redos
+  planDayId?: string; // day it belongs to ("w03-d2" or "w03-x1"); omitted = journal-only "found" problem
+  week: number; // topic week, for filtering
+  kind: "problem" | "task";
+  platform?: string; // "LeetCode" | other; problems only
+  title: string;
+  difficulty?: Difficulty; // problems only
+  url?: string;
+  createdOn: string;
+}
+
+export interface ItemMove {
+  itemId: string; // primary key: plan item id that was moved
+  fromPlanDayId: string;
+  toPlanDayId: string; // same week or its extension days
+  movedOn: string;
+}
+
+// Journal data for ANY problem (plan, custom or found).
+export interface ProblemEntry {
+  problemId: string; // primary key: plan problem id, or a CustomItem id ("c-…")
+  description?: string; // markdown
+  approach?: string; // markdown
+  code?: string; // Python
+  timeComplexity?: string;
+  spaceComplexity?: string;
+  insight?: string; // key insight / what I missed
+  comments?: string;
+  confidence?: 1 | 2 | 3 | 4 | 5;
+  tags: string[]; // pattern tags
+  updatedOn: string;
+}
+
+export interface DayLog {
+  planDayId: string; // primary key
+  notes: string; // markdown
+  minutes: number;
+  links: string[];
+  updatedOn: string;
 }
 
 export interface QuizAnswer {

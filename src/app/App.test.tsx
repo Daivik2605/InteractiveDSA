@@ -136,7 +136,7 @@ describe("Today page", () => {
     await waitFor(async () => expect(await db.completions.get("w01-d1-p1")).toBeTruthy());
     expect(await db.attempts.toArray()).toMatchObject([{ problemId: "w01-d1-p1", outcome: "hint", minutes: 25, isRedo: false }]);
     expect((await db.redos.toArray()).map((r) => r.dueOn)).toEqual(["2026-10-29"]);
-    expect(checklist().getByRole("checkbox", { name: "Contains Duplicate" })).toBeChecked();
+    await waitFor(() => expect(checklist().getByRole("checkbox", { name: "Contains Duplicate" })).toBeChecked());
 
     await user.click(checklist().getByRole("checkbox", { name: "Contains Duplicate" }));
     await waitFor(async () => expect(await db.completions.count()).toBe(0));
@@ -192,7 +192,7 @@ describe("Today page", () => {
     const all = await db.redos.toArray();
     expect(all.filter((r) => r.attemptedOn)).toHaveLength(1);
     expect(all.filter((r) => !r.attemptedOn && !r.doneOn).map((r) => r.dueOn)).toEqual(["2026-11-04"]);
-    expect(screen.queryByRole("region", { name: "Redo due" })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Redo due" })).not.toBeInTheDocument());
   });
 
   it("rest day: marks today as rest, allowed once per week, can be undone", async () => {

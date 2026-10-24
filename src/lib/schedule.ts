@@ -11,7 +11,9 @@
 import { addDays, compareDates } from "./dates";
 import type {
   Curriculum,
+  CustomItem,
   ItemCompletion,
+  ItemMove,
   Problem,
   ProblemAttempt,
   RedoTask,
@@ -29,9 +31,28 @@ export type DayStatus = "done" | "done-late" | "partial" | "missed" | "rest" | "
 
 export interface DayItem {
   itemId: string;
-  planDayId: string;
-  kind: "learn" | "problem" | "slot";
+  planDayId: string; // the day the item is on now (after moves)
+  kind: "learn" | "problem" | "slot" | "task";
   problem?: Problem;
+  custom?: CustomItem; // set for custom problems and tasks
+  movedFrom?: string; // plan day id the item was moved from
+}
+
+/** Edits layered over the curriculum (SPEC 3.13). */
+export interface DayEdits {
+  customItems?: readonly CustomItem[];
+  moves?: readonly ItemMove[];
+}
+
+/** A custom problem as a Problem, so the log modal and redo scheduling treat it like a plan problem. */
+export function customProblem(c: CustomItem): Problem {
+  return {
+    id: c.id,
+    title: c.title,
+    difficulty: c.difficulty ?? "Medium",
+    url: c.url ?? "",
+    source: "added",
+  };
 }
 
 export interface EvaluatedDay {
@@ -110,20 +131,47 @@ export function finishDate(schedule: readonly ScheduledDay[]): string | null {
   return schedule.at(-1)?.date ?? null;
 }
 
-/** Items on one day: learn item + problems (+ two slots on day 7); extension days are two slots. */
-export function itemsForDay(curriculum: Curriculum, id: string): DayItem[] {
+/** Curriculum items of a plan day, before moves: learn item + problems. Extension days have none. */
+function curriculumItems(curriculum: Curriculum, id: string): DayItem[] {
   const { week, kind, n } = parsePlanDayId(id);
-  const slots: DayItem[] = SLOT_IDS.map((s) => ({ itemId: `${id}:${s}`, planDayId: id, kind: "slot" }));
-  if (kind === "extension") return slots;
-
-  const w = curriculum.weeks.find((x) => x.week === week);
-  const d = w?.days.find((x) => x.day === n);
+  if (kind === "extension") return [];
+  const d = curriculum.weeks.find((x) => x.week === week)?.days.find((x) => x.day === n);
   if (!d) throw new Error(`Unknown plan day "${id}"`);
   return [
     { itemId: `${id}:learn`, planDayId: id, kind: "learn" },
     ...d.problems.map((p): DayItem => ({ itemId: p.id, planDayId: id, kind: "problem", problem: p })),
-    ...(d.day === 7 ? slots : []),
   ];
+}
+
+const slotItems = (id: string): DayItem[] =>
+  SLOT_IDS.map((s) => ({ itemId: `${id}:${s}`, planDayId: id, kind: "slot" }));
+
+/**
+ * Items on one day, in order: learn item, problems, items moved here, custom items, then redo
+ * slots (day 7 and every extension day). Items moved away are left out.
+ */
+export function itemsForDay(curriculum: Curriculum, id: string, edits: DayEdits = {}): DayItem[] {
+  const { customItems = [], moves = [] } = edits;
+  const { kind, n } = parsePlanDayId(id);
+  const movedAway = new Set(moves.filter((m) => m.fromPlanDayId === id && m.toPlanDayId !== id).map((m) => m.itemId));
+  const own = curriculumItems(curriculum, id).filter((i) => !movedAway.has(i.itemId));
+  const movedIn = moves
+    .filter((m) => m.toPlanDayId === id && m.fromPlanDayId !== id)
+    .flatMap((m) =>
+      curriculumItems(curriculum, m.fromPlanDayId)
+        .filter((i) => i.itemId === m.itemId)
+        .map((i): DayItem => ({ ...i, planDayId: id, movedFrom: m.fromPlanDayId })),
+    );
+  const custom = customItems
+    .filter((c) => c.planDayId === id)
+    .map(
+      (c): DayItem =>
+        c.kind === "problem"
+          ? { itemId: c.id, planDayId: id, kind: "problem", problem: customProblem(c), custom: c }
+          : { itemId: c.id, planDayId: id, kind: "task", custom: c },
+    );
+  const hasSlots = kind === "extension" || n === 7;
+  return [...own, ...movedIn, ...custom, ...(hasSlots ? slotItems(id) : [])];
 }
 
 // ── day status ───────────────────────────────────────────────────────────────
@@ -153,10 +201,11 @@ export function evaluateDays(args: {
   completions: Completions;
   restDates: ReadonlySet<string>;
   today: string;
+  edits?: DayEdits;
 }): EvaluatedDay[] {
-  const { curriculum, schedule, completions, restDates, today } = args;
+  const { curriculum, schedule, completions, restDates, today, edits } = args;
   return schedule.map((day) => {
-    const items = itemsForDay(curriculum, day.planDayId);
+    const items = itemsForDay(curriculum, day.planDayId, edits);
     return { day, items, status: dayStatus({ day, items, completions, restDates, today }) };
   });
 }
@@ -250,10 +299,10 @@ export function streaks(days: readonly EvaluatedDay[], today: string): { current
 
 // ── redo dates ───────────────────────────────────────────────────────────────
 
-/** SPEC 3.4: hint → +3d; solution → +3d and +7d; solved alone but over 40 min → +7d. */
+/** SPEC 3.4: hint → +3d; solution or failed → +3d and +7d; solved alone but over 40 min → +7d. */
 export function redoDates(outcome: ProblemAttempt["outcome"], minutes: number, date: string): string[] {
   if (outcome === "hint") return [addDays(date, 3)];
-  if (outcome === "solution") return [addDays(date, 3), addDays(date, 7)];
+  if (outcome === "solution" || outcome === "failed") return [addDays(date, 3), addDays(date, 7)];
   return minutes > SLOW_SOLVE_MINUTES ? [addDays(date, 7)] : [];
 }
 
@@ -298,6 +347,7 @@ export interface ScheduleContext {
   extensions: readonly WeekExtension[];
   completions: Completions;
   today: string;
+  edits?: DayEdits;
 }
 
 type ExtensionResult = Result<{ extensions: WeekExtension[] }>;
@@ -338,6 +388,13 @@ function checkChange(ctx: ScheduleContext, proposed: readonly WeekExtension[]): 
       const removedIds = new Set(removed.map((d) => d.planDayId));
       if ([...ctx.completions.values()].some((c) => removedIds.has(c.planDayId))) {
         return { ok: false, reason: "Some of those extension days already have ticked items." };
+      }
+      const { customItems = [], moves = [] } = ctx.edits ?? {};
+      const hasEdits =
+        customItems.some((c) => c.planDayId && removedIds.has(c.planDayId)) ||
+        moves.some((m) => removedIds.has(m.toPlanDayId));
+      if (hasEdits) {
+        return { ok: false, reason: "Some of those extension days hold custom or moved items. Move or delete them first." };
       }
     }
   }
@@ -381,4 +438,34 @@ export function removeExtension(ctx: ScheduleContext, id: number): ExtensionResu
   const proposed = ctx.extensions.filter((e) => e.id !== id);
   const check = checkChange(ctx, proposed);
   return check.ok ? { ok: true, extensions: proposed } : check;
+}
+
+// ── editing a day (SPEC 3.13) ────────────────────────────────────────────────
+
+/**
+ * Can this item be moved to another day of its week (or that week's extension days)?
+ * Slots and ticked items stay put: moving a ticked item would silently change a day's status.
+ */
+export function canMoveItem(args: {
+  schedule: readonly ScheduledDay[];
+  item: DayItem;
+  toPlanDayId: string;
+  completions: Completions;
+}): Result<object> {
+  const { schedule, item, toPlanDayId, completions } = args;
+  if (item.kind === "slot") return { ok: false, reason: "Redo slots can't be moved." };
+  if (completions.has(item.itemId)) return { ok: false, reason: "Untick it before moving it." };
+  const from = schedule.find((d) => d.planDayId === item.planDayId);
+  const to = schedule.find((d) => d.planDayId === toPlanDayId);
+  if (!from || !to) return { ok: false, reason: "That day is not part of the plan." };
+  if (from.planDayId === to.planDayId) return { ok: false, reason: "It is already on that day." };
+  if (from.week !== to.week) return { ok: false, reason: "Items can only move within their own week." };
+  return { ok: true };
+}
+
+/** A forgotten tick may be dated from the day's planned date up to today; never in the future. */
+export function canTickOn(day: ScheduledDay, date: string, today: string): Result<object> {
+  if (compareDates(date, today) > 0) return { ok: false, reason: "You can't tick an item for a future date." };
+  if (compareDates(date, day.date) < 0) return { ok: false, reason: `Choose a date on or after the day's planned date.` };
+  return { ok: true };
 }

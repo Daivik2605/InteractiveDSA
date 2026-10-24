@@ -3,8 +3,25 @@
 import type { DsaDB } from "./db";
 import { saveSettings } from "./db";
 import { isValidDate } from "./dates";
-import { canAddRestDay, redoChanges, type Result } from "./schedule";
-import type { ItemCompletion, ProblemAttempt, ScheduledDay, WeekExtension } from "../types/content";
+import {
+  addExtension,
+  canAddRestDay,
+  canTickOn,
+  extensionDayId,
+  extraDaysByWeek,
+  redoChanges,
+  type Result,
+  type ScheduleContext,
+} from "./schedule";
+import type {
+  CustomItem,
+  Difficulty,
+  ItemCompletion,
+  ProblemAttempt,
+  ProblemEntry,
+  ScheduledDay,
+  WeekExtension,
+} from "../types/content";
 
 export interface CompletionTarget {
   itemId: string;
@@ -119,4 +136,157 @@ export async function setStartDate(db: DsaDB, date: string, defaultStartDate: st
   if (!isValidDate(date)) return { ok: false, reason: "Enter a valid date." };
   await saveSettings(db, { startDate: date }, defaultStartDate);
   return { ok: true };
+}
+
+// ── editing a day (SPEC 3.13) ────────────────────────────────────────────────
+
+/** Tick an item for a chosen date (a forgotten tick), refusing future dates and dates before the day. */
+export async function tickItemOn(
+  db: DsaDB,
+  target: CompletionTarget,
+  date: string,
+  day: ScheduledDay,
+  today: string,
+): Promise<Result<object>> {
+  const check = canTickOn(day, date, today);
+  if (check.ok) await tickItem(db, target, date);
+  return check;
+}
+
+export interface CustomItemInput {
+  planDayId?: string;
+  week: number;
+  kind: CustomItem["kind"];
+  platform?: string;
+  title: string;
+  difficulty?: Difficulty;
+  url?: string;
+}
+
+const clean = <T extends object>(o: T): T =>
+  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== "")) as T;
+
+/** Returns the new item's id ("c-<uuid>"). */
+export async function addCustomItem(db: DsaDB, input: CustomItemInput, today: string): Promise<string> {
+  const id = `c-${crypto.randomUUID()}`;
+  await db.customItems.add(clean({ ...input, id, createdOn: today }) as CustomItem);
+  return id;
+}
+
+export async function editCustomItem(
+  db: DsaDB,
+  id: string,
+  patch: Partial<Pick<CustomItem, "title" | "difficulty" | "url" | "platform" | "planDayId">>,
+): Promise<void> {
+  await db.customItems.update(id, patch);
+}
+
+/** Removes the item, its completion, its pending redos and its journal entry. Attempt history stays. */
+export async function deleteCustomItem(db: DsaDB, id: string): Promise<void> {
+  await db.transaction("rw", [db.customItems, db.completions, db.redos, db.problemEntries], async () => {
+    await db.completions.delete(id);
+    const pending = (await db.redos.where("problemId").equals(id).toArray()).filter((r) => !r.doneOn && !r.attemptedOn);
+    await db.redos.bulkDelete(pending.map((r) => r.id!));
+    await db.problemEntries.delete(id);
+    await db.customItems.delete(id);
+  });
+}
+
+/** The day a curriculum item belongs to before any move: "w03-d2-p1" and "w03-d2:learn" → "w03-d2". */
+export const homeDayOf = (itemId: string): string => itemId.split(/[:]|-p\d+$/)[0]!;
+
+/**
+ * Move an item to another day of its week. Custom items just change day; plan items get an ItemMove
+ * (keeping the original day), and moving one back home removes the move.
+ */
+export async function moveItem(
+  db: DsaDB,
+  item: { itemId: string; custom: boolean },
+  toPlanDayId: string,
+  today: string,
+): Promise<void> {
+  if (item.custom) return void (await db.customItems.update(item.itemId, { planDayId: toPlanDayId }));
+  await db.transaction("rw", db.itemMoves, async () => {
+    const from = (await db.itemMoves.get(item.itemId))?.fromPlanDayId ?? homeDayOf(item.itemId);
+    if (from === toPlanDayId) await db.itemMoves.delete(item.itemId);
+    else await db.itemMoves.put({ itemId: item.itemId, fromPlanDayId: from, toPlanDayId, movedOn: today });
+  });
+}
+
+const sameStrings = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+
+/** Saves the study log for a day; an empty log removes the row. */
+export async function saveDayLog(
+  db: DsaDB,
+  input: { planDayId: string; notes: string; minutes: number; links: string[] },
+  today: string,
+): Promise<void> {
+  const notes = input.notes.trim();
+  const links = input.links.map((l) => l.trim()).filter(Boolean);
+  if (!notes && input.minutes === 0 && links.length === 0) return void (await db.dayLogs.delete(input.planDayId));
+  const prev = await db.dayLogs.get(input.planDayId);
+  if (prev && prev.notes === notes && prev.minutes === input.minutes && sameStrings(prev.links, links)) return;
+  await db.dayLogs.put({ planDayId: input.planDayId, notes, minutes: input.minutes, links, updatedOn: today });
+}
+
+/** "+ Add a day to Week N": a +1 extension that follows the same rules. Returns the new day's id. */
+export async function addDayToWeek(
+  db: DsaDB,
+  ctx: ScheduleContext,
+  week: number,
+): Promise<Result<{ planDayId: string }>> {
+  const r = addExtension(ctx, { week, extraDays: 1 });
+  if (!r.ok) return r;
+  await saveExtensions(db, r.extensions);
+  return { ok: true, planDayId: extensionDayId(week, extraDaysByWeek(r.extensions).get(week) ?? 1) };
+}
+
+// ── problem journal (SPEC 3.14) ──────────────────────────────────────────────
+
+const ENTRY_TEXT = ["description", "approach", "code", "timeComplexity", "spaceComplexity", "insight", "comments"] as const;
+
+/** Upserts a journal entry; an entry with nothing in it is removed. */
+export async function saveProblemEntry(db: DsaDB, entry: Omit<ProblemEntry, "updatedOn">, today: string): Promise<void> {
+  const text = Object.fromEntries(ENTRY_TEXT.map((k) => [k, entry[k]?.trim() || undefined]));
+  const empty = ENTRY_TEXT.every((k) => !text[k]) && !entry.confidence && entry.tags.length === 0;
+  if (empty) return void (await db.problemEntries.delete(entry.problemId));
+  await db.problemEntries.put(
+    clean({ problemId: entry.problemId, ...text, confidence: entry.confidence, tags: entry.tags, updatedOn: today }) as ProblemEntry,
+  );
+}
+
+/** A manual "redo later" task on a date the learner picks. It does not touch other pending redos. */
+export async function addManualRedo(db: DsaDB, problemId: string, dueOn: string): Promise<void> {
+  await db.redos.add({ problemId, dueOn });
+}
+
+export interface FoundProblemInput extends Omit<CustomItemInput, "kind"> {
+  description?: string;
+  tags: string[];
+  firstAttempt?: { outcome: ProblemAttempt["outcome"]; minutes: number; date: string; note?: string };
+}
+
+/**
+ * "Log a problem I found": a custom problem (journal-only unless attached to a day), its journal
+ * entry, and an optional first attempt. Returns the new problem id.
+ */
+export async function logFoundProblem(db: DsaDB, input: FoundProblemInput, today: string): Promise<string> {
+  const { description, tags, firstAttempt, ...item } = input;
+  return db.transaction(
+    "rw",
+    [db.customItems, db.problemEntries, db.attempts, db.completions, db.redos],
+    async () => {
+      const id = await addCustomItem(db, { ...item, kind: "problem" }, today);
+      await saveProblemEntry(db, { problemId: id, tags, ...(description ? { description } : {}) }, today);
+      if (firstAttempt) {
+        await logAttempt(db, {
+          problemId: id,
+          ...firstAttempt,
+          isRedo: false,
+          completes: item.planDayId ? [{ itemId: id, planDayId: item.planDayId }] : [],
+        });
+      }
+      return id;
+    },
+  );
 }

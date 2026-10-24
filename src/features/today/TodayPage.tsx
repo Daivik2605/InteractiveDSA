@@ -1,72 +1,23 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { logAttempt, setRestDay, tickItem, undoAttempt, untickItem, type LogInput } from "../../lib/actions";
-import { problemsById, problemsUpTo } from "../../lib/curriculum";
+import { problemsUpTo } from "../../lib/curriculum";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
 import { itemLabel } from "../../lib/labels";
 import type { Plan } from "../../lib/plan";
 import { canAddRestDay, fillSlots, type DayItem } from "../../lib/schedule";
 import type { Problem } from "../../types/content";
 import { STATUS_META } from "../calendar/status";
+import { FoundProblemModal } from "../problems/FoundProblemModal";
 import { LogModal, type LogValues } from "./LogModal";
+import { Row, Section } from "./Row";
 
 interface Logging {
   title: string;
   problem?: Problem;
   choices?: Problem[];
   build: (v: LogValues) => LogInput;
-}
-
-const DIFF_STYLE: Record<Problem["difficulty"], string> = {
-  Easy: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200",
-  Medium: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200",
-  Hard: "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200",
-};
-
-function Row({ checked, onToggle, label, problem, meta, caption }: {
-  checked: boolean;
-  onToggle: () => void;
-  label: string;
-  problem?: Problem;
-  meta?: string;
-  caption?: ReactNode;
-}) {
-  return (
-    <li className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onToggle}
-        aria-label={label}
-        className="mt-1 h-5 w-5 shrink-0"
-      />
-      <div className="min-w-0 flex-1">
-        <div className={`flex flex-wrap items-center gap-2 ${checked ? "text-slate-500 line-through" : ""}`}>
-          {problem ? (
-            <a href={problem.url} target="_blank" rel="noopener noreferrer" className="font-medium text-indigo-700 underline-offset-2 hover:underline dark:text-indigo-300">
-              {label}
-              <span className="sr-only"> (opens LeetCode in a new tab)</span>
-            </a>
-          ) : (
-            <span className="font-medium">{label}</span>
-          )}
-          {problem && <span className={`rounded px-1.5 py-0.5 text-xs ${DIFF_STYLE[problem.difficulty]}`}>{problem.difficulty}</span>}
-        </div>
-        {(meta || caption) && <p className="mt-0.5 text-xs text-slate-500">{meta}{caption}</p>}
-      </div>
-    </li>
-  );
-}
-
-function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
-  return (
-    <section className="mt-8" aria-label={title}>
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {hint && <p className="text-sm text-slate-500">{hint}</p>}
-      <ul className="mt-3 space-y-2">{children}</ul>
-    </section>
-  );
 }
 
 export function TodayPage() {
@@ -79,6 +30,11 @@ export function TodayPage() {
       {plan.phase === "during" && plan.todayDay && <TodayBody />}
     </div>
   );
+}
+
+function movedLabel(plan: Plan, planDayId: string) {
+  const d = plan.schedule.find((x) => x.planDayId === planDayId);
+  return d ? formatShort(d.date) : planDayId;
 }
 
 function BeforeStart({ plan }: { plan: Plan }) {
@@ -114,6 +70,7 @@ function TodayBody() {
   const n = Number(planDayId.split(/[dx]/)[1]);
   const [logging, setLogging] = useState<Logging | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [finding, setFinding] = useState(false);
 
   const done = (item: DayItem) => plan.completions.get(item.itemId);
   const meta = STATUS_META[day.status];
@@ -152,11 +109,11 @@ function TodayBody() {
       setLogging({
         title: "Log a redo",
         choices: freeChoices,
-        build: (v) => ({ ...base(problemsById.get(v.problemId)!, { isRedo: true, completes: [slot] })(v), problemId: v.problemId }),
+        build: (v) => ({ ...base(plan.problemOf(v.problemId)!, { isRedo: true, completes: [slot] })(v), problemId: v.problemId }),
       });
       return;
     }
-    const problem = problemsById.get(fill.problemId!)!;
+    const problem = plan.problemOf(fill.problemId!)!;
     if (fill.source === "redo") {
       setLogging({ title: "Log your redo", problem, build: base(problem, { isRedo: true, completes: [slot] }) });
     } else {
@@ -177,7 +134,7 @@ function TodayBody() {
   const slotLabel = (item: DayItem) => {
     if (done(item)) return itemLabel(plan, item);
     const f = fillOf(item.itemId);
-    return f?.problemId ? (problemsById.get(f.problemId)?.title ?? f.problemId) : `Redo slot ${item.itemId.endsWith(":s1") ? 1 : 2}`;
+    return f?.problemId ? (plan.problemOf(f.problemId)?.title ?? f.problemId) : `Redo slot ${item.itemId.endsWith(":s1") ? 1 : 2}`;
   };
 
   // Things done today that aren't on today's checklist (catch-up ticks, standalone redos): keep them undoable.
@@ -205,23 +162,34 @@ function TodayBody() {
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={itemLabel(plan, item)} meta="Learn" />
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={itemLabel(plan, item)} meta={item.movedFrom ? `Learn · moved from ${movedLabel(plan, item.movedFrom)}` : "Learn"} />
+          ) : item.kind === "task" ? (
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
           ) : item.kind === "problem" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => askProblem(item)} label={item.problem!.title} problem={item.problem} />
+            <Row
+              key={item.itemId}
+              checked={!!done(item)}
+              onToggle={() => askProblem(item)}
+              label={item.problem!.title}
+              problem={item.problem}
+              meta={item.movedFrom ? `moved from ${movedLabel(plan, item.movedFrom)}` : item.custom ? "Added by you" : undefined}
+            />
           ) : (
             <Row
               key={item.itemId}
               checked={!!done(item)}
               onToggle={() => askSlot(item)}
               label={slotLabel(item)}
-              problem={!done(item) && fillOf(item.itemId)?.problemId ? problemsById.get(fillOf(item.itemId)!.problemId!) : undefined}
+              problem={!done(item) && fillOf(item.itemId)?.problemId ? plan.problemOf(fillOf(item.itemId)!.problemId!) : undefined}
               meta={slotCaption(item)}
             />
           ),
         )}
       </Section>
 
-      <div className="mt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <Link to={`/day/${planDayId}`} className="text-sm text-indigo-700 underline dark:text-indigo-300">Edit day</Link>
+        <button type="button" onClick={() => setFinding(true)} className="text-sm text-indigo-700 underline dark:text-indigo-300">Log a problem I found</button>
         {restOn ? (
           <button type="button" className="text-sm text-indigo-700 underline dark:text-indigo-300" onClick={() => setRestDay(db, plan.schedule, plan.restDates, today, false)}>
             Resting today — undo rest day
@@ -245,7 +213,7 @@ function TodayBody() {
       {redoProblems.length > 0 && (
         <Section title="Redo due" hint="Re-solve these alone to close them.">
           {redoProblems.map((r) => {
-            const p = problemsById.get(r.problemId)!;
+            const p = plan.problemOf(r.problemId)!;
             return (
               <li key={r.problemId} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
                 <div>
@@ -274,7 +242,7 @@ function TodayBody() {
               onToggle={() => (c.item.kind === "problem" ? askProblem(c.item, "Log catch-up problem") : tickItem(db, { itemId: c.item.itemId, planDayId: c.planDayId }, today))}
               label={itemLabel(plan, c.item)}
               problem={c.item.problem}
-              meta={`from ${formatShort(c.fromDate)}`}
+              meta={`from ${formatShort(c.fromDate)}${c.item.movedFrom ? ` · moved from ${movedLabel(plan, c.item.movedFrom)}` : ""}`}
             />
           ))}
         </Section>
@@ -284,19 +252,20 @@ function TodayBody() {
         <Section title="Also done today" hint="Catch-up and redo work. Undo removes the log entry and any redos it created.">
           {doneElsewhere.map((c) => (
             <li key={c.itemId} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
-              <span>{problemsById.get(c.itemId)?.title ?? c.itemId.replace(":learn", " — learn item")}</span>
+              <span>{plan.problemOf(c.itemId)?.title ?? plan.customById.get(c.itemId)?.title ?? c.itemId.replace(":learn", " — learn item")}</span>
               <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => untickItem(db, c.itemId)}>Undo</button>
             </li>
           ))}
           {standaloneRedos.map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
-              <span>Redo: {problemsById.get(a.problemId)?.title}</span>
+              <span>Redo: {plan.problemOf(a.problemId)?.title}</span>
               <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => undoAttempt(db, a.id!)}>Undo</button>
             </li>
           ))}
         </Section>
       )}
 
+      {finding && <FoundProblemModal defaultPlanDayId={planDayId} onClose={() => setFinding(false)} />}
       {logging && (
         <LogModal
           title={logging.title}

@@ -5,7 +5,8 @@ import { saveExtensions } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
 import { diffDays, formatShort, isValidDate } from "../../lib/dates";
 import { currentWeek } from "../../lib/plan";
-import { addExtension, buildSchedule, finishDate, MAX_EXTENSION_AT_ONCE, type ScheduleContext } from "../../lib/schedule";
+import { scheduleContext } from "../../lib/plan";
+import { addExtension, buildSchedule, finishDate, MAX_EXTENSION_AT_ONCE } from "../../lib/schedule";
 
 export function ExtensionDialog() {
   const { plan, db, extensionPrefill, closeExtension } = usePlanContext();
@@ -21,13 +22,7 @@ export function ExtensionDialog() {
   const extraDays = mode === "days" ? days : isValidDate(until) ? diffDays(weekLast, until) : 0;
 
   const result = useMemo(() => {
-    const ctx: ScheduleContext = {
-      curriculum,
-      startDate: plan.startDate,
-      extensions: plan.snapshot.extensions,
-      completions: plan.completions,
-      today: plan.today,
-    };
+    const ctx = scheduleContext(plan, curriculum);
     return addExtension(ctx, { week, extraDays, reason: reason.trim() || undefined });
   }, [plan, week, extraDays, reason]);
 
