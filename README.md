@@ -13,7 +13,7 @@ A personal 90-day Python DSA study app: daily checklists with missed-day trackin
 The app works without any of this. To mirror progress to the shared PersonalOS Supabase project:
 1. In Supabase → SQL Editor, run `supabase/dsa_schema.sql` (creates only `dsa_` objects; safe to re-run).
 2. `cp .env.example .env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Project Settings → API; anon/publishable key only).
-3. `npm install && npm run dev`, then open **http://localhost:5174** (fixed port from Phase 3.5.6; before that it is 5173).
+3. `npm install && npm run dev`, then open **http://localhost:5174** (fixed; `npm run dev` fails if the port is taken. 5173 is Chart Journal).
 4. Settings → sign in with the same email/password as the other PersonalOS apps.
 5. If the cloud already has data, choose **Restore from cloud** (default). To start from a backup file instead, use Settings → Import. Export a backup first before changing ports: IndexedDB is per origin.
 6. After changing the schema, run `../supabase/checks.sql`; queries 1–8 must return zero rows.
