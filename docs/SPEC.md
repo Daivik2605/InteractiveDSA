@@ -113,6 +113,29 @@ Contents, top to bottom:
 - Missed days stay counted after an extension; an extension is not a way to erase misses.
 - The calendar and Settings list all extensions (week, days, reason, date added).
 
+### 3.13 Editing a day: study log, custom items, adding days
+
+Every day (past, today or future) has an **Edit day** view, opened from the Today page or by clicking a day in either calendar.
+
+**Study log** — "What I studied" for that day:
+- Free-text notes (markdown), minutes studied, optional links (videos, articles).
+- Editable at any time; shows "edited on …" when changed after the day.
+- Shown in the day-detail panel and searchable on the Calendar page.
+
+**Add stuff to a day**:
+- Add a **custom item** to any day: either a LeetCode problem (title, difficulty, URL) or a task ("Watch heap video", "Re-read sliding window notes").
+- Custom problems use the same problem log and redo scheduling as plan problems.
+- Custom items count toward that day's status like plan items. If unticked when the day passes, they go to the catch-up queue.
+- Custom items can be edited or deleted. Deleting one that is ticked asks for confirmation and removes its completion (attempt history stays).
+- Plan items can't be deleted, but can be **moved** to another day of the same week or its extension days (e.g. push a hard problem to tomorrow). A moved item keeps its id and history and shows "moved from Tue 3 Nov".
+
+**Correct a tick date**:
+- "I did this but forgot to tick" → tick with a chosen date (any date from the day's planned date up to today). This sets `completedOn` to that date, so a forgotten tick isn't recorded as late. Ticking for a future date is not allowed.
+
+**Add a day for this topic**:
+- "+ Add a day to Week N" on the Edit day view, the week page and the sidebar. It is a shortcut for a +1 extension (3.12) and follows the same rules.
+- After adding, the new extension day opens in Edit day so items can be added straight away. Extension days can hold custom items in addition to their two redo slots.
+
 ## 4. Non-functional
 - Works offline after first load; all data in IndexedDB.
 - Responsive down to 375px; keyboard shortcuts in quiz (1–4 to answer, Enter for next).

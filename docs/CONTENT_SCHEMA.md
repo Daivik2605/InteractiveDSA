@@ -155,6 +155,32 @@ export interface MockSession {
   checklist: Record<string, boolean[]>; rating: 1 | 2 | 3 | 4 | 5; notes?: string;
 }
 
+// Added in Dexie schema v2 (SPEC 3.13)
+export interface CustomItem {
+  id: string;            // "c-<uuid>"; used as itemId in completions and problemId in attempts/redos
+  planDayId: string;     // day it belongs to ("w03-d2" or "w03-x1")
+  kind: "problem" | "task";
+  title: string;
+  difficulty?: Difficulty; // problems only
+  url?: string;
+  createdOn: string;
+}
+
+export interface ItemMove {
+  itemId: string;        // primary key: plan item id that was moved
+  fromPlanDayId: string;
+  toPlanDayId: string;   // same week or its extension days
+  movedOn: string;
+}
+
+export interface DayLog {
+  planDayId: string;     // primary key
+  notes: string;         // markdown
+  minutes: number;
+  links: string[];
+  updatedOn: string;
+}
+
 export interface Settings { id: "settings"; startDate: string; theme: "light" | "dark" | "system"; }
 ```
 Export/import = one JSON object with every table plus `schemaVersion`.

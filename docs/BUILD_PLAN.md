@@ -15,6 +15,11 @@ Check the result in the browser before moving on. Commit after each phase.
 
 **Done when:** the sidebar shows today's week, day, topic and missed count on every page; changing the start date to two weeks ago shows missed days and a catch-up queue; extending Week 1 by 3 days moves Week 2 and the finish date; export and re-import restores everything.
 
+### Phase 2.5 — Edit day
+> Read CLAUDE.md and the docs it lists, then do Phase 2.5 of docs/BUILD_PLAN.md. Show me your plan first. Build SPEC 3.13: the Edit day view (study log, custom items, moving plan items within a week, ticking with a chosen date, "+ Add a day to Week N"). Bump Dexie to v2 with the CustomItem, ItemMove and DayLog tables from CONTENT_SCHEMA.md, migrating existing data without loss, and include them in export/import (old v1 exports must still import). Update lib/schedule.ts so day items, status and catch-up include custom items and moves, with tests.
+
+**Done when:** you can add a task and a custom LeetCode problem to a past day, write a study log, move a problem to tomorrow, tick something with yesterday's date (day shows done, not done-late), add a day to Week 1 and fill it, and a v1 export still imports.
+
 ### Phase 3 — Quiz engine
 > Do Phase 3: build the quiz engine (SPEC 3.6), the review quiz with Leitner boxes (3.7) and the pattern drill (3.8). Use a small sample question file with 6 questions to test. Add Shiki highlighting and keyboard shortcuts. Write scripts/check_outputs.py that runs every `output` question's code with python3 and compares stdout with the correct option.
 
