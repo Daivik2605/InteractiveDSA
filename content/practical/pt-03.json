@@ -1,0 +1,46 @@
+{
+  "id": "pt-03",
+  "title": "Group-by report",
+  "unlockWeek": 2,
+  "intro": "You are building a tiny reporting layer over lists of dicts, like a SQL GROUP BY and JOIN written by hand. Standard library only. Each level extends the previous one.",
+  "rules": [
+    "Rows are plain dicts. Keep the input unchanged: build new dicts and lists instead of editing the originals."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "Sum a list of dicts by key",
+      "prompt": "Write `sum_by(rows, key, value)` that returns a dict mapping each distinct `row[key]` to the sum of `row[value]`. Keys appear in the order they first occur.",
+      "signature": "def sum_by(rows: list[dict], key: str, value: str) -> dict",
+      "sampleInput": "sales = [\n    {'region': 'east', 'amount': 120},\n    {'region': 'west', 'amount': 80},\n    {'region': 'east', 'amount': 45},\n    {'region': 'north', 'amount': 200},\n    {'region': 'west', 'amount': 60},\n    {'region': 'east', 'amount': 30},\n]\nprint(sum_by(sales, \"region\", \"amount\"))",
+      "expectedOutput": "{'east': 195, 'west': 140, 'north': 200}",
+      "edgeCases": [
+        "An empty list returns {}"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Join two lists of dicts on id",
+      "prompt": "Write `join(orders, customers)` that returns one dict per order with the keys `order_id`, `name`, `region` and `amount`, taking name and region from the customer whose `id` equals the order's `customer_id`. This is an inner join: orders with no matching customer are dropped. Keep the order of `orders`.",
+      "signature": "def join(orders: list[dict], customers: list[dict]) -> list[dict]",
+      "sampleInput": "customers = [\n    {'id': 10, 'name': 'Ana', 'region': 'east'},\n    {'id': 11, 'name': 'Ben', 'region': 'west'},\n    {'id': 12, 'name': 'Cy', 'region': 'east'},\n    {'id': 13, 'name': 'Dee', 'region': 'north'},\n    {'id': 14, 'name': 'Eli', 'region': 'east'},\n    {'id': 15, 'name': 'Fay', 'region': 'west'},\n]\norders = [\n    {'id': 1, 'customer_id': 10, 'amount': 120},\n    {'id': 2, 'customer_id': 11, 'amount': 80},\n    {'id': 3, 'customer_id': 12, 'amount': 45},\n    {'id': 4, 'customer_id': 13, 'amount': 200},\n    {'id': 5, 'customer_id': 10, 'amount': 30},\n    {'id': 6, 'customer_id': 99, 'amount': 500},\n    {'id': 7, 'customer_id': 14, 'amount': 150},\n    {'id': 8, 'customer_id': 15, 'amount': 80},\n    {'id': 9, 'customer_id': 11, 'amount': 10},\n    {'id': 10, 'customer_id': 14, 'amount': 20},\n]\nfor row in join(orders, customers):\n    print(row)",
+      "expectedOutput": "{'order_id': 1, 'name': 'Ana', 'region': 'east', 'amount': 120}\n{'order_id': 2, 'name': 'Ben', 'region': 'west', 'amount': 80}\n{'order_id': 3, 'name': 'Cy', 'region': 'east', 'amount': 45}\n{'order_id': 4, 'name': 'Dee', 'region': 'north', 'amount': 200}\n{'order_id': 5, 'name': 'Ana', 'region': 'east', 'amount': 30}\n{'order_id': 7, 'name': 'Eli', 'region': 'east', 'amount': 150}\n{'order_id': 8, 'name': 'Fay', 'region': 'west', 'amount': 80}\n{'order_id': 9, 'name': 'Ben', 'region': 'west', 'amount': 10}\n{'order_id': 10, 'name': 'Eli', 'region': 'east', 'amount': 20}",
+      "edgeCases": [
+        "Order 6 refers to customer 99, who does not exist",
+        "Build a dict from customer id to customer first, so each lookup is O(1)"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "Top 3 per group, sorted",
+      "prompt": "Write `top_customers(orders, customers)` that, using the joined rows, totals the spend of each customer and returns a dict mapping each region to a list of its top 3 customers as `(name, total)` tuples, sorted by total descending then name ascending. Regions appear in alphabetical order. Regions with fewer than 3 customers return what they have.",
+      "signature": "def top_customers(orders: list[dict], customers: list[dict]) -> dict[str, list[tuple[str, int]]]",
+      "sampleInput": "customers = [\n    {'id': 10, 'name': 'Ana', 'region': 'east'},\n    {'id': 11, 'name': 'Ben', 'region': 'west'},\n    {'id': 12, 'name': 'Cy', 'region': 'east'},\n    {'id': 13, 'name': 'Dee', 'region': 'north'},\n    {'id': 14, 'name': 'Eli', 'region': 'east'},\n    {'id': 15, 'name': 'Fay', 'region': 'west'},\n]\norders = [\n    {'id': 1, 'customer_id': 10, 'amount': 120},\n    {'id': 2, 'customer_id': 11, 'amount': 80},\n    {'id': 3, 'customer_id': 12, 'amount': 45},\n    {'id': 4, 'customer_id': 13, 'amount': 200},\n    {'id': 5, 'customer_id': 10, 'amount': 30},\n    {'id': 6, 'customer_id': 99, 'amount': 500},\n    {'id': 7, 'customer_id': 14, 'amount': 150},\n    {'id': 8, 'customer_id': 15, 'amount': 80},\n    {'id': 9, 'customer_id': 11, 'amount': 10},\n    {'id': 10, 'customer_id': 14, 'amount': 20},\n]\nprint(top_customers(orders, customers))",
+      "expectedOutput": "{'east': [('Eli', 170), ('Ana', 150), ('Cy', 45)], 'north': [('Dee', 200)], 'west': [('Ben', 90), ('Fay', 80)]}",
+      "edgeCases": [
+        "A customer with several orders is totalled once (Ana has two)",
+        "Dropped orders must not count"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "theme": 1,
+  "week": 1,
+  "questions": [
+    {
+      "id": "t01-q01",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: Truthiness",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 1,
+      "code": "print(bool([]), bool([[]]), bool(0.0), bool(\"0\"))",
+      "options": [
+        "False True False False",
+        "False False False True",
+        "False True False True",
+        "False True True True"
+      ],
+      "answer": 2,
+      "explanation": "Empty containers, 0 and 0.0 are falsy. `[[]]` is a non-empty list (it holds one element, even though that element is empty), so it is truthy, and the string \"0\" is non-empty, so it is truthy too."
+    },
+    {
+      "id": "t01-q02",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: Mutability",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 1,
+      "code": "a = (1, [2, 3])\na[1].append(4)\nprint(a)",
+      "options": [
+        "(1, [2, 3, 4])",
+        "(1, [2, 3])",
+        "TypeError is raised",
+        "(1, 2, 3, 4)"
+      ],
+      "answer": 0,
+      "explanation": "A tuple is immutable, but it only holds references. The list inside is still mutable, so `a[1].append(4)` changes it and the tuple (1, [2, 3, 4]) prints. Reassigning `a[1] = ...` would raise TypeError."
+    },
+    {
+      "id": "t01-q03",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: Aliasing",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 1,
+      "code": "a = [1, 2]\nb = a\na += [3]\nc = a\na = a + [4]\nprint(b, c, a)",
+      "options": [
+        "[1, 2] [1, 2, 3] [1, 2, 3, 4]",
+        "[1, 2, 3, 4] [1, 2, 3, 4] [1, 2, 3, 4]",
+        "[1, 2, 3] [1, 2, 3, 4] [1, 2, 3, 4]",
+        "[1, 2, 3] [1, 2, 3] [1, 2, 3, 4]"
+      ],
+      "answer": 3,
+      "explanation": "`a += [3]` calls list.__iadd__, which mutates the list in place, so b (the same object) and c both see [1, 2, 3]. `a = a + [4]` builds a new list and rebinds a only, leaving b and c unchanged."
+    },
+    {
+      "id": "t01-q04",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: Identity",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 1,
+      "code": "d = {}\nprint(d is {}, d == {}, d is d)",
+      "options": [
+        "True True True",
+        "False True True",
+        "False False True",
+        "True False True"
+      ],
+      "answer": 1,
+      "explanation": "`d is {}` compares with a brand new empty dict, so it is False. `d == {}` compares contents, so True. Every object is identical to itself: `d is d` is True."
+    },
+    {
+      "id": "t01-q05",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: Truthiness",
+      "difficulty": "medium",
+      "prompt": "get_count should return -1 only when the key is missing, but it returns -1 for a key whose count is 0. What is the bug?",
+      "theme": 1,
+      "code": "def get_count(counts, key):\n    return counts.get(key) or -1",
+      "options": [
+        "`get` raises KeyError for a missing key, so it must be wrapped in try/except",
+        "`or` evaluates both sides, so it should be `and`",
+        "`counts.get(key)` returns a copy of the value",
+        "`or` treats a stored 0 as falsy; use `counts.get(key, -1)`"
+      ],
+      "answer": 3,
+      "explanation": "`x or y` returns y whenever x is falsy, and 0 is falsy, so a real count of 0 becomes -1. `dict.get(key, default)` applies the default only when the key is absent. Time O(1) average. Use `is None` when you must tell None from other falsy values."
+    },
+    {
+      "id": "t01-q06",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: Identity",
+      "difficulty": "medium",
+      "prompt": "is_ok(\"ok\") works in a quick test but the function is unreliable with strings read from input. What is the bug?",
+      "theme": 1,
+      "code": "def is_ok(status):\n    return status is \"ok\"",
+      "options": [
+        "`return` cannot be used with a comparison operator",
+        "`is` compares object identity; equal strings are not guaranteed to be the same object, so use `==`",
+        "`is` is slower than `==`, which makes it fail on long strings",
+        "Strings must be compared with `.equals()`"
+      ],
+      "answer": 1,
+      "explanation": "`is` asks whether two names point at the very same object. CPython may reuse (intern) short literals, which makes tests pass by accident, but a string produced by input(), slicing or join is usually a different object with equal contents. Use `==` for values and keep `is` for None, True and False."
+    },
+    {
+      "id": "t01-q07",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Python: Hashability",
+      "difficulty": "medium",
+      "prompt": "Why can a list not be used as a dictionary key?",
+      "theme": 1,
+      "options": [
+        "Lists are mutable, so their contents (and any hash based on them) could change while stored",
+        "Lists are too large to hash quickly",
+        "Lists have no __eq__ method",
+        "Dictionary keys must be strings or integers"
+      ],
+      "answer": 0,
+      "explanation": "A dict locates a key by its hash, so the hash must never change while the key is stored. Mutable containers (list, dict, set) therefore define no hash and raise TypeError. Tuples of hashable items, frozenset, str, int and None are fine. Convert a list with tuple(lst) when you need it as a key (costs O(k))."
+    },
+    {
+      "id": "t01-q08",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Python: Identity",
+      "difficulty": "medium",
+      "prompt": "Which statement about `is` and `==` is correct?",
+      "theme": 1,
+      "options": [
+        "`==` compares memory addresses and `is` compares values",
+        "`is` and `==` are interchangeable for lists",
+        "Compare with None using `is`, because None is a singleton; use `==` to compare values",
+        "`x is 1000` is always True when x == 1000"
+      ],
+      "answer": 2,
+      "explanation": "`==` calls __eq__ and compares values; `is` compares object identity. None is a single shared object, so `x is None` is the idiomatic, fast and unambiguous test (a class can override __eq__ to equal None, but not `is`). Small-integer caching (-5..256) is an implementation detail, so `x is 1000` can be False."
+    },
+    {
+      "id": "t01-q09",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Python: Copying",
+      "difficulty": "hard",
+      "prompt": "You need a copy of a grid (a list of lists of ints) so that editing the copy never changes the original. Which expression does that?",
+      "theme": 1,
+      "options": [
+        "grid[:]",
+        "[row[:] for row in grid]",
+        "list(grid)",
+        "grid.copy()"
+      ],
+      "answer": 1,
+      "explanation": "`grid[:]`, `list(grid)` and `grid.copy()` are all shallow copies: they create a new outer list but share the same row objects, so `copy[0][0] = 9` changes the original too. Copying every row copies the ints (immutable), giving a real independent grid. `copy.deepcopy(grid)` also works but is slower. Time O(m·n), space O(m·n).",
+      "complexity": {
+        "time": "O(m·n)",
+        "space": "O(m·n)"
+      }
+    },
+    {
+      "id": "t01-q10",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Python: Identity",
+      "difficulty": "medium",
+      "prompt": "For two lists of length n, what are the costs of `a is b` and `a == b` in the worst case?",
+      "theme": 1,
+      "options": [
+        "Both are O(1)",
+        "Both are O(n)",
+        "`a is b` O(n); `a == b` O(1)",
+        "`a is b` O(1); `a == b` O(n)"
+      ],
+      "answer": 3,
+      "explanation": "`is` compares two references (addresses) in constant time. `==` compares length first and then element by element until a difference is found, so it is O(n) when the lists are equal or differ near the end. For nested lists the comparison recurses, so the real cost is the total number of elements.",
+      "complexity": {
+        "time": "O(1) / O(n)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

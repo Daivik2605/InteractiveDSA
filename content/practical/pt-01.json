@@ -1,0 +1,47 @@
+{
+  "id": "pt-01",
+  "title": "Word stats",
+  "unlockWeek": 2,
+  "intro": "You are building a small text-analysis helper. Use only the standard library (no pandas). Each level extends the code from the previous one, so keep your functions.",
+  "rules": [
+    "A word is a maximal run of letters or apostrophes, compared in lowercase. Everything else (spaces, digits, punctuation) separates words.",
+    "Ties are always broken alphabetically, so the output is deterministic."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "Count words in a text",
+      "prompt": "Write `count_words(text)` that returns a dict mapping each word to the number of times it appears. Keys must appear in the order the words first occur in the text.",
+      "signature": "def count_words(text: str) -> dict[str, int]",
+      "sampleInput": "text = 'The quick brown fox jumps over the lazy dog. The dog barks; the quick brown fox runs away! A quick brown fox is a happy fox.'\nprint(count_words(text))",
+      "expectedOutput": "{'the': 4, 'quick': 3, 'brown': 3, 'fox': 4, 'jumps': 1, 'over': 1, 'lazy': 1, 'dog': 2, 'barks': 1, 'runs': 1, 'away': 1, 'a': 2, 'is': 1, 'happy': 1}",
+      "edgeCases": [
+        "An empty string returns {}",
+        "\"Dog.\" and \"dog\" are the same word"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Top k words ignoring stopwords",
+      "prompt": "Write `top_k(text, k, stopwords)` that returns the k most frequent words as a list of (word, count) tuples, ignoring every word in `stopwords`. Sort by count descending, then by word ascending. If fewer than k distinct words remain, return all of them.",
+      "signature": "def top_k(text: str, k: int, stopwords: list[str]) -> list[tuple[str, int]]",
+      "sampleInput": "text = 'The quick brown fox jumps over the lazy dog. The dog barks; the quick brown fox runs away! A quick brown fox is a happy fox.'\nstop = ['a', 'is', 'over', 'the', 'away']\nprint(top_k(text, 3, stop))",
+      "expectedOutput": "[('fox', 4), ('brown', 3), ('quick', 3)]",
+      "edgeCases": [
+        "k = 0 returns []",
+        "Stopwords are matched in lowercase"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "Most common bigrams",
+      "prompt": "Write `top_bigrams(text, k, stopwords)`. First remove every stopword from the word sequence, then count each pair of neighbouring words that remains. Return the k most common bigrams as a list of (\"word1 word2\", count) tuples, sorted by count descending then by the bigram string ascending. The whole text is one sequence: sentence ends do not break a bigram.",
+      "signature": "def top_bigrams(text: str, k: int, stopwords: list[str]) -> list[tuple[str, int]]",
+      "sampleInput": "text = 'The quick brown fox jumps over the lazy dog. The dog barks; the quick brown fox runs away! A quick brown fox is a happy fox.'\nstop = ['a', 'is', 'over', 'the', 'away']\nprint(top_bigrams(text, 3, stop))",
+      "expectedOutput": "[('brown fox', 3), ('quick brown', 3), ('barks quick', 1)]",
+      "edgeCases": [
+        "Fewer than two words left returns []"
+      ]
+    }
+  ]
+}

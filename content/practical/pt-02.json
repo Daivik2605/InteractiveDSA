@@ -1,0 +1,47 @@
+{
+  "id": "pt-02",
+  "title": "Bank ledger",
+  "unlockWeek": 2,
+  "intro": "You are writing the core of a toy bank. Transactions arrive as a list of dicts already in chronological order. Use only the standard library. Each level extends the previous one.",
+  "rules": [
+    "`type` is either \"deposit\" or \"withdraw\"; `amount` is a whole number of dollars.",
+    "Accounts start at balance 0 the first time they appear."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "Apply transactions to balances",
+      "prompt": "Write `balances(tx)` that applies every transaction and returns a dict of account -> final balance. Deposits add, withdrawals subtract. At this level do not check anything: a balance may go negative and amounts are assumed valid.",
+      "signature": "def balances(tx: list[dict]) -> dict[str, int]",
+      "sampleInput": "tx = [\n    {'id': 1, 'date': '2026-01-02', 'account': 'alice', 'type': 'deposit', 'amount': 500},\n    {'id': 2, 'date': '2026-01-03', 'account': 'bob', 'type': 'deposit', 'amount': 200},\n    {'id': 3, 'date': '2026-01-10', 'account': 'alice', 'type': 'withdraw', 'amount': 120},\n    {'id': 4, 'date': '2026-01-15', 'account': 'bob', 'type': 'withdraw', 'amount': 250},\n    {'id': 5, 'date': '2026-01-28', 'account': 'alice', 'type': 'withdraw', 'amount': 400},\n    {'id': 6, 'date': '2026-02-01', 'account': 'alice', 'type': 'deposit', 'amount': 50},\n    {'id': 7, 'date': '2026-02-09', 'account': 'bob', 'type': 'deposit', 'amount': 75},\n    {'id': 8, 'date': '2026-02-14', 'account': 'alice', 'type': 'withdraw', 'amount': 0},\n    {'id': 9, 'date': '2026-02-20', 'account': 'alice', 'type': 'withdraw', 'amount': 300},\n]\nprint(balances(tx))",
+      "expectedOutput": "{'alice': -270, 'bob': 25}",
+      "edgeCases": [
+        "An empty list returns {}"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Reject overdrafts with a reason",
+      "prompt": "Write `apply(tx)` that returns `(balances, rejected)`. A transaction is rejected, and does not change any balance, when its amount is not positive (reason `\"invalid amount\"`) or when a withdrawal is larger than the account's current balance (reason `\"insufficient funds (balance B, needed N)\"` with the real numbers). `rejected` is a list of `(id, reason)` tuples in input order. A rejected transaction must not create the account.",
+      "signature": "def apply(tx: list[dict]) -> tuple[dict[str, int], list[tuple[int, str]]]",
+      "sampleInput": "tx = [\n    {'id': 1, 'date': '2026-01-02', 'account': 'alice', 'type': 'deposit', 'amount': 500},\n    {'id': 2, 'date': '2026-01-03', 'account': 'bob', 'type': 'deposit', 'amount': 200},\n    {'id': 3, 'date': '2026-01-10', 'account': 'alice', 'type': 'withdraw', 'amount': 120},\n    {'id': 4, 'date': '2026-01-15', 'account': 'bob', 'type': 'withdraw', 'amount': 250},\n    {'id': 5, 'date': '2026-01-28', 'account': 'alice', 'type': 'withdraw', 'amount': 400},\n    {'id': 6, 'date': '2026-02-01', 'account': 'alice', 'type': 'deposit', 'amount': 50},\n    {'id': 7, 'date': '2026-02-09', 'account': 'bob', 'type': 'deposit', 'amount': 75},\n    {'id': 8, 'date': '2026-02-14', 'account': 'alice', 'type': 'withdraw', 'amount': 0},\n    {'id': 9, 'date': '2026-02-20', 'account': 'alice', 'type': 'withdraw', 'amount': 300},\n]\nprint(apply(tx))",
+      "expectedOutput": "({'alice': 130, 'bob': 275}, [(4, 'insufficient funds (balance 200, needed 250)'), (5, 'insufficient funds (balance 380, needed 400)'), (8, 'invalid amount')])",
+      "edgeCases": [
+        "A withdrawal equal to the balance is allowed",
+        "Check the amount before the balance"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "Monthly statement per account",
+      "prompt": "Write `statement(tx, account, month)` where month looks like `\"2026-02\"`. Use the Level 2 rules to decide which transactions count. Return a dict with `opening` (the balance before the month starts), `lines` (a list of `(date, type, amount, balance_after)` tuples for the accepted transactions of that account in that month, in order) and `closing` (the balance after the last line, or `opening` when the month has no lines). Rejected transactions never appear in `lines`.",
+      "signature": "def statement(tx: list[dict], account: str, month: str) -> dict",
+      "sampleInput": "tx = [\n    {'id': 1, 'date': '2026-01-02', 'account': 'alice', 'type': 'deposit', 'amount': 500},\n    {'id': 2, 'date': '2026-01-03', 'account': 'bob', 'type': 'deposit', 'amount': 200},\n    {'id': 3, 'date': '2026-01-10', 'account': 'alice', 'type': 'withdraw', 'amount': 120},\n    {'id': 4, 'date': '2026-01-15', 'account': 'bob', 'type': 'withdraw', 'amount': 250},\n    {'id': 5, 'date': '2026-01-28', 'account': 'alice', 'type': 'withdraw', 'amount': 400},\n    {'id': 6, 'date': '2026-02-01', 'account': 'alice', 'type': 'deposit', 'amount': 50},\n    {'id': 7, 'date': '2026-02-09', 'account': 'bob', 'type': 'deposit', 'amount': 75},\n    {'id': 8, 'date': '2026-02-14', 'account': 'alice', 'type': 'withdraw', 'amount': 0},\n    {'id': 9, 'date': '2026-02-20', 'account': 'alice', 'type': 'withdraw', 'amount': 300},\n]\nprint(statement(tx, \"alice\", \"2026-02\"))\nprint(statement(tx, \"bob\", \"2026-03\"))",
+      "expectedOutput": "{'opening': 380, 'lines': [('2026-02-01', 'deposit', 50, 430), ('2026-02-20', 'withdraw', 300, 130)], 'closing': 130}\n{'opening': 275, 'lines': [], 'closing': 275}",
+      "edgeCases": [
+        "A month with no activity returns opening == closing and lines == []",
+        "Unknown accounts have opening 0"
+      ]
+    }
+  ]
+}

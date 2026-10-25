@@ -1,0 +1,203 @@
+{
+  "theme": 3,
+  "week": 1,
+  "questions": [
+    {
+      "id": "t03-q01",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: String Slicing",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 3,
+      "code": "s = \"hello\"\nprint(s[1:4], s[::-1], s[-3:])",
+      "options": [
+        "hel olleh llo",
+        "ell olleh llo",
+        "ell hello llo",
+        "ello olleh lo"
+      ],
+      "answer": 1,
+      "explanation": "`s[1:4]` is indices 1..3 (\"ell\"), `s[::-1]` is the whole string reversed, and `s[-3:]` is the last three characters. Each slice builds a new string in O(k) time."
+    },
+    {
+      "id": "t03-q02",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: split",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 3,
+      "code": "print(\"a,b,,c\".split(\",\"), \"a b  c\".split())",
+      "options": [
+        "['a', 'b', 'c'] ['a', 'b', 'c']",
+        "['a', 'b', '', 'c'] ['a', 'b', '', '', 'c']",
+        "['a', 'b', '', 'c'] ['a b  c']",
+        "['a', 'b', '', 'c'] ['a', 'b', 'c']"
+      ],
+      "answer": 3,
+      "explanation": "`split(\",\")` splits at every comma, so the empty field between two commas becomes an empty string. `split()` with no argument splits on runs of whitespace and drops empty strings. Both are O(n)."
+    },
+    {
+      "id": "t03-q03",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: f-strings",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 3,
+      "code": "x = 5\nname = \"n\"\nprint(f\"{x:03d}|{x / 3:.2f}|{name!r}\")",
+      "options": [
+        "5|1.67|n",
+        "005|1.66|'n'",
+        "005|1.67|'n'",
+        "  5|1.67|'n'"
+      ],
+      "answer": 2,
+      "explanation": "`:03d` pads the integer with zeros to width 3, `:.2f` rounds to two decimals (1.666... becomes 1.67), and `!r` formats the value with repr(), so a string gets its quotes."
+    },
+    {
+      "id": "t03-q04",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: String Methods",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 3,
+      "code": "print(\"  hi \\n\".strip() + \"|\", \"xxhixx\".strip(\"x\"), \"a-b\".replace(\"-\", \"\"))",
+      "options": [
+        "hi| hi ab",
+        "hi | hi ab",
+        "hi| xhix ab",
+        "hi| hi a-b"
+      ],
+      "answer": 0,
+      "explanation": "`strip()` with no argument removes whitespace (including the newline) from both ends, then \"|\" is appended. `strip(\"x\")` removes any leading/trailing x characters, giving \"hi\". `replace(\"-\", \"\")` removes the dash. Strings are immutable, so each call returns a new string."
+    },
+    {
+      "id": "t03-q05",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: String Immutability",
+      "difficulty": "medium",
+      "prompt": "capitalize_words raises an error on the first assignment. What is the bug?",
+      "theme": 3,
+      "code": "def capitalize_words(s):\n    chars = s\n    for i in range(len(s)):\n        if i == 0 or s[i - 1] == \" \":\n            chars[i] = s[i].upper()\n    return chars",
+      "options": [
+        "`s[i - 1]` is out of range when i is 0",
+        "`upper()` returns None",
+        "Strings are immutable, so `chars[i] = ...` fails; convert to a list first with list(s) and join at the end",
+        "range(len(s)) cannot be used with strings"
+      ],
+      "answer": 2,
+      "explanation": "`chars = s` makes another name for the same immutable str, and item assignment raises TypeError. Use `chars = list(s)`, edit the list, and return `\"\".join(chars)`. Time O(n), space O(n). (The i == 0 case is protected by the `or`, which short-circuits.)",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t03-q06",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: join",
+      "difficulty": "medium",
+      "prompt": "digits_to_string([1, 2, 3]) should return \"123\" but raises an error. What is the bug?",
+      "theme": 3,
+      "code": "def digits_to_string(nums):\n    return \"\".join(nums)",
+      "options": [
+        "`str.join` needs an iterable of strings; convert first, e.g. \"\".join(map(str, nums))",
+        "join must be called on the list: nums.join(\"\")",
+        "Integers can only be joined with a separator, not the empty string",
+        "join returns a list, so the result must be converted with str()"
+      ],
+      "answer": 0,
+      "explanation": "`\"\".join(nums)` raises TypeError (sequence item 0: expected str instance, int found). Convert each item with `map(str, nums)` or a comprehension. join is O(total length) and is the right way to build a string from parts (avoid repeated +=).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t03-q07",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Python: String Slicing",
+      "difficulty": "medium",
+      "prompt": "What are the time and extra space of this palindrome check for a string of length n?",
+      "theme": 3,
+      "code": "def is_palindrome(s):\n    return s == s[::-1]",
+      "options": [
+        "O(n) time, O(1) space",
+        "O(n²) time, O(n) space",
+        "O(n log n) time, O(n) space",
+        "O(n) time, O(n) space"
+      ],
+      "answer": 3,
+      "explanation": "`s[::-1]` builds a reversed copy: O(n) time and O(n) space. The `==` comparison is another O(n) pass. Two pointers moving inward compare the same characters in O(n) time and O(1) space, which is what an interviewer usually asks for.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t03-q08",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Python: String Methods",
+      "difficulty": "medium",
+      "prompt": "Which statement about str.find and str.index is correct?",
+      "theme": 3,
+      "options": [
+        "`index` returns -1 and `find` raises ValueError",
+        "`find` returns -1 when the substring is missing, while `index` raises ValueError",
+        "Both raise ValueError when the substring is missing",
+        "Both return -1, but only `find` accepts a start argument"
+      ],
+      "answer": 1,
+      "explanation": "The pair differ only in the failure mode: `find` and `rfind` return -1, `index` and `rindex` raise ValueError. A frequent bug is testing `if s.find(x):` since -1 is truthy and 0 (found at the start) is falsy; use `x in s` for a membership test. Searching costs O(n·m) worst case, typically near O(n)."
+    },
+    {
+      "id": "t03-q09",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Python: Counting Characters",
+      "difficulty": "medium",
+      "prompt": "Decide whether two lowercase strings are anagrams in O(n) time. Which approach does that?",
+      "theme": 3,
+      "options": [
+        "Compare sorted(a) == sorted(b)",
+        "Compare set(a) == set(b)",
+        "Compare sum(map(ord, a)) == sum(map(ord, b))",
+        "Compare Counter(a) == Counter(b) (or two 26-slot count arrays)"
+      ],
+      "answer": 3,
+      "explanation": "Counting characters is one pass per string: O(n) time and O(1) space for 26 letters (O(k) for k distinct characters). Sorting also works but is O(n log n). A set ignores multiplicities (\"aab\" vs \"abb\"), and equal character-code sums collide (\"ad\" and \"bc\").",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t03-q10",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Python: split and join",
+      "difficulty": "medium",
+      "prompt": "Reverse the order of the words in a sentence (collapsing repeated spaces) with idiomatic Python. Which expression does that?",
+      "theme": 3,
+      "options": [
+        "s[::-1]",
+        "\" \".join(s.split()[::-1])",
+        "\" \".join(s.split(\" \")[::-1])",
+        "s.split().reverse()"
+      ],
+      "answer": 1,
+      "explanation": "`split()` with no argument yields words without empty entries, `[::-1]` reverses that list, and `join` rebuilds the sentence: O(n) time, O(n) space. `s[::-1]` reverses characters, not words. `split(\" \")` keeps empty strings for repeated spaces, so the spacing is not collapsed. `list.reverse()` returns None.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    }
+  ]
+}

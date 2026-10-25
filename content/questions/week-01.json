@@ -119,6 +119,369 @@
         "time": "O(m·n)",
         "space": "O(1)"
       }
+    },
+    {
+      "id": "w01-q07",
+      "week": 1,
+      "type": "pattern",
+      "pattern": "Read/Write Pointer",
+      "difficulty": "medium",
+      "prompt": "Remove every occurrence of a given value from an array in place, keeping the order of the other elements, in O(n) time and O(1) extra space. Which technique fits?",
+      "options": [
+        "Sliding Window over the longest run without the value",
+        "Monotonic Stack that pops the value",
+        "Read/Write Pointer (one pointer scans, one marks where the next kept element goes)",
+        "Hash Set of the values already seen"
+      ],
+      "answer": 2,
+      "explanation": "A scanning pointer reads each element and a second pointer writes it forward only when it is kept, so everything stays in one pass with no extra array. Time O(n), space O(1). A hash set solves a different problem (duplicates), and a stack or window adds structure this task does not need.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q08",
+      "week": 1,
+      "type": "pattern",
+      "pattern": "Transpose + Reverse",
+      "difficulty": "medium",
+      "prompt": "Rotate an n×n matrix 90 degrees clockwise in place, with O(1) extra space. Which pattern fits?",
+      "options": [
+        "Transpose the matrix, then reverse each row",
+        "Reverse each row, then reverse each column",
+        "Boundary-shrinking spiral copying into a new matrix",
+        "Copy into a new matrix using result[c][n-1-r] = m[r][c]"
+      ],
+      "answer": 0,
+      "explanation": "Rotating clockwise equals a transpose (swap m[r][c] with m[c][r] for c > r) followed by reversing every row. Both steps are in place: time O(n²), space O(1). Reversing rows then columns is a 180° rotation, and the copy approach uses O(n²) extra space.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q09",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Big-O Analysis",
+      "difficulty": "medium",
+      "prompt": "What is the time complexity of this function for a positive integer n?",
+      "code": "def count_doublings(n):\n    i, steps = 1, 0\n    while i < n:\n        i *= 2\n        steps += 1\n    return steps",
+      "options": [
+        "O(n)",
+        "O(√n)",
+        "O(n log n)",
+        "O(log n)"
+      ],
+      "answer": 3,
+      "explanation": "i doubles each iteration (1, 2, 4, 8, ...), so the loop stops after about log₂ n iterations. A loop that multiplies or divides its variable by a constant factor is logarithmic. Space is O(1).",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q10",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Big-O Analysis",
+      "difficulty": "medium",
+      "prompt": "What are the time and extra space of this function for a list of n integers?",
+      "code": "def all_pairs(a):\n    res = []\n    for i in range(len(a)):\n        for j in range(i + 1, len(a)):\n            res.append((a[i], a[j]))\n    return res",
+      "options": [
+        "O(n²) time, O(1) space",
+        "O(n²) time, O(n²) space",
+        "O(n) time, O(n) space",
+        "O(n log n) time, O(n²) space"
+      ],
+      "answer": 1,
+      "explanation": "The nested loops run (n-1) + (n-2) + ... + 1 = n(n-1)/2 times, which is O(n²). Each iteration appends one pair, so the result list also holds n(n-1)/2 tuples: O(n²) space. The result is output, but it is still memory the function allocates.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(n²)"
+      }
+    },
+    {
+      "id": "w01-q11",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "String Building",
+      "difficulty": "hard",
+      "prompt": "Assume every `+=` on a string copies the whole string built so far. Worst-case time to concatenate n words of length k each with this loop?",
+      "code": "def concat(words):\n    s = \"\"\n    for w in words:\n        s += w\n    return s",
+      "options": [
+        "O(n · k)",
+        "O(n · k²)",
+        "O(n log n · k)",
+        "O(n² · k)"
+      ],
+      "answer": 3,
+      "explanation": "After i words the string has i·k characters, and `s += w` copies all of them. The total copying is k·(1 + 2 + ... + n) = k·n(n+1)/2, which is O(n²·k). Collecting the words in a list and calling `''.join(words)` does one pass over n·k characters: O(n·k) time, O(n·k) space. CPython sometimes resizes in place as an optimization, but you should not rely on it.",
+      "complexity": {
+        "time": "O(n²·k)",
+        "space": "O(n·k)"
+      }
+    },
+    {
+      "id": "w01-q12",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Big-O Analysis",
+      "difficulty": "hard",
+      "prompt": "What is the time complexity of this function for a positive integer n?",
+      "code": "def halving_work(n):\n    total = 0\n    while n > 0:\n        for _ in range(n):\n            total += 1\n        n //= 2\n    return total",
+      "options": [
+        "O(n log n)",
+        "O(n)",
+        "O(n²)",
+        "O(log n)"
+      ],
+      "answer": 1,
+      "explanation": "The outer loop runs about log₂ n times, but the inner loop shrinks each time: n + n/2 + n/4 + ... < 2n. A geometric series is dominated by its first term, so the total is O(n), not O(n log n). Space is O(1).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q13",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python Lists",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "grid = [[0] * 3] * 2\ngrid[0][1] = 5\nprint(grid)",
+      "options": [
+        "[[0, 5, 0], [0, 5, 0]]",
+        "[[0, 5, 0], [0, 0, 0]]",
+        "[[0, 0, 0], [0, 5, 0]]",
+        "[[5, 0, 0], [5, 0, 0]]"
+      ],
+      "answer": 0,
+      "explanation": "`[[0] * 3] * 2` repeats a reference to the same inner list, so both rows are one object and changing grid[0][1] shows up in grid[1][1]. Build grids with `[[0] * 3 for _ in range(2)]`. Time O(m·n) to build, space O(m·n)."
+    },
+    {
+      "id": "w01-q14",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python Lists",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "nums = [1, 2, 3, 4, 5]\nnums[1:4] = [9]\nprint(nums)",
+      "options": [
+        "[1, 9, 4, 5]",
+        "[1, 9, 9, 9, 5]",
+        "[1, 9, 5]",
+        "[1, 9, 3, 4, 5]"
+      ],
+      "answer": 2,
+      "explanation": "Slice assignment replaces the whole slice nums[1:4] (indices 1, 2, 3) with the right-hand sequence, and the list shrinks or grows to fit. Three elements were replaced by one. The cost is O(n) because the tail shifts."
+    },
+    {
+      "id": "w01-q15",
+      "week": 1,
+      "type": "output",
+      "pattern": "Strings",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "s = \"abc\"\nt = s\ns += \"d\"\nprint(t, s)",
+      "options": [
+        "abcd abcd",
+        "abc abcd",
+        "abc abc",
+        "abcd abc"
+      ],
+      "answer": 1,
+      "explanation": "Strings are immutable, so `s += \"d\"` builds a new string and rebinds s. t still points to the old \"abc\". The same statement on a list (`+=`) would mutate in place and change t as well."
+    },
+    {
+      "id": "w01-q16",
+      "week": 1,
+      "type": "output",
+      "pattern": "Matrix Traversal",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "code": "m = [[1, 2, 3], [4, 5, 6]]\nprint([r[::-1] for r in zip(*m)])",
+      "options": [
+        "[[4, 1], [5, 2], [6, 3]]",
+        "[(1, 4), (2, 5), (3, 6)]",
+        "[[1, 4], [2, 5], [3, 6]]",
+        "[(4, 1), (5, 2), (6, 3)]"
+      ],
+      "answer": 3,
+      "explanation": "`zip(*m)` yields the columns as tuples: (1, 4), (2, 5), (3, 6). Reversing each tuple with [::-1] gives another tuple, so the rows of the clockwise rotation are tuples, printed with parentheses. Wrap each in list() if you need lists. Time O(m·n), space O(m·n)."
+    },
+    {
+      "id": "w01-q17",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Merge Sorted Array",
+      "difficulty": "hard",
+      "prompt": "This backward merge of nums2 into nums1 (which has m values followed by n spare slots) loses an element. What is the bug?",
+      "code": "def merge(nums1, m, nums2, n):\n    i, j, k = m - 1, n - 1, m + n - 1\n    while j > 0:\n        if i >= 0 and nums1[i] > nums2[j]:\n            nums1[k] = nums1[i]\n            i -= 1\n        else:\n            nums1[k] = nums2[j]\n            j -= 1\n        k -= 1",
+      "options": [
+        "i should start at m instead of m - 1",
+        "k should start at m + n instead of m + n - 1",
+        "The loop condition should be `while j >= 0`; `j > 0` never copies nums2[0]",
+        "The comparison should be >= instead of >"
+      ],
+      "answer": 2,
+      "explanation": "The loop must run until every element of nums2 is placed, including index 0. With `j > 0` it stops with nums2[0] still unplaced, so for nums1=[1,2,3,0,0,0], nums2=[2,5,6] the 2 from nums2 is never copied. Writing from the back is what makes it O(1) space; the other start indices shown are the correct ones. Time O(m + n), space O(1).",
+      "complexity": {
+        "time": "O(m + n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q18",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Longest Common Prefix",
+      "difficulty": "medium",
+      "prompt": "This function should return the longest common prefix of the strings, but returns \"low\" for [\"low\", \"flower\"] (the answer is \"\"). What is the bug?",
+      "code": "def longest_common_prefix(strs):\n    prefix = strs[0]\n    for s in strs[1:]:\n        while prefix not in s:\n            prefix = prefix[:-1]\n    return prefix",
+      "options": [
+        "`in` tests for any substring; it should be `not s.startswith(prefix)`",
+        "prefix should be trimmed from the front, not the back",
+        "strs[1:] skips the last string",
+        "prefix should start as min(strs) instead of strs[0]"
+      ],
+      "answer": 0,
+      "explanation": "`prefix not in s` is satisfied by a substring anywhere in s, so \"low\" is accepted because it appears inside \"flower\", although it is not a prefix of it. A prefix test is `s.startswith(prefix)`. With the fix, each string shortens prefix at most len(prefix) times: O(S) time where S is the total number of characters, O(1) extra space.",
+      "complexity": {
+        "time": "O(S)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q19",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Plus One",
+      "difficulty": "medium",
+      "prompt": "This function should add one to a number stored as a list of digits, but plus_one([9, 9]) returns [0, 0] instead of [1, 0, 0]. What is missing?",
+      "code": "def plus_one(d):\n    for i in range(len(d) - 1, -1, -1):\n        if d[i] < 9:\n            d[i] += 1\n            return d\n        d[i] = 0\n    return d",
+      "options": [
+        "The loop must run left to right so the carry moves forward",
+        "The test should be `d[i] <= 9`",
+        "A final `return [1] + d` for the case where every digit was 9",
+        "d[i] = 0 should be placed before the if"
+      ],
+      "answer": 2,
+      "explanation": "Carries propagate from the least significant digit, so scanning right to left is correct. When every digit is 9 the loop ends with all zeros and a carry left over, which needs a new leading 1. Time O(n), space O(1) except for the rare extra digit (O(n) when the list is rebuilt).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q20",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Prefix/Suffix Pass",
+      "difficulty": "medium",
+      "prompt": "Given daily stock prices, return the maximum profit from one buy followed by a later sell (0 if none). Which plan is best?",
+      "options": [
+        "One pass: keep the lowest price so far and the best profit if you sold today",
+        "Sort the prices and return the largest minus the smallest",
+        "Compare every pair (i, j) with i < j and keep the best",
+        "Build a prefix-sum array and take its maximum"
+      ],
+      "answer": 0,
+      "explanation": "Selling on day j is best paired with the cheapest earlier day, so track min_price as you scan and update best = max(best, price - min_price). Time O(n), space O(1). Sorting destroys the order (buy must come before sell), and the pair scan is O(n²).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q21",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Backward Merge",
+      "difficulty": "medium",
+      "prompt": "nums1 holds m sorted values followed by n empty slots, and nums2 holds n sorted values. Merge them into nums1 in O(m + n) time and O(1) extra space. Which plan works?",
+      "options": [
+        "Merge from the front with two pointers, writing into nums1 as you go",
+        "Copy nums2 into the spare slots and call nums1.sort()",
+        "Insert each nums2 value into nums1 with list.insert",
+        "Fill nums1 from the back with three pointers, always placing the larger of the two current tails"
+      ],
+      "answer": 3,
+      "explanation": "Writing from the back never overwrites an unread nums1 value because the empty slots are at the end. A front merge overwrites values that have not been read yet. Copy + sort is O((m+n) log(m+n)) and `insert` shifts elements, giving O(m·n) in the worst case. Back-fill is O(m + n) time, O(1) space.",
+      "complexity": {
+        "time": "O(m + n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q22",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Spiral Traversal",
+      "difficulty": "hard",
+      "prompt": "Return the elements of an m×n matrix in spiral order in O(m·n) time and O(1) extra space beyond the output. Which plan works?",
+      "options": [
+        "Keep a visited matrix and turn right whenever the next cell is out of bounds or visited",
+        "Keep top, bottom, left and right boundaries; sweep each side and shrink the boundary, rechecking top <= bottom and left <= right between sweeps",
+        "Recursively slice off the outer ring into a new sub-matrix",
+        "Transpose the matrix and then reverse each row"
+      ],
+      "answer": 1,
+      "explanation": "Four shrinking boundaries visit every cell exactly once with a handful of integers: time O(m·n), space O(1). A visited matrix costs O(m·n) extra space, recursive slicing copies the interior on every level, and transpose + reverse rotates the matrix rather than walking it. The recheck between sweeps prevents repeating a row or column when the matrix is a single row or column.",
+      "complexity": {
+        "time": "O(m·n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w01-q23",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Dynamic Array",
+      "difficulty": "medium",
+      "prompt": "Why is `list.append` amortized O(1) even though an occasional append has to copy the whole list?",
+      "options": [
+        "Append never copies; it only moves the end pointer",
+        "The capacity grows by a fixed number of slots each time, so copies are rare",
+        "CPython stores the list as a linked list, so there is nothing to copy",
+        "The capacity grows by a constant factor, so the total copying across n appends is O(n)"
+      ],
+      "answer": 3,
+      "explanation": "When the array is full CPython allocates a larger one, growing proportionally to the current size, and copies the elements. Those copies form a geometric series (1 + 2 + 4 + ...) whose sum is O(n) over n appends, i.e. O(1) each on average. If capacity grew by a fixed number of slots, copies would happen every c appends and the total would be O(n²). A Python list is an array of references, not a linked list."
+    },
+    {
+      "id": "w01-q24",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Cost of Operations",
+      "difficulty": "medium",
+      "prompt": "Which operation is O(n) on a list but O(1) on a collections.deque?",
+      "options": [
+        "Appending to the end",
+        "Removing the first element (`lst.pop(0)` vs `dq.popleft()`)",
+        "Reading the last element with [-1]",
+        "Checking len()"
+      ],
+      "answer": 1,
+      "explanation": "A list is a contiguous array, so removing index 0 shifts every other element left: O(n). A deque is a doubly linked list of blocks, so popleft is O(1). Use a deque for queues and BFS. Appending at the end, [-1] and len() are O(1) on both (append is amortized)."
+    },
+    {
+      "id": "w01-q25",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Big-O Analysis",
+      "difficulty": "hard",
+      "prompt": "Let f(n) = 3n² + 5n + 7. Which statement is correct?",
+      "options": [
+        "f(n) is Θ(n²), and it is also O(n³)",
+        "f(n) is O(n²) only; saying O(n³) is false",
+        "f(n) is Θ(n³)",
+        "f(n) is Ω(n³)"
+      ],
+      "answer": 0,
+      "explanation": "Big-O is an upper bound, so any larger growth rate is also a valid (if loose) bound: f is O(n²) and O(n³). Θ(n²) says the bound is tight, which holds because the n² term dominates. Θ(n³) and Ω(n³) would claim f grows at least as fast as n³, which is false. In interviews, state the tight bound."
     }
   ],
   "drill": [

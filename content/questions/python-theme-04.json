@@ -1,0 +1,199 @@
+{
+  "theme": 4,
+  "week": 1,
+  "questions": [
+    {
+      "id": "t04-q01",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: setdefault",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 4,
+      "code": "d = {}\nd.setdefault(\"a\", []).append(1)\nd.setdefault(\"a\", []).append(2)\nprint(d)",
+      "options": [
+        "{'a': [1, 2]}",
+        "{'a': [1]}",
+        "{'a': [2]}",
+        "{'a': [[1], [2]]}"
+      ],
+      "answer": 0,
+      "explanation": "`setdefault(key, default)` inserts the default only when the key is missing and always returns the value stored under the key. The second call finds the existing list and returns it, so both appends go into the same list. Each call is O(1) average."
+    },
+    {
+      "id": "t04-q02",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: Counter",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 4,
+      "code": "from collections import Counter\nc = Counter(\"mississippi\")\nprint(c.most_common(2))",
+      "options": [
+        "[('s', 4), ('i', 4)]",
+        "[('i', 4), ('p', 2)]",
+        "[('i', 4), ('s', 4)]",
+        "[('i', 4), ('s', 4), ('p', 2)]"
+      ],
+      "answer": 2,
+      "explanation": "Counter(\"mississippi\") counts i=4, s=4, p=2, m=1. `most_common(2)` returns the two highest counts; ties keep the order in which the keys were first inserted (i before s). Building the Counter is O(n); most_common(k) is O(d log k) for d distinct keys."
+    },
+    {
+      "id": "t04-q03",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: dict.get and pop",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 4,
+      "code": "d = {\"a\": 1}\nprint(d.get(\"b\"), d.get(\"b\", 0), d.pop(\"b\", None), len(d))",
+      "options": [
+        "None 0 KeyError 1",
+        "None 0 None 1",
+        "None 0 None 0",
+        "0 0 None 1"
+      ],
+      "answer": 1,
+      "explanation": "`get` never raises and returns None (or the default) for a missing key. `pop(key, default)` also returns the default instead of raising KeyError, and neither changes the dict, so len(d) is still 1. All operations are O(1) average."
+    },
+    {
+      "id": "t04-q04",
+      "week": 1,
+      "type": "output",
+      "pattern": "Python: defaultdict",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 4,
+      "code": "from collections import defaultdict\nd = defaultdict(int)\nd[\"x\"]\nprint(len(d), \"y\" in d, d[\"y\"], len(d))",
+      "options": [
+        "1 False 0 1",
+        "1 True 0 2",
+        "0 False 0 1",
+        "1 False 0 2"
+      ],
+      "answer": 3,
+      "explanation": "A defaultdict inserts a missing key the moment you read it with `d[key]`: the bare `d[\"x\"]` creates x = 0 so len is 1. `\"y\" in d` does not insert, but `d[\"y\"]` does, which is why the final len is 2. Use `d.get(key)` or `in` to avoid creating entries. The arguments of print are evaluated left to right."
+    },
+    {
+      "id": "t04-q05",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: Hashability",
+      "difficulty": "medium",
+      "prompt": "count_points raises TypeError when points are lists like [1, 2]. What is the bug?",
+      "theme": 4,
+      "code": "def count_points(points):\n    seen = {}\n    for p in points:\n        seen[p] = seen.get(p, 0) + 1\n    return seen",
+      "options": [
+        "dict.get cannot be used when the value is an int",
+        "seen needs to be created with dict(), not {}",
+        "A list is unhashable and cannot be a dict key; convert it to a tuple first",
+        "seen must be a collections.OrderedDict, because a plain dict only accepts str and int keys"
+      ],
+      "answer": 2,
+      "explanation": "Keys must be hashable, which excludes list, dict and set. `tuple(p)` is hashable (if its items are) and costs O(k). With `tuple(p)`, counting n points is O(n·k) time and O(n) space.",
+      "complexity": {
+        "time": "O(n·k)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t04-q06",
+      "week": 1,
+      "type": "bug",
+      "pattern": "Python: Mutating While Iterating",
+      "difficulty": "hard",
+      "prompt": "drop_zeros raises RuntimeError on {\"a\": 0, \"b\": 1}. What is the bug?",
+      "theme": 4,
+      "code": "def drop_zeros(d):\n    for k in d:\n        if d[k] == 0:\n            del d[k]",
+      "options": [
+        "It deletes keys while iterating over the dict; iterate over list(d) or build a new dict instead",
+        "`del d[k]` is not allowed in Python 3",
+        "The loop should use d.items() to get both key and value",
+        "Dictionaries must be sorted before iterating"
+      ],
+      "answer": 0,
+      "explanation": "Changing a dict's size during iteration raises `RuntimeError: dictionary changed size during iteration`. Safe options: `for k in list(d)` (O(n) extra space) or `d = {k: v for k, v in d.items() if v != 0}`. Both are O(n) time.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t04-q07",
+      "week": 1,
+      "type": "complexity",
+      "pattern": "Python: Membership Cost",
+      "difficulty": "medium",
+      "prompt": "a has n items and b is a list with m items. What is the worst-case time of this function?",
+      "theme": 4,
+      "code": "def common(a, b):\n    return [x for x in a if x in b]",
+      "options": [
+        "O(n + m)",
+        "O(n log m)",
+        "O(n · m)",
+        "O(min(n, m))"
+      ],
+      "answer": 2,
+      "explanation": "`x in b` scans a list, so each of the n membership tests costs O(m). Converting b to a set once (O(m)) makes each test O(1) on average, for O(n + m) total time and O(m) extra space.",
+      "complexity": {
+        "time": "O(n·m)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t04-q08",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Python: Ordering",
+      "difficulty": "medium",
+      "prompt": "Which statement about ordering in Python 3.7+ is guaranteed?",
+      "theme": 4,
+      "options": [
+        "Iterating a dict yields keys in insertion order; sets guarantee no order",
+        "Sets iterate in sorted order when they contain only small integers",
+        "Re-assigning an existing key moves it to the end of the dict",
+        "Dicts iterate in sorted key order"
+      ],
+      "answer": 0,
+      "explanation": "Insertion order is part of the dict specification. Updating the value of an existing key keeps its original position; deleting and re-inserting puts it at the end. Set order depends on hashes and is not guaranteed, even when it looks sorted for small ints."
+    },
+    {
+      "id": "t04-q09",
+      "week": 1,
+      "type": "concept",
+      "pattern": "Python: Hashability",
+      "difficulty": "hard",
+      "prompt": "Which of these values can be used as a dictionary key?",
+      "theme": 4,
+      "options": [
+        "(1, [2, 3])",
+        "{1, 2}",
+        "[1, 2]",
+        "frozenset({1, 2})"
+      ],
+      "answer": 3,
+      "explanation": "A key must be hashable. A frozenset of hashable items is. A tuple is hashable only if every item is hashable, so (1, [2, 3]) raises TypeError when hashed; set and list are mutable and unhashable. Use frozenset or tuple to group values as a key."
+    },
+    {
+      "id": "t04-q10",
+      "week": 1,
+      "type": "approach",
+      "pattern": "Python: Counting",
+      "difficulty": "medium",
+      "prompt": "Find the index of the first non-repeating character of a string in O(n) time. Which plan works?",
+      "theme": 4,
+      "options": [
+        "For each character call s.count(ch) and return the first one whose count is 1",
+        "Count all characters with a Counter, then scan the string and return the first index whose count is 1",
+        "Sort the characters and return the first one that differs from its neighbours",
+        "Add characters to a set and return the first one already seen"
+      ],
+      "answer": 1,
+      "explanation": "Pass 1 builds the counts (O(n) time, O(k) space for k distinct characters), pass 2 scans in the original order and stops at the first count of 1. Calling s.count inside the loop is O(n²). Sorting loses the original order, and a set of seen characters finds the first repeat, not the first unique.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(k)"
+      }
+    }
+  ]
+}
