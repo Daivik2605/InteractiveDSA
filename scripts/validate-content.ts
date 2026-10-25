@@ -1,6 +1,7 @@
 // Validates everything in content/ against the types in src/types/content.ts (curriculum: scripts/curriculum-schema.ts).
 // Usage: npm run validate
 
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -113,6 +114,45 @@ if (existsSync(questionsDir)) {
     }
   }
 }
+
+// ── lessons: content/concepts/week-NN.md and content/templates/week-NN.md ───
+// Each `## ` heading must match the curriculum's list for that week, in order; every section needs a Python block
+// that parses (templates also need a "Use when" note).
+function checkLessons(kind: "concepts" | "templates") {
+  const dir = join(contentDir, kind);
+  if (!existsSync(dir) || !curriculum) return;
+  for (const name of readdirSync(dir).filter((n) => n.endsWith(".md")).sort()) {
+    const label = `content/${kind}/${name}`;
+    const m = /^week-(\d{2})\.md$/.exec(name);
+    const week = m ? curriculum.weeks.find((w) => w.week === Number(m[1])) : undefined;
+    const problems: string[] = [];
+    if (!week) problems.push("file name must be week-NN.md for a week in the curriculum");
+    else {
+      const sections = readFileSync(join(dir, name), "utf8").split(/^## /m).slice(1);
+      const wanted = week[kind];
+      if (sections.length !== wanted.length) problems.push(`expected ${wanted.length} sections (one per item in weeks[${week.week - 1}].${kind}), found ${sections.length}`);
+      sections.forEach((sec, i) => {
+        const title = sec.split("\n")[0]!.trim();
+        if (wanted[i] !== undefined && title !== wanted[i]) problems.push(`section ${i + 1} is "${title}", expected "${wanted[i]}"`);
+        const blocks = [...sec.matchAll(/```python\n([\s\S]*?)```/g)].map((b) => b[1]!);
+        if (blocks.length === 0) problems.push(`"${title}" has no python code block`);
+        if (kind === "templates" && !/\*Use when\*/.test(sec)) problems.push(`"${title}" has no "*Use when*" note`);
+        for (const code of blocks) {
+          const r = spawnSync("python3", ["-I", "-c", "import ast,sys; ast.parse(sys.stdin.read())"], { input: code, encoding: "utf8" });
+          if (r.status !== 0) problems.push(`"${title}" has a code block that is not valid Python: ${r.stderr.trim().split("\n").at(-1)}`);
+        }
+      });
+    }
+    if (problems.length === 0) console.log(`✓ ${label}`);
+    else {
+      failures++;
+      console.error(`✗ ${label}`);
+      for (const p of problems) console.error(`    ${p}`);
+    }
+  }
+}
+checkLessons("concepts");
+checkLessons("templates");
 
 if (failures > 0) {
   console.error(`\n${failures} file(s) failed validation.`);
