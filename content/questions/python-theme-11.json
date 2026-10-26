@@ -1,0 +1,187 @@
+{
+  "theme": 11,
+  "week": 3,
+  "questions": [
+    {
+      "id": "t11-q01",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Late Binding",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 11,
+      "code": "late = [lambda: i for i in range(3)]\nearly = [lambda i=i: i for i in range(3)]\nprint([f() for f in late], [f() for f in early])",
+      "options": [
+        "[0, 1, 2] [0, 1, 2]",
+        "[2, 2, 2] [0, 1, 2]",
+        "[2, 2, 2] [2, 2, 2]",
+        "[0, 1, 2] [2, 2, 2]"
+      ],
+      "answer": 1,
+      "explanation": "A closure looks up the variable when it is called, not when it is created. All lambdas in the first list share the loop variable i, which is 2 after the loop. Giving the lambda a default argument `i=i` evaluates i once per lambda at creation time, which freezes each value."
+    },
+    {
+      "id": "t11-q02",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: functools.wraps",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 11,
+      "code": "from functools import wraps\n\ndef log(f):\n    @wraps(f)\n    def inner(*a, **k):\n        return f(*a, **k)\n    return inner\n\n@log\ndef add(x, y):\n    \"adds\"\n    return x + y\n\nprint(add.__name__, add.__doc__, add(1, 2))",
+      "options": [
+        "inner None 3",
+        "add None 3",
+        "inner adds 3",
+        "add adds 3"
+      ],
+      "answer": 3,
+      "explanation": "`@wraps(f)` copies the wrapped function's __name__, __doc__ and other metadata onto the wrapper, so introspection and debugging still show `add` and its docstring. Without it the name would be `inner` and the docstring None."
+    },
+    {
+      "id": "t11-q03",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Decorators",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 11,
+      "code": "def counted(f):\n    def inner(*a):\n        inner.calls += 1\n        return f(*a)\n    inner.calls = 0\n    return inner\n\n@counted\ndef sq(x):\n    return x * x\n\nsq(2)\nsq(3)\nprint(sq.calls, sq.__name__)",
+      "options": [
+        "2 sq",
+        "0 inner",
+        "2 inner",
+        "0 sq"
+      ],
+      "answer": 2,
+      "explanation": "The decorator returns `inner`, and the counter is stored as an attribute on that function object, so each call to the decorated function increments it: two calls give 2. Without functools.wraps the decorated function's __name__ is the wrapper's name, `inner`."
+    },
+    {
+      "id": "t11-q04",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Closures",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 11,
+      "code": "def make():\n    x = 5\n    def get():\n        return x\n    first = get\n    x = 10\n    return first, get\n\na, b = make()\nprint(a(), b())",
+      "options": [
+        "10 10",
+        "5 5",
+        "5 10",
+        "10 5"
+      ],
+      "answer": 0,
+      "explanation": "A closure keeps the variable itself, so rebinding it later changes what the inner function returns. `get` is created when x is 5 but it is called after x becomes 10, so both calls see 10. Use a default argument, or a factory function, to capture the value at creation time."
+    },
+    {
+      "id": "t11-q05",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: Decorators",
+      "difficulty": "medium",
+      "prompt": "After decoration, calling hi() raises TypeError: 'NoneType' object is not callable. What is the bug?",
+      "theme": 11,
+      "code": "def deco(f):\n    def inner(*args):\n        return f(*args)\n\n@deco\ndef hi():\n    return \"hi\"",
+      "options": [
+        "Decorators must be classes",
+        "The wrapper must be named after the function",
+        "The decorator never returns the wrapper (`return inner` is missing), so the decorated name is bound to None",
+        "`@deco` must be written as `@deco()`"
+      ],
+      "answer": 2,
+      "explanation": "`@deco` means `hi = deco(hi)`. A function with no return statement returns None, so `hi` becomes None. The decorator must return the wrapper function."
+    },
+    {
+      "id": "t11-q06",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: Decorators with Arguments",
+      "difficulty": "hard",
+      "prompt": "Calling hi() raises TypeError after `@repeat` is applied to it. What is the bug?",
+      "theme": 11,
+      "code": "def repeat(times):\n    def deco(f):\n        def inner(*args):\n            for _ in range(times):\n                f(*args)\n        return inner\n    return deco\n\n@repeat\ndef hi():\n    print(\"hi\")",
+      "options": [
+        "repeat takes an argument, so it must be used as @repeat(3); plain @repeat passes the function as `times`",
+        "repeat needs functools.wraps",
+        "The inner function must not take *args",
+        "`for _ in range(times)` must be `while times`"
+      ],
+      "answer": 0,
+      "explanation": "A decorator with arguments is a function that returns a decorator. `@repeat` calls `repeat(hi)`, which returns the inner `deco` function, so `hi` becomes `deco` and calling `hi()` fails because deco needs f. Write `@repeat(3)`."
+    },
+    {
+      "id": "t11-q07",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Python: Memoization",
+      "difficulty": "medium",
+      "prompt": "What are the time and space of fib(n) wrapped with this memoize decorator, for large n?",
+      "theme": 11,
+      "code": "def memoize(f):\n    cache = {}\n    def inner(n):\n        if n not in cache:\n            cache[n] = f(n)\n        return cache[n]\n    return inner\n\n@memoize\ndef fib(n):\n    return n if n < 2 else fib(n - 1) + fib(n - 2)",
+      "options": [
+        "O(2ⁿ) time, O(n) space",
+        "O(n) time, O(1) space",
+        "O(n²) time, O(n) space",
+        "O(n) time, O(n) space"
+      ],
+      "answer": 3,
+      "explanation": "Each distinct n is computed once and then answered from the dict in O(1), so there are n distinct calls of real work: O(n) time. The dict holds n results and the recursion is n deep: O(n) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t11-q08",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: Closures",
+      "difficulty": "medium",
+      "prompt": "What does a closure capture from its enclosing function?",
+      "theme": 11,
+      "options": [
+        "A copy of each variable's value when the inner function is defined",
+        "The variables themselves (cells), looked up when the inner function runs, not copies of their values at creation time",
+        "Only the variables that are never reassigned",
+        "Nothing; it uses global variables"
+      ],
+      "answer": 1,
+      "explanation": "That is why the loop-lambda trap exists: every lambda shares the same variable. `nonlocal` lets the inner function rebind it. To freeze a value, pass it as a default argument or build the function in a helper that receives it as a parameter."
+    },
+    {
+      "id": "t11-q09",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: functools.wraps",
+      "difficulty": "medium",
+      "prompt": "Why should a decorator's wrapper use @functools.wraps(f)?",
+      "theme": 11,
+      "options": [
+        "It makes the wrapper run faster",
+        "It stops the wrapped function from being called twice",
+        "It is required, otherwise the decorator raises an error",
+        "It copies f's name, docstring and other metadata onto the wrapper so debugging, help() and tools that rely on __name__ keep working"
+      ],
+      "answer": 3,
+      "explanation": "Without it the decorated function looks like the wrapper (`inner`), which hides the real name in tracebacks and logs. It also sets __wrapped__ pointing at the original. It changes no behaviour and adds no meaningful runtime cost."
+    },
+    {
+      "id": "t11-q10",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Python: Late Binding",
+      "difficulty": "medium",
+      "prompt": "Build a list of three functions where function k returns k. Which version works?",
+      "theme": 11,
+      "options": [
+        "[lambda: k for k in range(3)]",
+        "[lambda k=k: k for k in range(3)]",
+        "[lambda k: k for k in range(3)]",
+        "[(lambda: k) for k in range(3)]"
+      ],
+      "answer": 1,
+      "explanation": "The default argument evaluates k when each lambda is created, so each function keeps its own value. The version without it makes all three return 2 (late binding), the second needs an argument when called, and parenthesising the lambda changes nothing."
+    }
+  ]
+}

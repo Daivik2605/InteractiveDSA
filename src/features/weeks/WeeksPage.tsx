@@ -11,11 +11,12 @@ import { conceptsMarkdown, templatesMarkdown } from "../../lib/weekContent";
 import type { Problem } from "../../types/content";
 import { AddDayButton } from "../calendar/AddDayButton";
 import { DIFF_STYLE } from "../today/Row";
+import { weekVisualRegistry } from "../visuals/registry";
 
-const TABS = ["Concepts", "Templates", "Problems"] as const;
+const TABS = ["Concepts", "Visuals", "Templates", "Problems"] as const;
 type Tab = (typeof TABS)[number];
 
-/** A week's lesson: Concepts, Templates and the Problems (day list). A Visuals tab comes later. */
+/** A week's lesson: Concepts, Visuals, Templates and the Problems (day list). */
 export function WeeksPage() {
   const { plan } = usePlanContext();
   const [week, setWeek] = useState(() => currentWeek(plan));
@@ -65,6 +66,7 @@ export function WeeksPage() {
 
       <div role="tabpanel" id="week-panel" aria-labelledby={`tab-${tab}`} className="mt-4">
         {tab === "Concepts" && <Lesson text={conceptsMarkdown(week)} what="concept notes" week={week} />}
+        {tab === "Visuals" && <VisualsTab week={week} />}
         {tab === "Templates" && <Lesson text={templatesMarkdown(week)} what="templates" week={week} />}
         {tab === "Problems" && <ProblemsTab plan={plan} week={week} />}
       </div>
@@ -79,6 +81,43 @@ export function WeeksPage() {
 function Lesson({ text, what, week }: { text: string | undefined; what: string; week: number }) {
   if (!text) return <p className="text-slate-500">No {what} written for Week {week} yet.</p>;
   return <Markdown className="text-base [&_h3]:mt-6 [&_h3]:text-lg">{text}</Markdown>;
+}
+
+/**
+ * The visuals planned for the week (curriculum `visuals`). A title with a registered component shows it; any other
+ * shows a plain "not built yet" card, never a made-up diagram.
+ */
+function VisualsTab({ week }: { week: number }) {
+  const titles = weekOf(week)?.visuals ?? [];
+  const built = titles.filter((t) => weekVisualRegistry[t]);
+  return (
+    <div>
+      {titles.length === 0 ? (
+        <p className="text-slate-500">No visuals are planned for Week {week}.</p>
+      ) : (
+        <ul aria-label={`Week ${week} visuals`} className="space-y-3">
+          {titles.map((t) => {
+            const Visual = weekVisualRegistry[t];
+            return (
+              <li key={t} className="rounded-lg border border-dashed border-slate-300 p-4 dark:border-slate-700" aria-label={t}>
+                <p className="font-medium">{t}</p>
+                {Visual ? (
+                  <div className="mt-2"><Visual /></div>
+                ) : (
+                  <p className="mt-1 text-sm text-slate-500">Not built yet. This visual is planned for Week {week}.</p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {built.length < titles.length && (
+        <p role="note" className="mt-4 text-sm text-slate-500">
+          Coming: step-through visuals for each concept (BUILD_PLAN Phase 5). Until then, use the Concepts and Templates tabs.
+        </p>
+      )}
+    </div>
+  );
 }
 
 /** The week's day list. Old-topic problems are listed without their source week. */

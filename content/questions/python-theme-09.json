@@ -1,0 +1,187 @@
+{
+  "theme": 9,
+  "week": 3,
+  "questions": [
+    {
+      "id": "t09-q01",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Floor Division",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 9,
+      "code": "print(-7 // 2, -7 % 2, 7 // -2, 7 % -2)",
+      "options": [
+        "-3 1 -3 -1",
+        "-4 -1 -4 1",
+        "-4 1 -4 -1",
+        "-3 -1 -3 1"
+      ],
+      "answer": 2,
+      "explanation": "`//` floors toward negative infinity: -7 // 2 = -4 and 7 // -2 = -4. `%` always takes the sign of the divisor and satisfies a == (a // b) * b + a % b: -7 % 2 = 1 and 7 % -2 = -1. (C and Java truncate toward zero and give different answers.)"
+    },
+    {
+      "id": "t09-q02",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Floats",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 9,
+      "code": "print(0.1 + 0.2 == 0.3, round(0.1 + 0.2, 2) == 0.3, abs(0.1 + 0.2 - 0.3) < 1e-9)",
+      "options": [
+        "False True True",
+        "True True True",
+        "False False False",
+        "True False True"
+      ],
+      "answer": 0,
+      "explanation": "0.1 and 0.2 have no exact binary representation, so their sum is 0.30000000000000004 and `== 0.3` is False. Rounding to 2 places gives 0.3 exactly, and a tolerance test (`abs(a - b) < 1e-9`, or math.isclose) is the standard way to compare floats."
+    },
+    {
+      "id": "t09-q03",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Bit Operators",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 9,
+      "code": "print(~5, ~-1, 5 & 3, 5 | 3, 5 ^ 3, 1 << 4, -8 >> 1)",
+      "options": [
+        "-5 -1 1 7 6 16 -4",
+        "-6 0 2 7 5 16 -4",
+        "-6 0 1 7 6 8 -4",
+        "-6 0 1 7 6 16 -4"
+      ],
+      "answer": 3,
+      "explanation": "`~x` is -x - 1, so ~5 = -6 and ~-1 = 0. 5 & 3 = 0b101 & 0b011 = 1, 5 | 3 = 7, 5 ^ 3 = 6. `1 << 4` is 16. `>>` is an arithmetic shift that keeps the sign, so -8 >> 1 = -4. All are O(1) on small ints."
+    },
+    {
+      "id": "t09-q04",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Big Integers",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 9,
+      "code": "print(2**64, (2**64).bit_length(), 10**20 // 3)",
+      "options": [
+        "18446744073709551616 64 33333333333333333333",
+        "18446744073709551616 65 33333333333333333333",
+        "1.8446744073709552e+19 65 3.3333333333333332e+19",
+        "0 65 33333333333333333333"
+      ],
+      "answer": 1,
+      "explanation": "Python ints have unlimited size, so 2**64 is exact (no overflow). It needs 65 bits (2**64 is a 1 followed by 64 zeros). `//` on ints stays exact: 10**20 // 3 has 20 digits. Big-int arithmetic costs more as the numbers grow (roughly O(digits) for addition)."
+    },
+    {
+      "id": "t09-q05",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: Big Integers",
+      "difficulty": "medium",
+      "prompt": "average_floor(10**18 + 1, 10**18 + 2) returns 1000000000000000000, but the exact floor of the average is 1000000000000000001. What is the bug?",
+      "theme": 9,
+      "code": "def average_floor(a, b):\n    return int((a + b) / 2)",
+      "options": [
+        "Python ints overflow beyond 2**63, so the result wraps around",
+        "`int()` rounds to the nearest even number",
+        "The parentheses make the addition happen after the division",
+        "`/` converts to a float, which has only about 15-16 digits of precision; use integer floor division `(a + b) // 2`"
+      ],
+      "answer": 3,
+      "explanation": "True division returns a float, and a float cannot represent every integer above 2**53 exactly. Integer arithmetic with `//` stays exact for any size. Python ints never overflow, so no masking is needed unless you must imitate a 32-bit type."
+    },
+    {
+      "id": "t09-q06",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: Bit Tricks",
+      "difficulty": "hard",
+      "prompt": "is_power_of_two(0) returns True. What is the bug?",
+      "theme": 9,
+      "code": "def is_power_of_two(n):\n    return n & (n - 1) == 0",
+      "options": [
+        "`&` has lower precedence than `==` in Python",
+        "0 & (0 - 1) is 0, so the test passes for 0; add the condition n > 0",
+        "The expression should use `|` instead of `&`",
+        "n - 1 must be written as n >> 1"
+      ],
+      "answer": 1,
+      "explanation": "A power of two has a single 1 bit, so clearing the lowest set bit with n & (n - 1) leaves 0. But 0 also leaves 0, and negative numbers are not powers of two, so the test needs `n > 0 and n & (n - 1) == 0`. (In Python, & binds tighter than ==.) O(1) time."
+    },
+    {
+      "id": "t09-q07",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Python: Bit Tricks",
+      "difficulty": "hard",
+      "prompt": "What is the time complexity of this function for a positive integer n with k bits set?",
+      "theme": 9,
+      "code": "def count_bits(n):\n    count = 0\n    while n:\n        n &= n - 1\n        count += 1\n    return count",
+      "options": [
+        "O(k)",
+        "O(log n) always",
+        "O(n)",
+        "O(1)"
+      ],
+      "answer": 0,
+      "explanation": "`n &= n - 1` clears the lowest set bit, so the loop runs once per set bit: k iterations, at most log₂ n. Counting all bits with a shift loop is always O(log n). Space is O(1).",
+      "complexity": {
+        "time": "O(k)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t09-q08",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: Floor Division",
+      "difficulty": "medium",
+      "prompt": "Which identity always holds in Python for integers a and b (b != 0)?",
+      "theme": 9,
+      "options": [
+        "a // b truncates toward zero and a % b has the sign of a",
+        "a % b is always between 0 and abs(b) - 1, whatever the sign of b",
+        "a == (a // b) * b + a % b, where a % b has the sign of b",
+        "a // b rounds to the nearest integer"
+      ],
+      "answer": 2,
+      "explanation": "Python floors the quotient and defines the remainder so that the identity holds. For a negative divisor the remainder is zero or negative (7 % -2 == -1). This is why `i % n` is always a valid list index for positive n, even when i is negative."
+    },
+    {
+      "id": "t09-q09",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: Big Integers",
+      "difficulty": "medium",
+      "prompt": "How do you imitate a 32-bit signed integer overflow in Python?",
+      "theme": 9,
+      "options": [
+        "Python ints wrap around at 2**31 automatically",
+        "Python ints never overflow; mask with & 0xFFFFFFFF and convert values at or above 2**31 back to negative yourself",
+        "Use the float type, which overflows to inf",
+        "Python raises OverflowError for ints above 2**63"
+      ],
+      "answer": 1,
+      "explanation": "Arbitrary-precision ints grow as needed, so overflow never happens by itself. Bit-manipulation problems that mean 32-bit behaviour need an explicit mask: `x & 0xFFFFFFFF`, then `x - 2**32 if x >= 2**31 else x` to reinterpret as signed."
+    },
+    {
+      "id": "t09-q10",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Python: Floats",
+      "difficulty": "medium",
+      "prompt": "You computed total = sum of many prices as floats and need to check that it equals 59.97. Which check is correct?",
+      "theme": 9,
+      "options": [
+        "total == 59.97",
+        "total is 59.97",
+        "str(total) == \"59.97\"",
+        "math.isclose(total, 59.97) or abs(total - 59.97) < 1e-9"
+      ],
+      "answer": 3,
+      "explanation": "Float addition accumulates tiny rounding errors, so exact equality is unreliable. A tolerance comparison is the standard fix (for money, use integer cents or decimal.Decimal). `is` compares object identity, and string comparison depends on the repr of the rounding error."
+    }
+  ]
+}

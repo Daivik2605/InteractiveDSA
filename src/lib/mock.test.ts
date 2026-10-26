@@ -379,10 +379,14 @@ describe("buildMockRows", () => {
 
   it("marks a mock Content not ready until its theme and week questions exist", () => {
     const rows = rowsFor("2026-10-26", snap());
-    expect(rows.slice(0, 7).every((r) => r.ready)).toBe(true); // Mocks 1-7: themes 1-7 and weeks 1-2 are written
-    expect(rows[7]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/Week 3/) }); // Mock 8: theme 8 is written, Week 3 is not
-    expect(rows[8]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/theme 9/) });
-    const noWeek = mockContentStatus({ pythonTheme: 1 }, 6, bank.questions);
-    expect(noWeek).toEqual({ ready: false, reason: "Week 6 questions are not written yet" });
+    expect(rows[0]).toMatchObject({ ready: true, notReadyReason: null }); // theme 1 and Week 1 are written
+    expect(rows[44]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/Python theme 15|Week 13/) }); // the last mock needs the last content
+    // the rule itself, on a small bank so it does not depend on how much content exists yet
+    const themeQs = Array.from({ length: 7 }, (_, i) => mk(`t5-${i}`, 2, 5));
+    const weekQs = Array.from({ length: 6 }, (_, i) => mk(`w2-${i}`, 2));
+    expect(mockContentStatus({ pythonTheme: 5 }, 2, [...themeQs, ...weekQs])).toEqual({ ready: true, reason: null });
+    expect(mockContentStatus({ pythonTheme: 5 }, 2, [...themeQs.slice(1), ...weekQs])).toEqual({ ready: false, reason: "Python theme 5 questions are not written yet" });
+    expect(mockContentStatus({ pythonTheme: 5 }, 2, [...themeQs, ...weekQs.slice(1)])).toEqual({ ready: false, reason: "Week 2 questions are not written yet" });
+    expect(mockContentStatus({ pythonTheme: 5 }, 3, [...themeQs, ...weekQs])).toEqual({ ready: false, reason: "Week 3 questions are not written yet" });
   });
 });

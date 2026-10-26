@@ -175,3 +175,46 @@ export function problemStats(attempts: readonly ProblemAttempt[], problemOf: (id
     }),
   };
 }
+
+// ── study summary ────────────────────────────────────────────────────────────
+
+export interface StudySummary {
+  /** Plan days finished, on time or late. */
+  daysDone: number;
+  daysDoneOnTime: number;
+  streak: number;
+  /** Distinct problems solved alone at least once (mock attempts included). */
+  solvedAlone: number;
+  /** Minutes of every attempt (Program 1 of a mock is one), plus Program 2 minutes from saved mocks. */
+  studyMinutes: number;
+}
+
+export function studySummary(args: {
+  days: readonly { status: string }[];
+  streak: number;
+  attempts: readonly Pick<ProblemAttempt, "problemId" | "outcome" | "minutes">[];
+  sessions: readonly Pick<MockSession, "mockNumber" | "programs">[];
+}): StudySummary {
+  const { days, streak, attempts, sessions } = args;
+  const onTime = days.filter((d) => d.status === "done").length;
+  // Program 1 of a mock is already an attempt; only Program 2 (a practical task, no attempt) adds minutes here.
+  const seen = new Set<number>();
+  const program2 = sessions
+    .filter((s) => !seen.has(s.mockNumber) && !!seen.add(s.mockNumber))
+    .flatMap((s) => s.programs)
+    .filter((p) => p.part === 2 && !p.skipped)
+    .reduce((n, p) => n + p.minutes, 0);
+  return {
+    daysDone: onTime + days.filter((d) => d.status === "done-late").length,
+    daysDoneOnTime: onTime,
+    streak,
+    solvedAlone: new Set(attempts.filter((a) => a.outcome === "alone").map((a) => a.problemId)).size,
+    studyMinutes: attempts.reduce((n, a) => n + a.minutes, 0) + program2,
+  };
+}
+
+/** "5h 20m", "45m", "0m". */
+export function formatMinutes(total: number): string {
+  const m = Math.round(total);
+  return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m` : `${m}m`;
+}

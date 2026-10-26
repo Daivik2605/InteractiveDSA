@@ -1,0 +1,487 @@
+{
+  "week": 4,
+  "questions": [
+    {
+      "id": "w04-q01",
+      "week": 4,
+      "type": "pattern",
+      "pattern": "Binary Search on the Answer",
+      "difficulty": "hard",
+      "prompt": "Koko can eat k bananas per hour from one pile per hour. Given the piles and h hours, find the minimum k that finishes in time. Which pattern fits?",
+      "options": [
+        "Sort the piles and use two pointers",
+        "Dynamic programming over the piles",
+        "Binary search on k: feasible(k) = total hours at speed k <= h, which is monotone in k",
+        "Sliding window over the piles"
+      ],
+      "answer": 2,
+      "explanation": "A faster speed never takes longer, so feasible(k) flips from False to True exactly once as k grows, and binary search finds the flip in O(log max(piles)) checks, each O(n): O(n log M) time, O(1) space. Sorting or windows do not model the speed, and DP is unnecessary.",
+      "complexity": {
+        "time": "O(n log M)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q02",
+      "week": 4,
+      "type": "pattern",
+      "pattern": "Lower Bound",
+      "difficulty": "medium",
+      "prompt": "Given a sorted array with duplicates, find the first and last position of a target in O(log n). Which pattern fits?",
+      "options": [
+        "Two lower-bound binary searches (bisect_left for the first position, bisect_right minus 1 for the last)",
+        "One linear scan from both ends",
+        "A hash map from value to its indices",
+        "Two pointers moving toward the middle"
+      ],
+      "answer": 0,
+      "explanation": "The first position is the lower bound of the target and the last is the upper bound minus one; each is a binary search with O(log n) time and O(1) space. A scan or a hash map is O(n), and two pointers need a pair condition, not a boundary search.",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q03",
+      "week": 4,
+      "type": "pattern",
+      "pattern": "Modified Binary Search",
+      "difficulty": "medium",
+      "prompt": "Find a target in a sorted array that was rotated at an unknown pivot, in O(log n). Which pattern fits?",
+      "options": [
+        "Sort the array first, then binary search",
+        "Linear scan with an early exit",
+        "Two pointers from both ends",
+        "Binary search that first decides which half is sorted, then checks whether the target lies in that half"
+      ],
+      "answer": 3,
+      "explanation": "At any mid one half of a rotated sorted array is sorted. Comparing nums[lo] with nums[mid] tells which, and the target either lies in that sorted range or in the other half. That halves the range every step: O(log n) time, O(1) space. Sorting costs O(n log n).",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q04",
+      "week": 4,
+      "type": "pattern",
+      "pattern": "Quickselect",
+      "difficulty": "medium",
+      "prompt": "Find the kth largest element of an unsorted array in average O(n) time. Which pattern fits?",
+      "options": [
+        "Merge sort, then index the result",
+        "Quickselect: partition around a pivot and recurse into only the side that contains position k",
+        "Binary search on a sorted copy",
+        "Prefix sums"
+      ],
+      "answer": 1,
+      "explanation": "Partitioning puts the pivot in its final place; if that place is k, done, otherwise recurse into one side only. The work shrinks like n + n/2 + n/4 + ..., so average O(n) (worst O(n²) with unlucky pivots). Sorting is O(n log n), and binary search needs sorted input.",
+      "complexity": {
+        "time": "O(n) average",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q05",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Merge Sort",
+      "difficulty": "medium",
+      "prompt": "What are the time and extra space of this merge sort for n numbers?",
+      "code": "def merge_sort(a):\n    if len(a) <= 1:\n        return a\n    mid = len(a) // 2\n    left, right = merge_sort(a[:mid]), merge_sort(a[mid:])\n    out, i, j = [], 0, 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            out.append(left[i]); i += 1\n        else:\n            out.append(right[j]); j += 1\n    return out + left[i:] + right[j:]",
+      "options": [
+        "O(n²) time, O(1) space",
+        "O(n log n) time, O(1) space",
+        "O(n log n) time, O(log n) space",
+        "O(n log n) time, O(n) space"
+      ],
+      "answer": 3,
+      "explanation": "There are about log₂ n levels of recursion and every level merges n items in total, so O(n log n) in every case. The slices and the merge output allocate O(n) new memory per level, and the array copies at one level are alive at once, so extra space is O(n). In-place quicksort is the one with O(log n) space.",
+      "complexity": {
+        "time": "O(n log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q06",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Quicksort",
+      "difficulty": "hard",
+      "prompt": "This quicksort always picks the first element as the pivot. What is its worst-case time on an already sorted list of n numbers?",
+      "code": "def quicksort(a):\n    if len(a) <= 1:\n        return a\n    pivot = a[0]\n    less = [x for x in a[1:] if x < pivot]\n    more = [x for x in a[1:] if x >= pivot]\n    return quicksort(less) + [pivot] + quicksort(more)",
+      "options": [
+        "O(n log n)",
+        "O(n²)",
+        "O(n)",
+        "O(log n)"
+      ],
+      "answer": 1,
+      "explanation": "On a sorted list the first element is the minimum, so `less` is empty and `more` has n - 1 items: the recursion is n levels deep and each level scans the remaining items, n + (n-1) + ... = O(n²). The recursion depth (stack space) is also O(n). A random pivot or the median of three avoids this.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q07",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Binary Search on the Answer",
+      "difficulty": "medium",
+      "prompt": "piles has n values and the largest is M. What is the time complexity of this function?",
+      "code": "def min_speed(piles, h):\n    lo, hi = 1, max(piles)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        hours = sum((p + mid - 1) // mid for p in piles)\n        if hours <= h:\n            hi = mid\n        else:\n            lo = mid + 1\n    return lo",
+      "options": [
+        "O(n log M)",
+        "O(log M)",
+        "O(n · M)",
+        "O(n log n)"
+      ],
+      "answer": 0,
+      "explanation": "The binary search runs about log₂ M iterations (the range 1..M is halved each time) and every iteration calls `feasible`, which sums over all n piles: O(n log M). A linear scan over all speeds would be O(n · M). Space is O(1).",
+      "complexity": {
+        "time": "O(n log M)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q08",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Quickselect",
+      "difficulty": "hard",
+      "prompt": "What are the average and worst-case time of this quickselect (random pivot) for n numbers?",
+      "code": "import random\n\ndef kth_smallest(a, k):\n    pivot = random.choice(a)\n    less = [x for x in a if x < pivot]\n    equal = [x for x in a if x == pivot]\n    if k <= len(less):\n        return kth_smallest(less, k)\n    if k <= len(less) + len(equal):\n        return pivot\n    more = [x for x in a if x > pivot]\n    return kth_smallest(more, k - len(less) - len(equal))",
+      "options": [
+        "O(n log n) average, O(n log n) worst case",
+        "O(log n) average, O(n) worst case",
+        "O(n) average, O(n²) worst case",
+        "O(n) average, O(n) worst case"
+      ],
+      "answer": 2,
+      "explanation": "On average the pivot lands near the middle, so the kept side is about half: n + n/2 + n/4 + ... = 2n = O(n). If the pivot is always the minimum or maximum the kept side shrinks by only one: n + (n-1) + ... = O(n²). A random pivot makes that vanishingly unlikely. The list-comprehension version uses O(n) extra space.",
+      "complexity": {
+        "time": "O(n) average",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q09",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Sorting + Binary Search",
+      "difficulty": "medium",
+      "prompt": "A list of n numbers is sorted once, then q membership queries are answered with bisect. What is the total time?",
+      "code": "from bisect import bisect_left\n\ndef answer(nums, queries):\n    nums = sorted(nums)\n    out = []\n    for x in queries:\n        i = bisect_left(nums, x)\n        out.append(i < len(nums) and nums[i] == x)\n    return out",
+      "options": [
+        "O(n · q)",
+        "O((n + q) log n)",
+        "O(n log n + q)",
+        "O(n + q log q)"
+      ],
+      "answer": 1,
+      "explanation": "Sorting is O(n log n) and each query is one binary search, O(log n), so q queries add O(q log n): together O((n + q) log n). Without sorting, each query would scan the list in O(n), O(n · q) in total. A set would answer each query in O(1) average after an O(n) build.",
+      "complexity": {
+        "time": "O((n+q) log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q10",
+      "week": 4,
+      "type": "output",
+      "pattern": "Lower Bound",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "a = [1, 3, 5, 5, 9]\nx = 5\nlo, hi = 0, len(a)\nwhile lo < hi:\n    mid = (lo + hi) // 2\n    if a[mid] < x:\n        lo = mid + 1\n    else:\n        hi = mid\nprint(lo)",
+      "options": [
+        "3",
+        "4",
+        "1",
+        "2"
+      ],
+      "answer": 3,
+      "explanation": "This half-open search finds the first index whose value is at least 5. Trace: lo=0, hi=5; mid=2 (a[2]=5 is not < 5) so hi=2; mid=1 (a[1]=3 < 5) so lo=2; now lo == hi == 2, the position of the first 5 (the lower bound). Time O(log n), space O(1)."
+    },
+    {
+      "id": "w04-q11",
+      "week": 4,
+      "type": "output",
+      "pattern": "Merge Sort Stability",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "code": "left = [(4, \"L1\"), (7, \"L2\")]\nright = [(4, \"R1\")]\nout, i, j = [], 0, 0\nwhile i < len(left) and j < len(right):\n    if left[i][0] <= right[j][0]:\n        out.append(left[i]); i += 1\n    else:\n        out.append(right[j]); j += 1\nout += left[i:] + right[j:]\nprint(\" \".join(name for _, name in out))",
+      "options": [
+        "R1 L1 L2",
+        "L1 L2 R1",
+        "L1 R1 L2",
+        "R1 L2 L1"
+      ],
+      "answer": 2,
+      "explanation": "Both L1 and R1 have key 4. The merge compares the keys with `<=`, so on a tie the LEFT item is taken first: L1, then R1 (its turn comes after L1 is out), then the remaining L2. Taking the left item on ties is what makes merge sort stable."
+    },
+    {
+      "id": "w04-q12",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python sort",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "data = [(\"b\", 1), (\"a\", 1), (\"c\", 0)]\nprint(sorted(data, key=lambda p: p[1]))",
+      "options": [
+        "[('c', 0), ('b', 1), ('a', 1)]",
+        "[('a', 1), ('b', 1), ('c', 0)]",
+        "[('b', 1), ('a', 1), ('c', 0)]",
+        "[('c', 0), ('a', 1), ('b', 1)]"
+      ],
+      "answer": 0,
+      "explanation": "`key=lambda p: p[1]` sorts only by the number, and the sort is stable, so the two items with key 1 keep their input order: ('b', 1) before ('a', 1). ('c', 0) has the smallest key and comes first. Timsort is O(n log n)."
+    },
+    {
+      "id": "w04-q13",
+      "week": 4,
+      "type": "output",
+      "pattern": "Binary Search on the Answer",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "code": "piles, hours = [3, 6, 7, 11], 8\nlo, hi = 1, max(piles)\nwhile lo < hi:\n    mid = (lo + hi) // 2\n    if sum((p + mid - 1) // mid for p in piles) <= hours:\n        hi = mid\n    else:\n        lo = mid + 1\nprint(lo)",
+      "options": [
+        "3",
+        "6",
+        "4",
+        "11"
+      ],
+      "answer": 2,
+      "explanation": "feasible(k) is whether the piles can be finished in 8 hours at k per hour. k = 3 needs ceil(3/3)+ceil(6/3)+ceil(7/3)+ceil(11/3) = 1+2+3+4 = 10 hours: too slow. k = 4 needs 1+2+2+3 = 8 hours: OK. So the smallest feasible speed is 4. The search is O(n log max)."
+    },
+    {
+      "id": "w04-q14",
+      "week": 4,
+      "type": "output",
+      "pattern": "Rotated Array",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "nums = [4, 5, 6, 7, 0, 1, 2]\nlo, hi = 0, len(nums) - 1\nwhile lo < hi:\n    mid = (lo + hi) // 2\n    if nums[mid] > nums[hi]:\n        lo = mid + 1\n    else:\n        hi = mid\nprint(nums[lo])",
+      "options": [
+        "0",
+        "7",
+        "4",
+        "2"
+      ],
+      "answer": 0,
+      "explanation": "The search finds the rotation point. If nums[mid] > nums[hi] the minimum must be to the right of mid, otherwise it is at mid or to its left. The loop ends with lo at the smallest value, 0 (at index 4). Time O(log n)."
+    },
+    {
+      "id": "w04-q15",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Binary Search",
+      "difficulty": "medium",
+      "prompt": "search([1, 3, 5], 9) raises IndexError. What is the bug?",
+      "code": "def search(nums, target):\n    lo, hi = 0, len(nums)\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1",
+      "options": [
+        "mid should be computed with / instead of //",
+        "The loop should be `while lo < hi`",
+        "nums must be sorted in descending order",
+        "hi starts at len(nums), one past the last index, but the loop treats [lo, hi] as a closed range; start with len(nums) - 1"
+      ],
+      "answer": 3,
+      "explanation": "A closed range [lo, hi] must contain only valid indices. With hi = len(nums), mid can reach len(nums) and nums[mid] fails. Either use hi = len(nums) - 1 with `while lo <= hi`, or use the half-open form `hi = len(nums)` with `while lo < hi` and `hi = mid`. O(log n) time.",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q16",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Lower Bound",
+      "difficulty": "hard",
+      "prompt": "first_pos([1, 2, 2, 2, 3], 2) should return 1 (the first 2) but returns 4. What is the bug?",
+      "code": "def first_pos(a, x):\n    lo, hi = 0, len(a)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if a[mid] <= x:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo",
+      "options": [
+        "hi should start at len(a) - 1",
+        "`a[mid] <= x` moves past equal values, which finds the upper bound; for the first occurrence use `a[mid] < x`",
+        "mid should be rounded up",
+        "The loop should be `while lo <= hi`"
+      ],
+      "answer": 1,
+      "explanation": "The comparison decides which side keeps equal elements. `< x` sends equal values to the right half's boundary (lower bound, the first index with a[i] >= x); `<= x` skips them (upper bound, the first index with a[i] > x). Both run in O(log n).",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q17",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Merge Sort Stability",
+      "difficulty": "hard",
+      "prompt": "merge([(1, 'a')], [(1, 'b')]) returns [(1, 'b'), (1, 'a')], so this merge sort is not stable. What is the bug?",
+      "code": "def merge(left, right):\n    out, i, j = [], 0, 0\n    while i < len(left) and j < len(right):\n        if left[i][0] < right[j][0]:\n            out.append(left[i])\n            i += 1\n        else:\n            out.append(right[j])\n            j += 1\n    return out + left[i:] + right[j:]",
+      "options": [
+        "The output list should be built in reverse",
+        "left and right must be swapped in the call",
+        "The comparison should be on the second tuple element",
+        "The strict `<` takes the right item on equal keys; use `<=` so the left (earlier) item goes first"
+      ],
+      "answer": 3,
+      "explanation": "On a tie the `else` branch runs and takes the right element first, reversing the original order of equal items. Taking the left one on ties (`<=`) preserves their relative order, which is the definition of stable. Still O(n log n) time, O(n) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q18",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Quickselect",
+      "difficulty": "hard",
+      "prompt": "kth([3, 1, 2], 1) should return the minimum, 1, but returns 2. k is 1-based. What is the bug?",
+      "code": "def kth(nums, k):\n    pivot = nums[0]\n    less = [x for x in nums if x < pivot]\n    equal = [x for x in nums if x == pivot]\n    more = [x for x in nums if x > pivot]\n    if k < len(less):\n        return kth(less, k)\n    if k < len(less) + len(equal):\n        return pivot\n    return kth(more, k - len(less) - len(equal))",
+      "options": [
+        "The pivot must be chosen at random",
+        "The comparisons use `<` where a 1-based k needs `<=` (k <= len(less), k <= len(less) + len(equal))",
+        "`more` should be computed with >= instead of >",
+        "k should be decreased by one before the first call"
+      ],
+      "answer": 1,
+      "explanation": "With a 1-based k, the kth smallest is inside `less` when k <= len(less), and is the pivot when k <= len(less) + len(equal). Using `<` shifts every decision by one position and returns the next-larger element. Average O(n).",
+      "complexity": {
+        "time": "O(n) average",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q19",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Modified Binary Search",
+      "difficulty": "medium",
+      "prompt": "Search a rotated sorted array (no duplicates) for a target in O(log n). Which plan works?",
+      "options": [
+        "At each mid find the sorted half (nums[lo] <= nums[mid] means the left half is sorted); keep the half whose range can contain the target",
+        "Find the rotation point with a linear scan, then binary search",
+        "Sort a copy of the array and search the copy",
+        "Binary search as usual, ignoring the rotation"
+      ],
+      "answer": 0,
+      "explanation": "Deciding the sorted half costs O(1) and discards half the range each step, so the whole search is O(log n) with O(1) space. A linear scan for the pivot is O(n), sorting a copy is O(n log n), and a plain binary search compares against the wrong half.",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q20",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Partition Binary Search",
+      "difficulty": "hard",
+      "prompt": "Find the median of two sorted arrays of sizes m and n in O(log(min(m, n))). Which plan works?",
+      "options": [
+        "Merge both arrays and take the middle",
+        "Concatenate and sort, then take the middle",
+        "Binary search the cut position in the shorter array so the left halves of both arrays hold half the elements and every left value is <= every right value",
+        "Use two heaps over both arrays"
+      ],
+      "answer": 2,
+      "explanation": "Choosing a cut i in the shorter array fixes the cut j in the longer one (so the left side has (m + n + 1) // 2 items); the cut is correct when max(left) <= min(right) across both arrays. Binary searching i is O(log min(m, n)). Merging is O(m + n), sorting O((m + n) log(m + n)).",
+      "complexity": {
+        "time": "O(log min(m,n))",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q21",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Three-way Partition",
+      "difficulty": "medium",
+      "prompt": "Sort an array that contains only 0, 1 and 2 in a single pass with O(1) extra space. Which plan works?",
+      "options": [
+        "Call sorted() on the list",
+        "Dutch national flag: three pointers (low, mid, high); swap 0s to the front, 2s to the back, and leave 1s in the middle",
+        "Count the 0s, 1s and 2s, then rewrite the array",
+        "Merge sort"
+      ],
+      "answer": 1,
+      "explanation": "The pointers keep three zones (0s, 1s, unknown, 2s) and each element is placed with a swap: one pass, O(n) time, O(1) space. sorted() is O(n log n) and merge sort needs O(n) space. Counting is O(n) too but takes two passes, so it does not meet the 'single pass' requirement.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w04-q22",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Custom Comparator",
+      "difficulty": "hard",
+      "prompt": "Arrange non-negative integers so they concatenate into the largest possible number (for [3, 30, 34, 5, 9] the answer is 9534330). Which plan works?",
+      "options": [
+        "Sort the numbers in descending numeric order",
+        "Sort the strings in descending lexicographic order",
+        "Sort by number of digits, then by value",
+        "Sort the numbers as strings with a comparator that puts a before b when a + b > b + a"
+      ],
+      "answer": 3,
+      "explanation": "Whether a should precede b depends on the two concatenations, not on either value alone: 30 + 3 = \"303\" < \"330\" = 3 + 30, so 3 goes before 30. Use `cmp_to_key` with that comparison. Descending numeric and plain lexicographic order give wrong results such as 9 91 (should be 91 9). O(n log n) comparisons, each O(k).",
+      "complexity": {
+        "time": "O(n log n · k)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w04-q23",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Stable Sorting",
+      "difficulty": "medium",
+      "prompt": "Which statement about sorting algorithms is correct?",
+      "options": [
+        "Quicksort is stable and merge sort is not",
+        "All O(n log n) sorts are stable",
+        "Merge sort and Timsort are stable; a typical in-place quicksort is not",
+        "Stability means the sort always finishes in O(n log n)"
+      ],
+      "answer": 2,
+      "explanation": "Stable means equal items keep their original relative order. Merge sort is stable when ties take the left item; Python's Timsort is stable. The long-distance swaps in partitioning make in-place quicksort unstable. Stability matters when you sort by several keys in passes."
+    },
+    {
+      "id": "w04-q24",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Binary Search Invariants",
+      "difficulty": "hard",
+      "prompt": "In a lower-bound search with `while lo < hi` where the answer always lies in [lo, hi] (hi = len(nums) means \"none\"), you find nums[mid] >= target, so mid might be the answer. What should you do?",
+      "options": [
+        "Set hi = mid, keeping mid as a candidate",
+        "Set hi = mid - 1",
+        "Set lo = mid",
+        "Set hi = mid + 1"
+      ],
+      "answer": 0,
+      "explanation": "The invariant is \"the answer is in [lo, hi]\". Since mid itself might be the answer, keep it with hi = mid. Because mid < hi when lo < hi, the range still shrinks, so the loop terminates. hi = mid - 1 belongs to the closed form and would discard a valid answer here; lo = mid could loop forever."
+    },
+    {
+      "id": "w04-q25",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Binary Search on the Answer",
+      "difficulty": "hard",
+      "prompt": "What property must feasible(x) have for binary search on the answer to be correct?",
+      "options": [
+        "It must be True for exactly one x",
+        "It must run in O(1) time",
+        "It must be monotone: once it is True for some x it stays True for all larger x (or the reverse)",
+        "x must be an element of the input array"
+      ],
+      "answer": 2,
+      "explanation": "Binary search discards half the range based on one test, which is only safe when the results form a single boundary: all False then all True. The cost of feasible only affects the total time (O(cost × log range)); the answer space does not need to be in the input."
+    }
+  ]
+}

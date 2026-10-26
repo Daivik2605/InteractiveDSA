@@ -3,7 +3,7 @@ import { useMemo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { usePlanContext } from "../../app/PlanContext";
-import { countedMockAnswers, mockAccuracy, OUTCOMES, problemStats, scoreTrend, targetMockPath, WEAK_MIN_ATTEMPTS, weakestSpots, type Accuracy, type TrendPoint } from "../../lib/dashboard";
+import { countedMockAnswers, formatMinutes, mockAccuracy, OUTCOMES, problemStats, scoreTrend, studySummary, targetMockPath, WEAK_MIN_ATTEMPTS, weakestSpots, type Accuracy, type TrendPoint } from "../../lib/dashboard";
 import { curriculum } from "../../lib/curriculum";
 import { buildMockRows } from "../../lib/mock";
 import { OUTCOME_LABEL } from "../../lib/problems";
@@ -149,6 +149,7 @@ export function DashboardPage() {
       themeTitle,
       weak: weak.map((w) => ({ ...w, to: targetMockPath(w, rows) })),
       problems: problemStats(plan.snapshot.attempts, (id) => plan.problemOf(id)),
+      summary: studySummary({ days: plan.days.map((d) => d), streak: plan.streak.current, attempts: plan.snapshot.attempts, sessions }),
     };
   }, [answers, sessions, runs, plan]);
 
@@ -159,6 +160,24 @@ export function DashboardPage() {
         <p className="mt-4 text-slate-500">Loading…</p>
       ) : (
         <>
+          <section aria-label="Study summary" className="mt-4">
+            <h2 className="sr-only">Study summary</h2>
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Days done", value: String(view.summary.daysDone), note: view.summary.daysDone !== view.summary.daysDoneOnTime ? `${view.summary.daysDoneOnTime} on time` : "of 90" },
+                { label: "Current streak", value: `${view.summary.streak} day${view.summary.streak === 1 ? "" : "s"}`, note: "days done in a row" },
+                { label: "Solved alone", value: String(view.summary.solvedAlone), note: "problems" },
+                { label: "Study time", value: formatMinutes(view.summary.studyMinutes), note: "logged minutes" },
+              ].map((c) => (
+                <div key={c.label} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+                  <dt className="text-xs uppercase tracking-wide text-slate-500">{c.label}</dt>
+                  <dd className="mt-1 text-2xl font-semibold tabular-nums">{c.value}</dd>
+                  <dd className="text-xs text-slate-500">{c.note}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
           <Section title="Mock scores" hint="First-attempt MCQ score of each finished mock. Retakes are not included.">
             {view.trend.length === 0 ? (
               <Empty>No mocks finished yet. Your scores appear here after Mock 1, which becomes your baseline.</Empty>

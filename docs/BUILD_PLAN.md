@@ -30,7 +30,7 @@ Check the result in the browser before moving on. You (not Claude Code) commit a
 **Done when:** a sample quiz runs end to end and answers are saved; review quiz picks due cards.
 
 ### Migration v2 — 90-day Python curriculum (docs/MIGRATION_V2.md)
-**Status:** in progress (Phase A done; B Stage 1 done; C not started; D in progress — Week 1 content written). Do this before the remaining phases below: Phases 4 and later are superseded by Migration v2 Phases B–D.
+**Status:** in progress (A, B and C done; D in progress — Weeks 1–2 content written). Do this before the remaining phases below: Phases 4 and later are superseded by Migration v2 Phases B–D.
 
 - **A — Load the v2 curriculum.** **Status:** done. v2 types, `scripts/curriculum-schema.ts` validator (+ test), 90-day / 6-day-Week-13 schedule, item model (fallback is not an item, wrap-up manual item, no day-7 slots), `learnKind` from `mock`/`kind`, "Mock N" row, day kind / timed hint / coding note on Today, old-topic problems hidden from topic labels, platform badges. Quizzes/drill still work but no longer tick plan items.
 - **B — Mock engine.** **Status:** Stage 1 done (the old weekly quiz, review quiz and drill pages were deleted first; `QuizRunner` and the Leitner helpers in `lib/quiz.ts` are reused).
@@ -40,9 +40,13 @@ Check the result in the browser before moving on. You (not Claude Code) commit a
   - Result screen: score and percentage, tables with bars by type and by section, programs and extra, every question in an answer key (All / Wrong only / Right only), and "Retake MCQs". Retakes are stored only in `mockRetakes` (Dexie v4): they never change the official score, the tick, Leitner cards, `quizAnswers`, weak spots or the dashboard trend. Attempts are listed with score and date; each shows its own answer key.
   - Mocks page `#/mocks` (nav, under Problems): all 45 mocks by week with real dates (follow the start date and extension days), Today / Overdue / Upcoming, status and first-attempt score with retake count, Start / Do it earlier / Resume / View result. A mock can be done before its day (built from its own week; it ticks its own plan day). "Content not ready" disables Start until its theme and week questions exist.
   - Export/import is schema version 4 (adds `mockRuns`, `mockRetakes`); v1–v3 exports still import.
-  - Not done: weak-spot ranking and the dashboard trend (Phase C) must read only `quizAnswers` with `mode: "mock"` and skip mocks whose session has `diagnostic: true`; a retake is not saved until finished (reloading mid-retake loses it).
-- **C — Weeks page, dashboard, export.** **Status:** not started.
-- **D — Content (a week at a time).** **Status:** in progress. Written and validated: Week 1 (`week-01.json` 25 MCQs) and Week 2 (concepts, templates, `week-02.json` 25 MCQs); `python-theme-01`–`08` (10 each); `practical/pt-01`–`05`; `mock-extras/debug.json` (16 snippets). Mocks 1–7 can start; Mock 8 (theme 8 written) waits for `week-03.json`; Mock 9 onward waits for its theme and week files. Next: Week 3 (concepts, templates, 25 MCQs), themes 9–11, then Week 4. Validator rules: ≥20 questions per week file, ≥8 per theme file, ids `wNN-qXX` / `tNN-qXX`, `theme` on theme files and questions, practical and debug files checked (`scripts/content-schema.ts`).
+  - Known limit: a retake is not saved until finished (reloading mid-retake loses it).
+- **C — Weeks page, dashboard, export.** **Status:** done.
+  - Dashboard (`#/dashboard`, Recharts; pure numbers in `lib/dashboard.ts`): study summary row (days done, current streak, problems solved alone, study minutes = every attempt's minutes + Program 2 minutes from saved mocks), first-attempt mock score trend (retakes excluded; Mock 1 shown as the baseline), accuracy by Python theme and by question type, weakest 5 themes/types (min 3 answers) with "Start targeted mock", problems by outcome and difficulty (latest attempt per problem), average minutes. Weak-spot data reads only `quizAnswers` with `mode: "mock"` from saved, non-diagnostic mocks (latest answer per mock and question). Every section has an empty state; every chart has a hidden data table.
+  - "Start targeted mock" is a link, not a special mock: a weak theme goes to the next untaken, ready mock that leads with that theme; a weak type goes to the next untaken, ready mock; otherwise the Mocks page.
+  - Weeks page tabs: Concepts, Visuals, Templates, Problems. The Visuals tab lists the week's planned visuals from `curriculum.json` as "not built yet" placeholders plus a "Coming" note; `weekVisualRegistry` (empty) is where real ones plug in, keyed by the exact title.
+  - Export/import includes `mocks`, `mockRuns`, `mockRetakes` (schema version 4); v1–v3 files still import.
+- **D — Content (a week at a time).** **Status:** in progress. Written and validated: Weeks 1–4 (concepts, templates, 25 MCQs each); all 15 `python-theme-NN.json` files (10 each); `practical/pt-01`–`07`; `mock-extras/debug.json` (32 snippets). Mocks 1–14 can start. Mock 15 (theme 15 is written) and Mocks 16+ wait for `week-05.json` (and their themes beyond 15 are the cycle again: themes 1–15 repeat, so only the week files remain). Next: Week 5 (concepts, templates, 25 MCQs), then pt-08 onward as weeks unlock them. Validator rules: ≥20 questions per week file, ≥8 per theme file, ids `wNN-qXX` / `tNN-qXX`, `theme` on theme files and questions, practical and debug files checked (`scripts/content-schema.ts`).
 
 ### Phase 3.5 — Supabase sync
 **Status:** paused until the v2 migration is done (3.5.1 done; 3.5.2–3.5.6 not started). `docs/DATA_CONTRACT.md`, `supabase/dsa_schema.sql` and SPEC 3.15 still describe the 91-day plan and the old quizzes, so they must be reworked after Phase B.
@@ -75,7 +79,7 @@ What it adds: when a TaskFlow nap/reset is running and I **start work here**, th
 **Done when:** both scripts pass. **You:** take the quiz and flag any question that feels wrong or too easy.
 
 ### Phase 5 — Visualizer kit
-**Status:** not started
+**Status:** not started. The Weeks page already has the Visuals tab (placeholders); building the kit means registering components in `weekVisualRegistry` (and `visualRegistry` for question diagrams).
 > Do Phase 5: build the reusable visualizers in src/features/visuals (start with ArrayViz and PointerViz, then WindowViz, StackViz) driven by a list of steps {state, caption, codeLine}, with Prev/Next/Play. Build the Week 1 visuals listed in the curriculum and the weekly lesson page (Concepts, Visuals, Templates, Problems tabs). Place AddDayButton on the week page (SPEC 3.13).
 
 **Done when:** Week 1 lesson page is complete and works on a phone-width screen.
@@ -85,7 +89,7 @@ What it adds: when a TaskFlow nap/reset is running and I **start work here**, th
 > Do Phase 6: Dashboard (SPEC 3.9) with Recharts and Mock interview mode (3.10).
 
 ### Phase 7 — Deploy
-**Status:** not started
+**Status:** not started. Build checked for a root (subpath-free) host such as Vercel: see `docs/OVERNIGHT_NOTES.md` for what could break (Node version, per-origin data, bundle size). No `vercel.json` is needed with the hash router.
 > Do Phase 7: configure the build for GitHub Pages (or Vercel), add a GitHub Actions workflow, and make the app work offline (vite-plugin-pwa).
 
 ### Phase 8+ — One week of content per session (Weeks 2–13)

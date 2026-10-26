@@ -36,6 +36,37 @@ const session = (mockNumber: number, correct: number, questionIds: string[] = []
 const answer = (questionId: string, correct: boolean, mockNumber: number): QuizAnswer => ({ questionId, correct, mode: "mock", mockNumber, answeredAt: `2026-11-0${mockNumber}T10:00:00.000Z` });
 
 describe("Dashboard", () => {
+  it("shows a study summary row of zeros with no data", async () => {
+    await open();
+    const summary = within(await screen.findByRole("region", { name: "Study summary" }));
+    expect(summary.getByText("Days done").nextElementSibling).toHaveTextContent("0");
+    expect(summary.getByText("Current streak").nextElementSibling).toHaveTextContent("0 days");
+    expect(summary.getByText("Solved alone").nextElementSibling).toHaveTextContent("0");
+    expect(summary.getByText("Study time").nextElementSibling).toHaveTextContent("0m");
+  });
+
+  it("summarises days done, streak, problems solved alone and study minutes", async () => {
+    await open(async (db) => {
+      await db.completions.bulkAdd([
+        { itemId: "w01-d1:learn", planDayId: "w01-d1", completedOn: "2026-10-26" },
+        { itemId: "w01-d1-p1", planDayId: "w01-d1", completedOn: "2026-10-26" },
+        { itemId: "w01-d2-p1", planDayId: "w01-d2", completedOn: "2026-10-27" },
+        { itemId: "w01-d2-p2", planDayId: "w01-d2", completedOn: "2026-10-27" },
+        { itemId: "w01-d2-p3", planDayId: "w01-d2", completedOn: "2026-10-27" },
+      ]);
+      await db.attempts.bulkAdd([
+        { problemId: "w01-d2-p1", date: "2026-10-27", outcome: "alone", minutes: 30, isRedo: false },
+        { problemId: "w01-d2-p2", date: "2026-10-27", outcome: "hint", minutes: 45, isRedo: false },
+      ]);
+      await db.mocks.add({ ...session(2, 14), programs: [{ part: 2, problemId: "pt-01", outcome: "alone", minutes: 30, levelsDone: 3 }] });
+    }, "2026-10-28");
+    const summary = within(await screen.findByRole("region", { name: "Study summary" }));
+    expect(summary.getByText("Days done").nextElementSibling).toHaveTextContent("2"); // Day 1 (Mock row + Plus One) and Day 2
+    expect(summary.getByText("Current streak").nextElementSibling).toHaveTextContent("2 days");
+    expect(summary.getByText("Solved alone").nextElementSibling).toHaveTextContent("1");
+    expect(summary.getByText("Study time").nextElementSibling).toHaveTextContent("1h 45m"); // 30 + 45 + 30 Program 2
+  });
+
   it("handles empty data with a note in every section", async () => {
     await open();
     expect(await screen.findByText(/No mocks finished yet/)).toBeInTheDocument();

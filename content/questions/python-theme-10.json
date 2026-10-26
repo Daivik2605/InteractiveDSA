@@ -1,0 +1,195 @@
+{
+  "theme": 10,
+  "week": 3,
+  "questions": [
+    {
+      "id": "t10-q01",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Memoization",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 10,
+      "code": "from functools import cache\n\ncalls = 0\n\n@cache\ndef fib(n):\n    global calls\n    calls += 1\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\n\nprint(fib(30), calls)",
+      "options": [
+        "832040 1664079",
+        "832040 30",
+        "832040 31",
+        "30 832040"
+      ],
+      "answer": 2,
+      "explanation": "With @cache each fib(n) is computed once: n = 0..30 gives 31 distinct calls to the body, even though fib(30) is 832040. Without the cache the body would run 2,692,537 times. Time O(n), space O(n) for the cache and the recursion stack."
+    },
+    {
+      "id": "t10-q02",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Recursion Limit",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 10,
+      "code": "import sys\nsys.setrecursionlimit(200)\n\ndef depth(n):\n    return depth(n + 1) if n < 5000 else n\n\ntry:\n    print(depth(0))\nexcept RecursionError:\n    print(\"too deep\")",
+      "options": [
+        "too deep",
+        "5000",
+        "RecursionError",
+        "None"
+      ],
+      "answer": 0,
+      "explanation": "The default recursion limit is about 1000 frames and here it is lowered to 200, so a chain 5000 calls deep raises RecursionError, which the except clause catches. Python does not optimize tail calls, so every call uses a frame (O(depth) space)."
+    },
+    {
+      "id": "t10-q03",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Mutable Defaults",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 10,
+      "code": "def collect(n, acc=[]):\n    if n == 0:\n        return acc\n    acc.append(n)\n    return collect(n - 1, acc)\n\nprint(collect(3), collect(2))",
+      "options": [
+        "[3, 2, 1] [2, 1]",
+        "[3, 2, 1] [3, 2, 1, 2, 1]",
+        "[3, 2, 1, 2, 1] [3, 2, 1, 2, 1]",
+        "[3, 2, 1, 2, 1] [2, 1]"
+      ],
+      "answer": 2,
+      "explanation": "The default `acc=[]` is created once and shared by every top-level call. collect(3) fills it with [3, 2, 1] and returns that same list object; collect(2) then appends 2, 1 to it. Both printed values are the one shared list, which now holds [3, 2, 1, 2, 1]."
+    },
+    {
+      "id": "t10-q04",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: Call Stack",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 10,
+      "code": "def go(n):\n    if n == 0:\n        return \"\"\n    return str(n) + go(n - 1) + str(n)\n\nprint(go(3))",
+      "options": [
+        "321123",
+        "123321",
+        "321",
+        "123"
+      ],
+      "answer": 0,
+      "explanation": "Code before the recursive call runs on the way down (3, 2, 1) and code after it runs as the calls return, in reverse (1, 2, 3). So the string is 3 2 1 then 1 2 3. Depth n means O(n) stack space."
+    },
+    {
+      "id": "t10-q05",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: Base Case",
+      "difficulty": "medium",
+      "prompt": "factorial(5) raises RecursionError: maximum recursion depth exceeded. What is the bug?",
+      "theme": 10,
+      "code": "def factorial(n):\n    return n * factorial(n - 1)",
+      "options": [
+        "Python does not allow a function to call itself",
+        "The recursion limit must be raised with sys.setrecursionlimit",
+        "`n * factorial(n - 1)` must be written with a loop",
+        "There is no base case, so the recursion never stops; add `if n <= 1: return 1`"
+      ],
+      "answer": 3,
+      "explanation": "Every recursive function needs a base case that returns without recursing, and each call must move toward it. Raising the limit would only delay the failure. Fixed, factorial(n) is O(n) time and O(n) stack space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t10-q06",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: lru_cache",
+      "difficulty": "hard",
+      "prompt": "total_sum([1, 2, 3]) raises TypeError: unhashable type: 'list'. What is the bug?",
+      "theme": 10,
+      "code": "from functools import cache\n\n@cache\ndef total_sum(nums):\n    return sum(nums)",
+      "options": [
+        "@cache works only with integer arguments",
+        "@cache stores results in a dict keyed by the arguments, and a list is unhashable; pass a tuple instead",
+        "The cache decorator must be written as @cache() with parentheses",
+        "sum() cannot be used inside a cached function"
+      ],
+      "answer": 1,
+      "explanation": "functools.cache and lru_cache build their key from the call's arguments, so every argument must be hashable. Convert lists to tuples (O(n)) before calling, or cache on indices instead of slices."
+    },
+    {
+      "id": "t10-q07",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Python: Recursion",
+      "difficulty": "medium",
+      "prompt": "What are the time and stack space of this function for input n?",
+      "theme": 10,
+      "code": "def fib(n):\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)",
+      "options": [
+        "O(n) time, O(n) space",
+        "O(n²) time, O(n) space",
+        "O(2ⁿ) time, O(2ⁿ) space",
+        "O(2ⁿ) time, O(n) space"
+      ],
+      "answer": 3,
+      "explanation": "Each call spawns two more with n shrinking by only 1 or 2, so the call tree has about 2ⁿ nodes (precisely about 1.6ⁿ). The stack only holds one root-to-leaf path, depth n, so space is O(n). With a cache each value is computed once: O(n) time.",
+      "complexity": {
+        "time": "O(2ⁿ)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t10-q08",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: Call Stack",
+      "difficulty": "medium",
+      "prompt": "Why can a recursive function with depth 100,000 fail in Python even though it is correct?",
+      "theme": 10,
+      "options": [
+        "Python forbids recursion deeper than 100",
+        "Every call adds a stack frame, the default limit is about 1000 frames, and Python does not optimize tail calls",
+        "Recursive functions always run in O(n²) time",
+        "The garbage collector frees frames too slowly"
+      ],
+      "answer": 1,
+      "explanation": "Frames use memory (O(depth) space) and CPython guards against stack overflow with a recursion limit. Fixes: rewrite as a loop with an explicit stack, or restructure the algorithm. Raising the limit very high can crash the interpreter instead."
+    },
+    {
+      "id": "t10-q09",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: lru_cache",
+      "difficulty": "medium",
+      "prompt": "How does functools.lru_cache(maxsize=128) differ from functools.cache?",
+      "theme": 10,
+      "options": [
+        "lru_cache keeps at most 128 results and evicts the least recently used; cache is unbounded; both need hashable arguments",
+        "cache works on any arguments and lru_cache needs hashable ones",
+        "lru_cache keeps the 128 largest results",
+        "cache expires entries after a fixed time"
+      ],
+      "answer": 0,
+      "explanation": "Both memoize by the call arguments. `cache` is just `lru_cache(maxsize=None)`: it never evicts, so memory grows with the number of distinct calls. A bounded cache trades some recomputation for O(maxsize) memory."
+    },
+    {
+      "id": "t10-q10",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Python: Recursion to Iteration",
+      "difficulty": "hard",
+      "prompt": "A depth-first traversal of a path graph with 100,000 nodes hits RecursionError. Which fix works reliably?",
+      "theme": 10,
+      "options": [
+        "Raise sys.setrecursionlimit to 10**9",
+        "Add @cache to the recursive function",
+        "Rewrite it iteratively with an explicit stack (a list) of nodes still to visit",
+        "Catch RecursionError and retry"
+      ],
+      "answer": 2,
+      "explanation": "An explicit stack lives on the heap, so its size is limited by memory rather than by the interpreter's frame limit: O(n) space, same O(n) time. A huge recursion limit can overflow the C stack and crash Python, @cache does nothing for depth, and retrying fails the same way.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    }
+  ]
+}

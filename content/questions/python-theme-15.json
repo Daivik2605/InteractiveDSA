@@ -1,0 +1,182 @@
+{
+  "theme": 15,
+  "week": 5,
+  "questions": [
+    {
+      "id": "t15-q01",
+      "week": 5,
+      "type": "output",
+      "pattern": "Python: Threads",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 15,
+      "code": "import threading\n\nresults = []\n\ndef work(n):\n    results.append(n * n)\n\nthreads = [threading.Thread(target=work, args=(i,)) for i in range(4)]\nfor t in threads:\n    t.start()\nfor t in threads:\n    t.join()\nprint(sorted(results))",
+      "options": [
+        "[0, 1, 2, 3]",
+        "[0, 1, 4, 9]",
+        "[]",
+        "[1, 4, 9, 16]"
+      ],
+      "answer": 1,
+      "explanation": "Each thread appends n * n to the shared list. join() waits for all of them, so all four values are present. The order in which threads run can vary, so the code sorts before printing. (list.append is atomic under the GIL, but compound updates like counter += 1 are not.)"
+    },
+    {
+      "id": "t15-q02",
+      "week": 5,
+      "type": "output",
+      "pattern": "Python: asyncio",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 15,
+      "code": "import asyncio\n\nasync def job(n):\n    await asyncio.sleep(0)\n    return n * 2\n\nasync def main():\n    return await asyncio.gather(job(1), job(2), job(3))\n\nprint(asyncio.run(main()))",
+      "options": [
+        "[6, 4, 2]",
+        "[1, 2, 3]",
+        "[<coroutine object job>, <coroutine object job>, <coroutine object job>]",
+        "[2, 4, 6]"
+      ],
+      "answer": 3,
+      "explanation": "`asyncio.gather` runs the coroutines concurrently and returns their results in the order the arguments were given, not the order they finish. Each job returns n * 2, so the list is [2, 4, 6]. `asyncio.run` starts the event loop for the top-level coroutine."
+    },
+    {
+      "id": "t15-q03",
+      "week": 5,
+      "type": "output",
+      "pattern": "Python: Memory",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 15,
+      "code": "import sys\nprint(sys.getsizeof(list(range(1000))) > sys.getsizeof(range(1000)), sys.getsizeof(x for x in range(10**6)) < 1000)",
+      "options": [
+        "True False",
+        "False True",
+        "True True",
+        "False False"
+      ],
+      "answer": 2,
+      "explanation": "A list of 1000 ints stores 1000 references, far more than a `range` object, which only stores start, stop and step, so the first comparison is True. A generator expression is a small fixed-size object (a few hundred bytes) however many values it will produce, so the second comparison is also True. That is the memory argument for generators: O(1) versus O(n)."
+    },
+    {
+      "id": "t15-q04",
+      "week": 5,
+      "type": "output",
+      "pattern": "Python: ThreadPoolExecutor",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 15,
+      "code": "from concurrent.futures import ThreadPoolExecutor\n\nwith ThreadPoolExecutor(3) as ex:\n    print(list(ex.map(lambda x: x + 1, [1, 2, 3])))",
+      "options": [
+        "[2, 3, 4]",
+        "[4, 3, 2]",
+        "[1, 2, 3]",
+        "[3, 4, 5]"
+      ],
+      "answer": 0,
+      "explanation": "`Executor.map` runs the calls concurrently but yields the results in the order of the inputs, not in completion order. Each call adds 1, so the list is [2, 3, 4]. (For CPU-bound work, ProcessPoolExecutor has the same interface but sidesteps the GIL.)"
+    },
+    {
+      "id": "t15-q05",
+      "week": 5,
+      "type": "bug",
+      "pattern": "Python: asyncio",
+      "difficulty": "medium",
+      "prompt": "main() raises TypeError: unsupported operand type(s) for +: 'coroutine' and 'int'. What is the bug?",
+      "theme": 15,
+      "code": "import asyncio\n\nasync def fetch():\n    return 1\n\nasync def main():\n    x = fetch()\n    return x + 1\n\nasyncio.run(main())",
+      "options": [
+        "async functions cannot return values",
+        "fetch must be declared with `def`, not `async def`",
+        "fetch() was called but not awaited, so x is a coroutine object; use `x = await fetch()`",
+        "asyncio.run must be called inside main"
+      ],
+      "answer": 2,
+      "explanation": "Calling an async function returns a coroutine object without running its body. `await` runs it to completion and gives its result (and lets other tasks run in the meantime). Forgetting await also produces a 'coroutine was never awaited' warning."
+    },
+    {
+      "id": "t15-q06",
+      "week": 5,
+      "type": "bug",
+      "pattern": "Python: Threads",
+      "difficulty": "hard",
+      "prompt": "The thread prints TypeError: 'int' object is not callable. What is the bug?",
+      "theme": 15,
+      "code": "import threading\n\ndef work(n):\n    return n\n\nt = threading.Thread(target=work(1))\nt.start()\nt.join()",
+      "options": [
+        "target=work(1) CALLS work immediately and passes its return value as the target; pass the function and its arguments separately: Thread(target=work, args=(1,))",
+        "Thread cannot take a target argument",
+        "work must be a lambda",
+        "t.start() must be replaced with t.run()"
+      ],
+      "answer": 0,
+      "explanation": "Parentheses call the function in the current thread. `target` needs the callable itself, and `args=(1,)` supplies its arguments. Using run() would execute the function in the calling thread instead of a new one."
+    },
+    {
+      "id": "t15-q07",
+      "week": 5,
+      "type": "concept",
+      "pattern": "Python: The GIL",
+      "difficulty": "medium",
+      "prompt": "What does the GIL (global interpreter lock) mean for threads in CPython?",
+      "theme": 15,
+      "options": [
+        "It makes every operation on shared data thread-safe",
+        "It lets threads run on all CPU cores in parallel",
+        "It is released only when a program ends",
+        "Only one thread executes Python bytecode at a time, so threads speed up I/O-bound work but not CPU-bound pure-Python work"
+      ],
+      "answer": 3,
+      "explanation": "While a thread waits on I/O (network, disk, sleep) it releases the GIL, so other threads can run: good for I/O-bound tasks. Pure-Python CPU work gains nothing because threads take turns. The GIL does not make compound operations such as `counter += 1` safe; that still needs a lock."
+    },
+    {
+      "id": "t15-q08",
+      "week": 5,
+      "type": "concept",
+      "pattern": "Python: Threads vs Processes",
+      "difficulty": "medium",
+      "prompt": "What is the main trade-off of using multiprocessing instead of threading for CPU-bound work?",
+      "theme": 15,
+      "options": [
+        "Processes share all variables automatically with no copying",
+        "Each process has its own interpreter and GIL, so cores run in parallel, but processes start slower, use more memory and must pass data by copying (pickling)",
+        "Processes are slower for CPU-bound work than threads",
+        "Processes cannot run on more than one core"
+      ],
+      "answer": 1,
+      "explanation": "Separate memory spaces are both the benefit (no GIL contention, real parallelism) and the cost (startup time, serialization of arguments and results, no shared state unless you set it up). Use ProcessPoolExecutor for CPU-heavy tasks and threads or asyncio for I/O waiting."
+    },
+    {
+      "id": "t15-q09",
+      "week": 5,
+      "type": "concept",
+      "pattern": "Python: asyncio",
+      "difficulty": "medium",
+      "prompt": "How does asyncio run many tasks on one thread?",
+      "theme": 15,
+      "options": [
+        "The event loop interrupts tasks at random times",
+        "Each task gets its own operating-system thread",
+        "Tasks run in parallel on separate cores",
+        "Tasks cooperate: each runs until it hits an await, which hands control back to the event loop so another task can run"
+      ],
+      "answer": 3,
+      "explanation": "asyncio is cooperative multitasking. It shines when most of the time is spent waiting (many network calls). A blocking call such as time.sleep() inside a coroutine freezes the whole loop because nothing yields; use `await asyncio.sleep()` instead."
+    },
+    {
+      "id": "t15-q10",
+      "week": 5,
+      "type": "approach",
+      "pattern": "Python: Concurrency Choice",
+      "difficulty": "hard",
+      "prompt": "You must resize 10,000 large images, a CPU-bound job, as fast as possible on an 8-core machine. Which approach fits best?",
+      "theme": 15,
+      "options": [
+        "ThreadPoolExecutor with 100 threads",
+        "A process pool (concurrent.futures.ProcessPoolExecutor or multiprocessing.Pool), one worker per core",
+        "asyncio with 10,000 tasks",
+        "A plain for loop with time.sleep between images"
+      ],
+      "answer": 1,
+      "explanation": "Pure-Python CPU work is limited by the GIL in threads and gains nothing from asyncio (which has a single thread), so separate processes are needed to use all cores. Expect close to an 8x speedup minus startup and data-copying costs."
+    }
+  ]
+}

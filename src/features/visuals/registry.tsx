@@ -10,3 +10,9 @@ export function QuestionVisual({ visual }: { visual?: { component: string; props
   const Component = visual ? visualRegistry[visual.component] : undefined;
   return Component && visual ? <Component {...visual.props} /> : null;
 }
+
+/**
+ * Week visuals, keyed by the exact title in curriculum.json `weeks[n].visuals`. Empty until the visualizer kit is
+ * built (BUILD_PLAN Phase 5); the Weeks page's Visuals tab shows a placeholder for any title not registered here.
+ */
+export const weekVisualRegistry: Record<string, ComponentType> = {};

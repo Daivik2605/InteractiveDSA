@@ -1,0 +1,48 @@
+{
+  "id": "pt-07",
+  "title": "Key-value store",
+  "unlockWeek": 5,
+  "intro": "You are writing a tiny in-memory key-value store, one class `Store` that grows level by level. Use only the standard library. Time is passed in explicitly (`now`, in seconds) so your code is easy to test; it defaults to 0.",
+  "rules": [
+    "Keys are strings and values can be anything. A missing (or expired) key reads as None.",
+    "Keep every method O(1) on average, except where a level says otherwise."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "get/set/delete",
+      "prompt": "Write `Store` with `set(key, value)`, `get(key)` (the value, or None when the key is missing) and `delete(key)` (True if the key existed and was removed, False otherwise). Setting an existing key replaces its value.",
+      "signature": "class Store:\n    def set(self, key: str, value) -> None: ...\n    def get(self, key: str): ...\n    def delete(self, key: str) -> bool: ...",
+      "sampleInput": "s = Store()\ns.set(\"a\", 1)\ns.set(\"b\", 2)\ns.set(\"a\", 3)\nprint(s.get(\"a\"), s.get(\"b\"), s.get(\"z\"))\nprint(s.delete(\"b\"), s.delete(\"b\"))\nprint(s.get(\"b\"))",
+      "expectedOutput": "3 2 None\nTrue False\nNone",
+      "edgeCases": [
+        "Deleting a missing key returns False and changes nothing",
+        "A stored None value and a missing key both read as None; that is fine here"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Keys with TTL",
+      "prompt": "Extend `Store` so `set(key, value, ttl=None, now=0)` can give a key a time-to-live in seconds: the key expires at `now + ttl` and is gone when `current_time >= now + ttl`. `get(key, now=0)` and `delete(key, now=0)` take the current time and treat an expired key as missing (`delete` returns False for it). A `set` replaces any earlier TTL; without `ttl` the key never expires.",
+      "signature": "class Store:\n    def set(self, key: str, value, ttl: int | None = None, now: int = 0) -> None: ...\n    def get(self, key: str, now: int = 0): ...\n    def delete(self, key: str, now: int = 0) -> bool: ...",
+      "sampleInput": "s = Store()\ns.set(\"a\", 1, ttl=10, now=0)\nprint(s.get(\"a\", now=5), s.get(\"a\", now=10))\ns.set(\"b\", 2)\nprint(s.get(\"b\", now=100))\ns.set(\"a\", 5, ttl=5, now=20)\nprint(s.get(\"a\", now=24), s.get(\"a\", now=25))\nprint(s.delete(\"a\", now=30))",
+      "expectedOutput": "1 None\n2\n5 None\nFalse",
+      "edgeCases": [
+        "At exactly now + ttl the key is already expired",
+        "Expire lazily on read: you do not need a background cleaner"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "begin/rollback/commit transactions",
+      "prompt": "Add transactions that can be nested. `begin()` opens a transaction. Inside it, `set` and `delete` work as before but can be undone. `rollback()` undoes every change made since the matching `begin()` and returns True (False if no transaction is open). `commit()` closes the innermost transaction and keeps its changes, returning True (False if none is open); if it was nested, the parent transaction can still roll those changes back. Track changes with a stack: for each open transaction remember the previous value of every key it touched.",
+      "signature": "class Store:\n    def begin(self) -> None: ...\n    def rollback(self) -> bool: ...\n    def commit(self) -> bool: ...",
+      "sampleInput": "s = Store()\ns.set(\"a\", 1)\ns.begin()\ns.set(\"a\", 2)\ns.set(\"b\", 3)\nprint(s.get(\"a\"), s.get(\"b\"))\ns.begin()\ns.delete(\"a\")\nprint(s.get(\"a\"))\nprint(s.rollback())\nprint(s.get(\"a\"))\nprint(s.commit())\nprint(s.get(\"a\"), s.get(\"b\"))\nprint(s.rollback())\ns.begin()\ns.set(\"b\", 9)\nprint(s.rollback(), s.get(\"b\"))",
+      "expectedOutput": "2 3\nNone\nTrue\n2\nTrue\n2 3\nFalse\nTrue 3",
+      "edgeCases": [
+        "Rolling back a key that did not exist before the transaction removes it again",
+        "Remember only the FIRST old value of a key within one transaction"
+      ]
+    }
+  ]
+}

@@ -35,7 +35,7 @@ describe("Weeks page", () => {
   it("opens on the current week with Concepts, Templates and Problems tabs (no Visuals yet)", async () => {
     await renderWeeks("2026-10-27");
     expect(screen.getByLabelText("Week")).toHaveValue("1");
-    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Concepts", "Templates", "Problems"]);
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Concepts", "Visuals", "Templates", "Problems"]);
     expect(screen.getByRole("tab", { name: "Concepts" })).toHaveAttribute("aria-selected", "true");
   });
 
@@ -73,10 +73,23 @@ describe("Weeks page", () => {
 
   it("switching week shows that week; a week with no lesson files says so", async () => {
     const { user } = await renderWeeks("2026-10-27");
-    await user.selectOptions(screen.getByLabelText("Week"), "4"); // Week 4 has no lesson files yet
-    expect(panel().getByText("No concept notes written for Week 4 yet.")).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Week"), "5"); // Week 5 has no lesson files yet
+    expect(panel().getByText("No concept notes written for Week 5 yet.")).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Templates" }));
-    expect(panel().getByText("No templates written for Week 4 yet.")).toBeInTheDocument();
+    expect(panel().getByText("No templates written for Week 5 yet.")).toBeInTheDocument();
+  });
+
+  it("Visuals tab lists the week's planned visuals as clear 'not built yet' placeholders, with a coming note", async () => {
+    const { user } = await renderWeeks("2026-10-27");
+    await user.click(screen.getByRole("tab", { name: "Visuals" }));
+    const list = within(panel().getByRole("list", { name: "Week 1 visuals" }));
+    expect(list.getAllByRole("listitem")).toHaveLength(4);
+    expect(list.getByRole("listitem", { name: "Growth-rate race: O(1) … O(n!)" })).toHaveTextContent("Not built yet");
+    expect(list.getAllByText(/Not built yet/)).toHaveLength(4);
+    expect(panel().getByRole("note")).toHaveTextContent(/Coming/);
+    expect(panel().queryByRole("img")).not.toBeInTheDocument(); // no fake diagrams
+    await user.selectOptions(screen.getByLabelText("Week"), "2");
+    expect(within(panel().getByRole("list", { name: "Week 2 visuals" })).getAllByRole("listitem")).toHaveLength(2);
   });
 
   it("old-topic problems are listed without any source week", async () => {

@@ -1,0 +1,186 @@
+{
+  "theme": 14,
+  "week": 4,
+  "questions": [
+    {
+      "id": "t14-q01",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: try / finally",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 14,
+      "code": "def f():\n    try:\n        print(\"t\", end=\" \")\n        return \"r\"\n    finally:\n        print(\"f\", end=\" \")\n\nprint(f())",
+      "options": [
+        "t r f",
+        "t f",
+        "t f r",
+        "f t r"
+      ],
+      "answer": 2,
+      "explanation": "The return value is computed first (\"r\"), then the finally block runs before the function actually returns, printing \"f \". print then receives \"r\". So the order is t, f, r. A `finally` always runs, whether the try block returns, raises or finishes."
+    },
+    {
+      "id": "t14-q02",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: try / else",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 14,
+      "code": "out = []\nfor x in [1, 0]:\n    try:\n        r = 10 // x\n    except ZeroDivisionError:\n        r = \"inf\"\n    else:\n        r = r + 1\n    out.append(r)\nprint(out)",
+      "options": [
+        "[11, 'inf']",
+        "[10, 'inf']",
+        "[11, 1]",
+        "[11, 'inf', 1]"
+      ],
+      "answer": 0,
+      "explanation": "The `else` block runs only when the try block raised nothing: for x = 1, r = 10 // 1 = 10 and else makes it 11. For x = 0, ZeroDivisionError is caught, r = \"inf\", and else is skipped."
+    },
+    {
+      "id": "t14-q03",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: Custom Exceptions",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 14,
+      "code": "class AppError(Exception):\n    pass\n\nclass DbError(AppError):\n    pass\n\ntry:\n    raise DbError(\"x\")\nexcept AppError as e:\n    print(type(e).__name__, str(e))",
+      "options": [
+        "AppError x",
+        "Exception x",
+        "DbError x",
+        "DbError None"
+      ],
+      "answer": 2,
+      "explanation": "`except AppError` catches DbError because DbError is a subclass of AppError. `type(e).__name__` is the actual class, DbError, and str(e) is the message \"x\". Put more specific except clauses before general ones."
+    },
+    {
+      "id": "t14-q04",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: Context Managers",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 14,
+      "code": "class Ctx:\n    def __enter__(self):\n        print(\"in\", end=\" \")\n        return self\n\n    def __exit__(self, *exc):\n        print(\"out\", end=\" \")\n        return True\n\nwith Ctx():\n    raise ValueError\nprint(\"after\")",
+      "options": [
+        "in out after",
+        "in out",
+        "in after ValueError",
+        "in out ValueError"
+      ],
+      "answer": 0,
+      "explanation": "`__enter__` runs first (\"in \"). The ValueError inside the with block triggers `__exit__` (\"out \"). Because __exit__ returns True, the exception is suppressed, so execution continues after the with statement and prints \"after\"."
+    },
+    {
+      "id": "t14-q05",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: finally",
+      "difficulty": "hard",
+      "prompt": "risky() should let the ValueError escape, but it returns \"done\" instead. What is the bug?",
+      "theme": 14,
+      "code": "def risky():\n    try:\n        raise ValueError(\"boom\")\n    finally:\n        return \"done\"",
+      "options": [
+        "raise needs the exception class, not an instance",
+        "finally runs only when no exception was raised",
+        "The function needs an except clause",
+        "A `return` inside finally replaces the exception in flight, silently swallowing it; put the return outside the finally block"
+      ],
+      "answer": 3,
+      "explanation": "If a finally block executes `return`, `break` or `continue`, Python discards the pending exception. Use finally for cleanup only. The exception then propagates as expected."
+    },
+    {
+      "id": "t14-q06",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: except Syntax",
+      "difficulty": "medium",
+      "prompt": "`except ValueError, TypeError:` fails with SyntaxError in Python 3. What is the fix?",
+      "theme": 14,
+      "code": "try:\n    int(\"x\")\nexcept ValueError, TypeError:\n    pass",
+      "options": [
+        "except ValueError and TypeError:",
+        "Catch several exception types with a tuple: except (ValueError, TypeError):",
+        "except ValueError or TypeError:",
+        "except [ValueError, TypeError]:"
+      ],
+      "answer": 1,
+      "explanation": "The comma form was Python 2 syntax. A tuple of classes is accepted by `except`. `and` and `or` are evaluated as ordinary expressions and would only catch one class, and a list is not valid there."
+    },
+    {
+      "id": "t14-q07",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: try / except / else / finally",
+      "difficulty": "medium",
+      "prompt": "When do the else and finally blocks of a try statement run?",
+      "theme": 14,
+      "options": [
+        "else runs when an exception was caught; finally runs only if there was no exception",
+        "Both run only when no exception occurred",
+        "finally runs only when an exception was caught",
+        "else runs only if the try block raised no exception; finally always runs, even after return or an uncaught exception"
+      ],
+      "answer": 3,
+      "explanation": "Use `else` for code that should run only on success (so its own errors are not caught by the preceding except). Use `finally` for cleanup that must happen regardless, such as releasing a lock or closing a file."
+    },
+    {
+      "id": "t14-q08",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: Context Managers",
+      "difficulty": "medium",
+      "prompt": "What does the `with` statement guarantee?",
+      "theme": 14,
+      "options": [
+        "The block runs in a separate thread",
+        "The object's __exit__ is called when the block ends, even if an exception was raised, so cleanup always happens",
+        "Exceptions inside the block are always suppressed",
+        "The object is deleted from memory after the block"
+      ],
+      "answer": 1,
+      "explanation": "`with` calls __enter__ before the block and __exit__ after it, with the exception details if one occurred. __exit__ can suppress the exception by returning True. Files, locks and database connections use this to release resources reliably."
+    },
+    {
+      "id": "t14-q09",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: EAFP",
+      "difficulty": "medium",
+      "prompt": "What does the Python idiom EAFP (easier to ask forgiveness than permission) recommend?",
+      "theme": 14,
+      "options": [
+        "Try the operation and handle the exception, e.g. try: value = d[key] except KeyError, instead of checking first",
+        "Always check every precondition with if statements before acting",
+        "Never use exceptions for expected situations",
+        "Catch every exception with a bare except"
+      ],
+      "answer": 0,
+      "explanation": "EAFP is idiomatic and avoids race conditions between the check and the use (for files, for example). For plain dict lookups `d.get(key, default)` is shorter still. Catch the narrowest exception you expect, never a bare `except:`."
+    },
+    {
+      "id": "t14-q10",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Python: Resource Cleanup",
+      "difficulty": "medium",
+      "prompt": "Read a file and be sure it is closed even if processing a line raises an error. Which code does that?",
+      "theme": 14,
+      "options": [
+        "f = open(path); for line in f: process(line); f.close()",
+        "f = open(path); try: ... except: pass",
+        "with open(path) as f: for line in f: process(line)",
+        "f = open(path); del f"
+      ],
+      "answer": 2,
+      "explanation": "The `with` block closes the file when it ends, error or not. Calling close() at the end is skipped when an exception occurs earlier, a bare except hides errors without closing, and del does not guarantee a prompt close. Memory stays O(1) because the file is read lazily.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

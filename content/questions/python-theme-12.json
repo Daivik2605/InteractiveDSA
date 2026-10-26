@@ -1,0 +1,194 @@
+{
+  "theme": 12,
+  "week": 4,
+  "questions": [
+    {
+      "id": "t12-q01",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: yield from",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 12,
+      "code": "def g():\n    yield 1\n    yield from [2, 3]\n    yield 4\n\nprint(list(g()), sum(g()))",
+      "options": [
+        "[1, 2, 3, 4] 10",
+        "[1, 2, 3, 4] 10 10",
+        "[1, [2, 3], 4] 10",
+        "[1, 2, 3, 4] 0"
+      ],
+      "answer": 0,
+      "explanation": "`yield from` delegates to another iterable, yielding each of its items in turn: 1, then 2 and 3, then 4. Calling g() creates a fresh generator each time, so the second call (inside sum) is not exhausted by the first (inside list)."
+    },
+    {
+      "id": "t12-q02",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: next and StopIteration",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 12,
+      "code": "it = iter([1])\nprint(next(it), next(it, \"done\"))",
+      "options": [
+        "1 StopIteration",
+        "1 None",
+        "1 done",
+        "done done"
+      ],
+      "answer": 2,
+      "explanation": "The first next() returns 1. The iterator is then exhausted, so the second next() would raise StopIteration, but the optional second argument is returned instead: \"done\"."
+    },
+    {
+      "id": "t12-q03",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: itertools",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 12,
+      "code": "from itertools import accumulate, groupby, product, combinations\nprint(list(accumulate([1, 2, 3])), [(k, len(list(g))) for k, g in groupby(\"aabccc\")], len(list(product(\"ab\", repeat=2))), list(combinations(\"abc\", 2)))",
+      "options": [
+        "[1, 2, 3] [('a', 1), ('b', 1), ('c', 1)] 4 [('a', 'b'), ('a', 'c'), ('b', 'c')]",
+        "[1, 3, 6] [('a', 2), ('b', 1), ('c', 3)] 4 [('a', 'b'), ('a', 'c'), ('b', 'c')]",
+        "[1, 3, 6] [('a', 2), ('b', 1), ('c', 3)] 2 [('a', 'b'), ('a', 'c'), ('b', 'c')]",
+        "[1, 3, 6] [('a', 2), ('b', 1), ('c', 3)] 4 [('a', 'b'), ('a', 'c'), ('b', 'a'), ('b', 'c')]"
+      ],
+      "answer": 1,
+      "explanation": "accumulate gives running totals 1, 3, 6. groupby groups consecutive equal items: aa, b, ccc. product(\"ab\", repeat=2) has 2² = 4 pairs. combinations(\"abc\", 2) are unordered pairs in input order: ab, ac, bc. Remember groupby only merges neighbours, so sort first when you need all equal keys together."
+    },
+    {
+      "id": "t12-q04",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: Iterators",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 12,
+      "code": "it = iter(range(5))\nnext(it)\nnext(it)\nprint(list(it))",
+      "options": [
+        "[0, 1, 2, 3, 4]",
+        "[2, 3, 4] after a StopIteration",
+        "[3, 4]",
+        "[2, 3, 4]"
+      ],
+      "answer": 3,
+      "explanation": "An iterator remembers its position. Two next() calls consume 0 and 1, so list(it) collects what is left: [2, 3, 4]. Iterators are single-use: you cannot rewind one."
+    },
+    {
+      "id": "t12-q05",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: Generator Exhaustion",
+      "difficulty": "medium",
+      "prompt": "print(sum(e), max(e)) raises ValueError: max() arg is an empty sequence. What is the bug?",
+      "theme": 12,
+      "code": "def evens(nums):\n    return (x for x in nums if x % 2 == 0)\n\ne = evens([1, 2, 3, 4])\nprint(sum(e), max(e))",
+      "options": [
+        "`max` cannot be used on generators",
+        "A generator expression needs square brackets",
+        "e is a generator and sum(e) already consumed it; build a list (or call evens() again) if you need two passes",
+        "sum() empties the original list nums"
+      ],
+      "answer": 2,
+      "explanation": "A generator can be iterated once. After sum(e) reaches the end, max(e) sees nothing. Store the values (`list(...)`, O(n) space) when you need several passes."
+    },
+    {
+      "id": "t12-q06",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: Generators",
+      "difficulty": "hard",
+      "prompt": "list(take(iter([1, 2]), 3)) raises RuntimeError: generator raised StopIteration. What is the bug?",
+      "theme": 12,
+      "code": "def take(it, n):\n    for _ in range(n):\n        yield next(it)",
+      "options": [
+        "next(it) raises StopIteration inside a generator, which Python turns into RuntimeError; use next(it, sentinel) or itertools.islice",
+        "`yield` cannot appear inside a for loop",
+        "range(n) must be replaced with a while loop",
+        "The generator needs a return statement at the end"
+      ],
+      "answer": 0,
+      "explanation": "Since PEP 479 a StopIteration that escapes a generator body is converted into RuntimeError. Catch it (and return), pass a default to next(), or use `itertools.islice(it, n)`, which stops cleanly after at most n items in O(n) time, O(1) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t12-q07",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Python: itertools",
+      "difficulty": "medium",
+      "prompt": "A generator yields an unbounded stream. What are the time and space of `list(islice(stream, k))`?",
+      "theme": 12,
+      "options": [
+        "O(1) time, O(1) space",
+        "O(k) time, O(1) space",
+        "O(k) time, O(k) space",
+        "O(n) time where n is the stream length"
+      ],
+      "answer": 2,
+      "explanation": "islice stops after k items, so only k values are produced (O(k) time) and the list stores them (O(k) space). The rest of the stream is never touched. Iterating the islice without storing would use O(1) space.",
+      "complexity": {
+        "time": "O(k)",
+        "space": "O(k)"
+      }
+    },
+    {
+      "id": "t12-q08",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: Iterators",
+      "difficulty": "medium",
+      "prompt": "What is the difference between an iterable and an iterator?",
+      "theme": 12,
+      "options": [
+        "An iterable can produce an iterator (it has __iter__); an iterator has __next__, returns itself from __iter__ and is used up once",
+        "They are the same; every iterable is an iterator",
+        "A list is an iterator and a generator is an iterable",
+        "An iterator can be restarted with reset()"
+      ],
+      "answer": 0,
+      "explanation": "A list is an iterable: every `for` loop over it calls iter() and gets a new iterator. A generator or `iter(list)` is an iterator, so a second `for` over the same object gets nothing. That distinction explains generator-exhaustion bugs."
+    },
+    {
+      "id": "t12-q09",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: Generators",
+      "difficulty": "medium",
+      "prompt": "What happens when you call a generator function such as `def g(): yield 1`?",
+      "theme": 12,
+      "options": [
+        "It runs the whole body and returns a list",
+        "It runs the body up to the first yield and returns 1",
+        "It returns None until you call .start()",
+        "It returns a generator object immediately without running the body; the body runs in pieces as you ask for items with next()"
+      ],
+      "answer": 3,
+      "explanation": "That laziness is why generators use O(1) memory regardless of how many values they produce, and why side effects in the body appear only when you iterate. Code after the last yield runs when you ask for one more item."
+    },
+    {
+      "id": "t12-q10",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Python: Generators",
+      "difficulty": "medium",
+      "prompt": "Count the lines containing \"ERROR\" in a 20 GB log file without loading it into memory. Which approach works?",
+      "theme": 12,
+      "options": [
+        "lines = f.read().splitlines() and then loop over lines",
+        "Iterate over the open file object and count with a generator expression: sum(1 for line in f if \"ERROR\" in line)",
+        "lines = f.readlines() and then use len([l for l in lines if ...])",
+        "Use list(f) so the file is cached"
+      ],
+      "answer": 1,
+      "explanation": "A file object is a lazy iterator over lines, so one line is in memory at a time: O(n) time, O(1) space. read(), readlines() and list(f) all build the full content in memory first, which fails at 20 GB.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

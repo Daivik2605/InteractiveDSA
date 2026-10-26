@@ -1,0 +1,191 @@
+{
+  "theme": 13,
+  "week": 4,
+  "questions": [
+    {
+      "id": "t13-q01",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: __repr__",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 13,
+      "code": "class P:\n    def __init__(self, x):\n        self.x = x\n    def __repr__(self):\n        return f\"P({self.x})\"\n\nprint([P(1)], str(P(1)), f\"{P(1)}\")",
+      "options": [
+        "[<__main__.P object>] P(1) P(1)",
+        "[P(1)] <__main__.P object> P(1)",
+        "[P(1)] P(1) P(1)",
+        "[P(1)] P(1) <__main__.P object>"
+      ],
+      "answer": 2,
+      "explanation": "A list prints its items with repr(). `str()` and f-strings use __str__, and when a class defines only __repr__, __str__ falls back to it. So all three show P(1). Define __repr__ for debugging output you can paste back into code."
+    },
+    {
+      "id": "t13-q02",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: __eq__ and __hash__",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 13,
+      "code": "class K:\n    def __init__(self, v):\n        self.v = v\n    def __eq__(self, other):\n        return self.v == other.v\n\ntry:\n    print(len({K(1), K(1)}))\nexcept TypeError:\n    print(\"unhashable\")",
+      "options": [
+        "unhashable",
+        "1",
+        "2",
+        "TypeError"
+      ],
+      "answer": 0,
+      "explanation": "Defining __eq__ in a class without defining __hash__ sets __hash__ to None, which makes the instances unhashable: putting them in a set raises TypeError, which the code catches and reports. Define __hash__ from the same fields as __eq__ (or use a frozen dataclass)."
+    },
+    {
+      "id": "t13-q03",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: dataclass",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 13,
+      "code": "from dataclasses import dataclass\n\n@dataclass(order=True)\nclass V:\n    major: int\n    minor: int = 0\n\nprint(V(1, 2) < V(1, 3), V(1) == V(1, 0), V(2, 0))",
+      "options": [
+        "True False V(major=2, minor=0)",
+        "True True V(2, 0)",
+        "False True V(major=2, minor=0)",
+        "True True V(major=2, minor=0)"
+      ],
+      "answer": 3,
+      "explanation": "`@dataclass(order=True)` generates __eq__, __repr__ and the ordering methods, comparing the fields as a tuple (major, minor): (1, 2) < (1, 3) is True. V(1) uses the default minor=0, so it equals V(1, 0). The generated repr names each field."
+    },
+    {
+      "id": "t13-q04",
+      "week": 4,
+      "type": "output",
+      "pattern": "Python: MRO and super()",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 13,
+      "code": "class A:\n    def hi(self):\n        return \"A\"\n\nclass B(A):\n    def hi(self):\n        return \"B\" + super().hi()\n\nclass C(A):\n    def hi(self):\n        return \"C\" + super().hi()\n\nclass D(B, C):\n    def hi(self):\n        return \"D\" + super().hi()\n\nprint(D().hi(), [k.__name__ for k in D.__mro__])",
+      "options": [
+        "DBA ['D', 'B', 'A', 'object']",
+        "DBCA ['D', 'B', 'C', 'A', 'object']",
+        "DBCA ['D', 'B', 'A', 'C', 'object']",
+        "DCBA ['D', 'C', 'B', 'A', 'object']"
+      ],
+      "answer": 1,
+      "explanation": "The method resolution order (C3 linearization) for D(B, C) is D, B, C, A, object: each class comes before its parents and the order of the bases is kept. `super()` follows that order, not just the direct parent, so B's super() call goes to C, not straight to A. The result is D + B + C + A."
+    },
+    {
+      "id": "t13-q05",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: __lt__ for heaps",
+      "difficulty": "medium",
+      "prompt": "Pushing the second Task onto the heap raises TypeError: '<' not supported between instances of 'Task' and 'Task'. What is the bug?",
+      "theme": 13,
+      "code": "import heapq\n\nclass Task:\n    def __init__(self, priority):\n        self.priority = priority\n\nheap = []\nheapq.heappush(heap, Task(2))\nheapq.heappush(heap, Task(1))",
+      "options": [
+        "heapq cannot store objects, only numbers",
+        "The class needs __eq__ instead of __lt__",
+        "The heap list must be sorted before pushing",
+        "heapq compares items with <, so Task needs __lt__ (or order=True on a dataclass), or the heap should hold (priority, task) tuples"
+      ],
+      "answer": 3,
+      "explanation": "heappush sifts items up and down with `<`. Classes do not define ordering by default. Add `def __lt__(self, other): return self.priority < other.priority`, or push (priority, counter, task) tuples. Each push is O(log n)."
+    },
+    {
+      "id": "t13-q06",
+      "week": 4,
+      "type": "bug",
+      "pattern": "Python: __hash__ contract",
+      "difficulty": "hard",
+      "prompt": "Two Point(1, 2) objects compare equal, but a set keeps both. What is the bug?",
+      "theme": 13,
+      "code": "class Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n\n    def __hash__(self):\n        return id(self)",
+      "options": [
+        "__eq__ must return a hash",
+        "__hash__ uses id(self), so equal objects get different hashes; it must be computed from the same fields as __eq__",
+        "Sets compare with `is`, not ==",
+        "Point must inherit from tuple"
+      ],
+      "answer": 1,
+      "explanation": "A set first uses the hash to find the bucket and only then compares with ==, so objects that are equal must have equal hashes. Fix: `return hash((self.x, self.y))`. Equal objects with different hashes silently break sets and dict keys."
+    },
+    {
+      "id": "t13-q07",
+      "week": 4,
+      "type": "complexity",
+      "pattern": "Python: __lt__ for heaps",
+      "difficulty": "medium",
+      "prompt": "n Task objects with __lt__ are pushed one at a time with heapq.heappush. What are the time and space?",
+      "theme": 13,
+      "code": "import heapq\n\nclass Task:\n    def __init__(self, priority):\n        self.priority = priority\n\n    def __lt__(self, other):\n        return self.priority < other.priority\n\ndef build(priorities):\n    heap = []\n    for p in priorities:\n        heapq.heappush(heap, Task(p))\n    return heap",
+      "options": [
+        "O(n log n) time, O(n) space",
+        "O(n) time, O(n) space",
+        "O(n²) time, O(n) space",
+        "O(n log n) time, O(1) space"
+      ],
+      "answer": 0,
+      "explanation": "Each heappush is O(log n) comparisons (each O(1) via __lt__), so n pushes cost O(n log n). The heap stores all n objects: O(n) space. Building the heap with heapify from a list would be O(n).",
+      "complexity": {
+        "time": "O(n log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t13-q08",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: classmethod and staticmethod",
+      "difficulty": "medium",
+      "prompt": "What is the difference between @classmethod and @staticmethod?",
+      "theme": 13,
+      "options": [
+        "A classmethod receives the instance and a staticmethod receives the class",
+        "A staticmethod can be called only on instances",
+        "A classmethod receives the class as its first argument (cls), so it works for alternative constructors and subclasses; a staticmethod receives no implicit argument",
+        "They are identical; one is an alias of the other"
+      ],
+      "answer": 2,
+      "explanation": "`cls` lets `Point.from_string(...)` build an instance of whichever subclass it was called on. A staticmethod is just a plain function stored in the class namespace for organization; it cannot see the class or the instance."
+    },
+    {
+      "id": "t13-q09",
+      "week": 4,
+      "type": "concept",
+      "pattern": "Python: __eq__ and __hash__",
+      "difficulty": "hard",
+      "prompt": "Why is it risky to build __hash__ from mutable fields of an object that is stored in a set or used as a dict key?",
+      "theme": 13,
+      "options": [
+        "Python raises an error when a hashed field changes",
+        "If a field changes after insertion, the hash changes and the object can no longer be found in its original bucket",
+        "Mutable fields make __eq__ slower",
+        "Sets compare objects only by id"
+      ],
+      "answer": 1,
+      "explanation": "Hash tables locate an entry by its hash at insertion time. Mutating a field that feeds the hash leaves the entry stranded in the wrong bucket (lookups fail, duplicates appear). Use immutable fields, a frozen dataclass or a tuple as the key."
+    },
+    {
+      "id": "t13-q10",
+      "week": 4,
+      "type": "approach",
+      "pattern": "Python: Priority Queue Ties",
+      "difficulty": "hard",
+      "prompt": "A priority queue holds (priority, task) tuples where task objects are not comparable. What goes wrong with equal priorities, and what is the fix?",
+      "theme": 13,
+      "options": [
+        "Nothing: equal priorities are ignored",
+        "The queue becomes a max-heap; negate the priority",
+        "heapq sorts the tasks alphabetically, so no change is needed",
+        "Python then compares the task objects and raises TypeError; add a unique tie-breaker such as an incrementing counter: (priority, counter, task)"
+      ],
+      "answer": 3,
+      "explanation": "Tuples compare element by element, so equal priorities push the comparison to the next element. A counter makes every tuple distinct (and gives first-in-first-out order among ties). Costs stay O(log n) per push and pop.",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(n)"
+      }
+    }
+  ]
+}

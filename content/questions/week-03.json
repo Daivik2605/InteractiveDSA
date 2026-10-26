@@ -1,0 +1,495 @@
+{
+  "week": 3,
+  "questions": [
+    {
+      "id": "w03-q01",
+      "week": 3,
+      "type": "pattern",
+      "pattern": "Opposite-end Two Pointers",
+      "difficulty": "medium",
+      "prompt": "Decide whether a string is a palindrome when you ignore case and non-alphanumeric characters, using O(1) extra space. Which pattern fits?",
+      "options": [
+        "A variable sliding window over the string",
+        "A hash map counting each character",
+        "Two pointers from both ends moving inward, skipping characters that are not letters or digits",
+        "Fast and slow pointers"
+      ],
+      "answer": 2,
+      "explanation": "A palindrome reads the same from both ends, so compare the leftmost and rightmost useful characters and step inward: every character is visited once, O(n) time, O(1) extra space. Counting characters ignores the order, a window finds substrings, and fast/slow pointers find the middle or a cycle, not matching ends.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q02",
+      "week": 3,
+      "type": "pattern",
+      "pattern": "Variable Sliding Window",
+      "difficulty": "medium",
+      "prompt": "Find the length of the longest substring that contains at most k distinct characters, in O(n). Which pattern fits?",
+      "options": [
+        "Variable window with a count map: expand on the right and shrink from the left while there are more than k distinct characters",
+        "Fixed window of size k",
+        "Opposite-end two pointers on the sorted string",
+        "Prefix sums with a hash map"
+      ],
+      "answer": 0,
+      "explanation": "The window length is not given and the condition (at most k distinct) can be restored by moving the left edge, which is the signature of a variable window. Each index enters and leaves once: O(n) time, O(k) space for the counts. A fixed window needs a known length and sorting the string would destroy the substring order.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(k)"
+      }
+    },
+    {
+      "id": "w03-q03",
+      "week": 3,
+      "type": "pattern",
+      "pattern": "Fixed Sliding Window",
+      "difficulty": "medium",
+      "prompt": "Find the maximum average of any contiguous subarray of length k. Which pattern fits?",
+      "options": [
+        "Variable window that shrinks when the sum is too big",
+        "Binary search on the average",
+        "Sort the array and take the k largest",
+        "Fixed window: keep the running sum, add the new element and subtract the one that leaves"
+      ],
+      "answer": 3,
+      "explanation": "The length is fixed at k, so each step slides the window by one: sum += nums[right] - nums[right - k]. That is O(1) per step and O(n) overall (recomputing each sum is O(n·k)). Sorting would break contiguity: the k largest numbers need not be adjacent.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q04",
+      "week": 3,
+      "type": "pattern",
+      "pattern": "Left-max / Right-max",
+      "difficulty": "hard",
+      "prompt": "Given bar heights, compute how much rain water is trapped between them. Which pattern gives O(n) time and O(1) extra space?",
+      "options": [
+        "Prefix sums of the heights",
+        "Two pointers with a running left_max and right_max: finalize the side with the smaller current bar and move it inward",
+        "A variable window that expands while the heights increase",
+        "Sort the bars and subtract neighbours"
+      ],
+      "answer": 1,
+      "explanation": "The water over a bar is min(max to its left, max to its right) - height. The smaller side is bounded by its own running maximum no matter what lies beyond, so it can be settled and moved. One pass: O(n) time, O(1) space. Arrays of left and right maxima also work but cost O(n) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q05",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Opposite-end Two Pointers",
+      "difficulty": "medium",
+      "prompt": "nums has n elements. What are the worst-case time and extra space of this function?",
+      "code": "def has_pair(nums, target):\n    left, right = 0, len(nums) - 1\n    while left < right:\n        total = nums[left] + nums[right]\n        if total == target:\n            return True\n        if total < target:\n            left += 1\n        else:\n            right -= 1\n    return False",
+      "options": [
+        "O(n²) time, O(1) space",
+        "O(n log n) time, O(1) space",
+        "O(n) time, O(n) space",
+        "O(n) time, O(1) space"
+      ],
+      "answer": 3,
+      "explanation": "Each loop iteration moves either left or right inward and never moves a pointer back, so there are at most n - 1 iterations. The function stores only two indices and a sum. Trying every pair instead would be O(n²).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q06",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Variable Sliding Window",
+      "difficulty": "medium",
+      "prompt": "What is the time complexity of this function for a string of length n?",
+      "code": "def longest(s):\n    seen, left, best = set(), 0, 0\n    for right, ch in enumerate(s):\n        while ch in seen:\n            seen.remove(s[left])\n            left += 1\n        seen.add(ch)\n        best = max(best, right - left + 1)\n    return best",
+      "options": [
+        "O(n²)",
+        "O(n)",
+        "O(n log n)",
+        "O(n · k) where k is the alphabet size"
+      ],
+      "answer": 1,
+      "explanation": "The while loop sits inside the for loop, but left only moves forward and never past right, so across the whole run it moves at most n times. Each index is added once and removed at most once: about 2n set operations, each O(1). Space is O(min(n, alphabet)).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(min(n, k))"
+      }
+    },
+    {
+      "id": "w03-q07",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "3Sum",
+      "difficulty": "medium",
+      "prompt": "What is the time complexity of this 3Sum for n numbers (ignore the output size)?",
+      "code": "def three_sum(nums):\n    nums.sort()\n    out = []\n    for i in range(len(nums) - 2):\n        left, right = i + 1, len(nums) - 1\n        while left < right:\n            total = nums[i] + nums[left] + nums[right]\n            if total < 0:\n                left += 1\n            elif total > 0:\n                right -= 1\n            else:\n                out.append((nums[i], nums[left], nums[right]))\n                left += 1\n                right -= 1\n    return out",
+      "options": [
+        "O(n²)",
+        "O(n)",
+        "O(n³)",
+        "O(n² log n)"
+      ],
+      "answer": 0,
+      "explanation": "Sorting costs O(n log n). Then for each of the n choices of i, the two-pointer scan of the rest is O(n), giving O(n²) in total, which dominates the sort. Three nested loops would be O(n³). Extra space is O(1) beyond the sort's internal buffer and the output list.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q08",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Brute Force Substrings",
+      "difficulty": "hard",
+      "prompt": "What is the worst-case time complexity of this brute-force function for a string of length n?",
+      "code": "def longest(s):\n    best = 0\n    for i in range(len(s)):\n        for j in range(i + 1, len(s) + 1):\n            if len(set(s[i:j])) == j - i:\n                best = max(best, j - i)\n    return best",
+      "options": [
+        "O(n²)",
+        "O(n² log n)",
+        "O(n³)",
+        "O(2ⁿ)"
+      ],
+      "answer": 2,
+      "explanation": "There are about n²/2 pairs (i, j). For each pair, `s[i:j]` copies up to n characters and `set(...)` walks them, so each check is O(n). That gives O(n³) time and O(n) space. The sliding window version does the same job in O(n).",
+      "complexity": {
+        "time": "O(n³)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w03-q09",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Left-max / Right-max",
+      "difficulty": "medium",
+      "prompt": "What are the time and extra space of this function for n bars?",
+      "code": "def trap(h):\n    n = len(h)\n    left_max, right_max = [0] * n, [0] * n\n    for i in range(n):\n        left_max[i] = max(left_max[i - 1], h[i]) if i else h[i]\n    for i in range(n - 1, -1, -1):\n        right_max[i] = max(right_max[i + 1], h[i]) if i < n - 1 else h[i]\n    return sum(min(left_max[i], right_max[i]) - h[i] for i in range(n))",
+      "options": [
+        "O(n) time, O(1) space",
+        "O(n) time, O(n) space",
+        "O(n²) time, O(n) space",
+        "O(n log n) time, O(n) space"
+      ],
+      "answer": 1,
+      "explanation": "Three separate passes, each O(n), so O(n) time overall. The two arrays left_max and right_max hold n numbers each, so the extra space is O(n). The two-pointer version computes the same total in one pass with O(1) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w03-q10",
+      "week": 3,
+      "type": "output",
+      "pattern": "Variable Sliding Window",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "s = \"pwwkew\"\nseen, left, best = set(), 0, 0\nfor right, ch in enumerate(s):\n    while ch in seen:\n        seen.remove(s[left])\n        left += 1\n    seen.add(ch)\n    best = max(best, right - left + 1)\nprint(best)",
+      "options": [
+        "4",
+        "2",
+        "6",
+        "3"
+      ],
+      "answer": 3,
+      "explanation": "The window slides over \"pwwkew\": it is invalid when a letter repeats, and left jumps past the earlier copy. The longest valid windows are \"wke\" and \"kew\", both of length 3. The answer is not 4 because \"pwke\" is not contiguous. O(n) time."
+    },
+    {
+      "id": "w03-q11",
+      "week": 3,
+      "type": "output",
+      "pattern": "Opposite-end Two Pointers",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "nums = [1, 2, 3, 4, 6]\ntarget = 6\nleft, right = 0, len(nums) - 1\nwhile left < right:\n    total = nums[left] + nums[right]\n    if total == target:\n        break\n    elif total < target:\n        left += 1\n    else:\n        right -= 1\nprint(left, right)",
+      "options": [
+        "0 4",
+        "2 3",
+        "1 3",
+        "1 4"
+      ],
+      "answer": 2,
+      "explanation": "Trace (left, right): (0, 4) sums to 1 + 6 = 7 > 6, so right moves to 3. (0, 3) sums to 1 + 4 = 5 < 6, so left moves to 1. (1, 3) sums to 2 + 4 = 6 = target: break. The loop stops with left = 1 and right = 3. O(n) time."
+    },
+    {
+      "id": "w03-q12",
+      "week": 3,
+      "type": "output",
+      "pattern": "Fixed Sliding Window",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "a = [2, 1, 5, 1, 3, 2]\nprint([sum(a[i:i + 3]) for i in range(len(a) - 2)])",
+      "options": [
+        "[8, 7, 9, 6]",
+        "[8, 7, 9]",
+        "[8, 7, 9, 6, 5]",
+        "[2, 3, 7, 9]"
+      ],
+      "answer": 0,
+      "explanation": "There are len(a) - 3 + 1 = 4 windows of length 3: [2,1,5] = 8, [1,5,1] = 7, [5,1,3] = 9, [1,3,2] = 6. Note `range(len(a) - 2)` gives starting indices 0..3. This version re-sums each slice, so it is O(n·k); a running sum makes it O(n)."
+    },
+    {
+      "id": "w03-q13",
+      "week": 3,
+      "type": "output",
+      "pattern": "Read/Write Pointer",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "code": "nums = [0, 0, 1, 1, 1, 2, 2, 3]\nwrite = 1\nfor read in range(1, len(nums)):\n    if nums[read] != nums[write - 1]:\n        nums[write] = nums[read]\n        write += 1\nprint(write, nums)",
+      "options": [
+        "4 [0, 1, 2, 3]",
+        "5 [0, 1, 2, 3, 1, 2, 2, 3]",
+        "4 [0, 1, 2, 3, 1, 2, 2, 3]",
+        "4 [0, 1, 2, 3, 3, 3, 3, 3]"
+      ],
+      "answer": 2,
+      "explanation": "Each value that differs from the last kept one is copied to nums[write]. Four distinct values are kept, so write ends at 4 and the first four slots are [0, 1, 2, 3]. Slots after that are not cleared: they still hold whatever was copied or left there ([1, 2, 2, 3]), so the whole list prints with a stale tail. Callers must only use nums[:k]. O(n) time, O(1) space."
+    },
+    {
+      "id": "w03-q14",
+      "week": 3,
+      "type": "output",
+      "pattern": "Fast / Slow Pointers",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "class Node:\n    def __init__(self, val, next=None):\n        self.val, self.next = val, next\n\nhead = None\nfor v in range(6, 0, -1):\n    head = Node(v, head)\nslow = fast = head\nwhile fast and fast.next:\n    slow, fast = slow.next, fast.next.next\nprint(slow.val)",
+      "options": [
+        "4",
+        "3",
+        "2",
+        "5"
+      ],
+      "answer": 0,
+      "explanation": "For six nodes, slow moves 1 step per round and fast moves 2. After round 1: slow=2, fast=3; round 2: slow=3, fast=5; round 3: slow=4, fast=None (fast ran off the end), so the loop stops with slow at the second middle node, 4. For an odd length slow ends on the exact middle. O(n) time, O(1) space."
+    },
+    {
+      "id": "w03-q15",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Opposite-end Two Pointers",
+      "difficulty": "medium",
+      "prompt": "two_sum_sorted([1, 2, 4], 4) returns [1, 1], reusing one element twice, but there is no valid pair. What is the bug?",
+      "code": "def two_sum_sorted(nums, target):\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        total = nums[left] + nums[right]\n        if total == target:\n            return [left, right]\n        if total < target:\n            left += 1\n        else:\n            right -= 1\n    return []",
+      "options": [
+        "The pointers should start at 1 and len(nums)",
+        "`total < target` should be `total <= target`",
+        "The array must be sorted in descending order",
+        "The loop condition `left <= right` lets both pointers land on the same element; it must be `left < right`"
+      ],
+      "answer": 3,
+      "explanation": "When left == right the 'pair' is one element added to itself (2 + 2 = 4). Two distinct positions need `left < right`. The corrected loop is still O(n) time, O(1) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q16",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Variable Sliding Window",
+      "difficulty": "hard",
+      "prompt": "longest_unique(\"abba\") returns 3 instead of 2. What is the bug?",
+      "code": "def longest_unique(s):\n    seen, left, best = set(), 0, 0\n    for right, ch in enumerate(s):\n        if ch in seen:\n            seen.remove(s[left])\n            left += 1\n        seen.add(ch)\n        best = max(best, right - left + 1)\n    return best",
+      "options": [
+        "`seen.add(ch)` must come before the check",
+        "`if ch in seen` shrinks the window only once; it must be `while ch in seen` so the left edge keeps moving until the duplicate is gone",
+        "`right - left + 1` should be `right - left`",
+        "`seen` must be a list, not a set"
+      ],
+      "answer": 1,
+      "explanation": "After the first removal the repeated letter may still be inside the window (here the second b with a left edge that only moved one step), so the window keeps a duplicate and its length is over-counted. A `while` removes characters until the window is valid again. Amortized O(n).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(min(n, k))"
+      }
+    },
+    {
+      "id": "w03-q17",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Container With Most Water",
+      "difficulty": "hard",
+      "prompt": "max_area([1, 8, 6, 2, 5, 4, 8, 3, 7]) returns less than the correct 49. What is the bug?",
+      "code": "def max_area(h):\n    left, right, best = 0, len(h) - 1, 0\n    while left < right:\n        best = max(best, min(h[left], h[right]) * (right - left))\n        if h[left] > h[right]:\n            left += 1\n        else:\n            right -= 1\n    return best",
+      "options": [
+        "The width should be `right - left + 1`",
+        "`min` should be `max` in the area formula",
+        "The pointers must start in the middle",
+        "It moves the pointer at the taller wall; the area is limited by the shorter wall, so the shorter one must move"
+      ],
+      "answer": 3,
+      "explanation": "Moving the taller wall can only shrink the width without any chance of a higher limit (the shorter wall still caps the height), so that move can be discarded safely; moving the shorter wall might find a taller one. That argument is what makes the two-pointer scan correct in O(n) time, O(1) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q18",
+      "week": 3,
+      "type": "bug",
+      "pattern": "3Sum",
+      "difficulty": "hard",
+      "prompt": "three_sum([-2, 0, 0, 2, 2]) returns [[-2, 0, 2], [-2, 0, 2]] but should return the triple once. What is the bug?",
+      "code": "def three_sum(nums):\n    nums = sorted(nums)\n    out = []\n    for i in range(len(nums) - 2):\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue\n        left, right = i + 1, len(nums) - 1\n        while left < right:\n            total = nums[i] + nums[left] + nums[right]\n            if total < 0:\n                left += 1\n            elif total > 0:\n                right -= 1\n            else:\n                out.append([nums[i], nums[left], nums[right]])\n                left += 1\n    return out",
+      "options": [
+        "The outer loop should not skip equal first numbers",
+        "After finding a triple it moves only `left`; it must also skip equal values of `left` (and `right`) so the same triple is not found again",
+        "The array must not be sorted first",
+        "`total > 0` should be `total >= 0`"
+      ],
+      "answer": 1,
+      "explanation": "In sorted order equal numbers sit next to each other, so a second equal `left` value forms the identical triple. After recording a triple advance left and right past duplicates (while nums[left] == nums[left - 1]: left += 1). The scan stays O(n²) overall.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q19",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Two Pointers on Two Sequences",
+      "difficulty": "medium",
+      "prompt": "Check whether s is a subsequence of t (the letters of s appear in t in order, gaps allowed) in O(len(t)) time and O(1) space. Which plan works?",
+      "options": [
+        "One pointer i on s and one scan j over t; advance i whenever s[i] == t[j], and succeed when i reaches len(s)",
+        "Sort both strings and compare",
+        "Put the letters of t in a set and check each letter of s",
+        "Use s in t"
+      ],
+      "answer": 0,
+      "explanation": "Each character of t is looked at once, and s is matched greedily in order: O(len(t)) time, O(1) space. Sorting destroys the order, a set ignores order and repeats, and `s in t` tests for a contiguous substring, not a subsequence.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q20",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Variable Sliding Window",
+      "difficulty": "medium",
+      "prompt": "All numbers are positive. Find the length of the shortest contiguous subarray whose sum is at least target, in O(n) time and O(1) space. Which plan works?",
+      "options": [
+        "Prefix sums stored in a hash map keyed by the sum",
+        "Sort the array and take the largest elements until the sum reaches target",
+        "Variable window: add nums[right]; while the sum is at least target, record the length and subtract nums[left], moving left forward",
+        "Two pointers at the ends moving inward"
+      ],
+      "answer": 2,
+      "explanation": "With positive numbers, extending the window increases the sum and shrinking decreases it, so the window can be adjusted greedily. Each index enters and leaves once: O(n). A hash map finds exact sums, not 'at least'; sorting breaks contiguity; end pointers do not describe a subarray.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q21",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Fixed Sliding Window",
+      "difficulty": "hard",
+      "prompt": "Does s2 contain a permutation of s1 as a contiguous substring? Which plan runs in O(len(s2)) for a fixed alphabet?",
+      "options": [
+        "Sort every substring of s2 and compare it with sorted(s1)",
+        "Keep letter counts for s1 and for a window of len(s1) over s2; slide the window one step at a time and compare the counts",
+        "Check whether set(s1) is a subset of set(s2)",
+        "Generate all permutations of s1 and search for each"
+      ],
+      "answer": 1,
+      "explanation": "A permutation has exactly the same letter counts as s1, so a fixed-size window with a 26-slot count array can be updated in O(1) per step: O(n) time for n = len(s2), O(1) space for 26 letters. Sorting each substring is O(n · m log m), a set test ignores counts, and generating permutations is O(m!).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q22",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Left-max / Right-max",
+      "difficulty": "hard",
+      "prompt": "Compute trapped rain water using O(1) extra space. Which plan works?",
+      "options": [
+        "Build left_max and right_max arrays and combine them",
+        "Use a monotonic stack of bar indices",
+        "Sort the bars by height and fill from the lowest",
+        "Two pointers with running left_max and right_max; move the pointer with the smaller bar and add max - height"
+      ],
+      "answer": 3,
+      "explanation": "Only two pointers and two maxima are needed: O(n) time, O(1) space. The arrays and the stack are both valid ways to get the answer, but they cost O(n) space, which the question rules out. Sorting loses the positions of the bars.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q23",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Amortized Analysis",
+      "difficulty": "medium",
+      "prompt": "A sliding window has a while loop inside a for loop. Why is the total work still O(n)?",
+      "options": [
+        "The inner loop runs at most 2 times per iteration",
+        "Python optimizes nested loops automatically",
+        "left only moves forward and never passes right, so each index is added once and removed at most once: at most about 2n steps in total",
+        "The while loop does not count because it has no index"
+      ],
+      "answer": 2,
+      "explanation": "The cost of one iteration can be large, but the sum over the whole run is bounded because left has at most n steps to take in total. That is an amortized argument, like list.append. It fails if left can be reset or moved backwards.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w03-q24",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Window Limits",
+      "difficulty": "hard",
+      "prompt": "Why does the shrink-from-the-left window fail for 'count subarrays with sum k' when the array contains negative numbers?",
+      "options": [
+        "Adding an element no longer always increases the sum, so you cannot tell whether to expand or shrink; use prefix sums with a hash map instead",
+        "Windows only work on sorted arrays",
+        "Negative numbers cannot be stored in a hash map",
+        "The window would run in O(n²) because of the negatives"
+      ],
+      "answer": 0,
+      "explanation": "The window logic relies on monotonicity: a larger window has a larger sum. With negatives, a longer window might be smaller, so no pointer rule is safe. Prefix sums plus a count map handle any signs in O(n) time and O(n) space."
+    },
+    {
+      "id": "w03-q25",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Fast / Slow Pointers",
+      "difficulty": "medium",
+      "prompt": "Why do the fast (two steps) and slow (one step) pointers always meet when a linked list has a cycle?",
+      "options": [
+        "Fast takes a shortcut across the cycle",
+        "They only meet if the cycle length is even",
+        "Once both are inside the cycle, fast gains exactly one node on slow each round, so the gap shrinks by 1 until it is 0",
+        "Slow stops moving when fast enters the cycle"
+      ],
+      "answer": 2,
+      "explanation": "Inside a cycle of length L the distance from slow to fast changes by +1 each round (mod L), so it hits 0 within L rounds. A gap that changes by 1 cannot jump over 0, so odd or even lengths do not matter. Time O(n), space O(1), with no visited set.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

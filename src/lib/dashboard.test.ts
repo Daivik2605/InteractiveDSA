@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countedMockAnswers, mockAccuracy, problemStats, scoreTrend, targetMockPath, weakestSpots, WEAK_MIN_ATTEMPTS } from "./dashboard";
+import { countedMockAnswers, formatMinutes, mockAccuracy, problemStats, scoreTrend, studySummary, targetMockPath, weakestSpots, WEAK_MIN_ATTEMPTS } from "./dashboard";
 import type { MockListRow } from "./mock";
 import type { MockSession, ProblemAttempt, QuestionType, QuizAnswer } from "../types/content";
 
@@ -132,5 +132,39 @@ describe("problemStats", () => {
 
   it("handles no attempts", () => {
     expect(problemStats([], problemOf)).toMatchObject({ total: 0, avgMinutes: null });
+  });
+});
+
+describe("studySummary", () => {
+  const days = [{ status: "done" }, { status: "done" }, { status: "done-late" }, { status: "missed" }, { status: "partial" }, { status: "upcoming" }];
+  const attempts = [
+    { problemId: "a", outcome: "alone" as const, minutes: 20 },
+    { problemId: "a", outcome: "alone" as const, minutes: 15 }, // the same problem solved alone twice counts once
+    { problemId: "b", outcome: "hint" as const, minutes: 40 },
+    { problemId: "c", outcome: "alone" as const, minutes: 0 },
+  ];
+  const prog = (part: 1 | 2, minutes: number, skipped = false) => ({ part, problemId: "x", outcome: "alone" as const, minutes, ...(skipped ? { skipped } : {}) });
+
+  it("counts finished days (on time and late), the streak, distinct problems solved alone and all logged minutes", () => {
+    const s = studySummary({ days, streak: 2, attempts, sessions: [] });
+    expect(s).toEqual({ daysDone: 3, daysDoneOnTime: 2, streak: 2, solvedAlone: 2, studyMinutes: 75 });
+  });
+
+  it("adds Program 2 minutes from saved mocks, but not Program 1 (already an attempt) or skipped programs", () => {
+    const s = studySummary({ days: [], streak: 0, attempts: [], sessions: [{ mockNumber: 2, programs: [prog(1, 25), prog(2, 30)] }, { mockNumber: 4, programs: [prog(2, 20, true)] }] });
+    expect(s.studyMinutes).toBe(30);
+  });
+
+  it("counts a mock saved twice once", () => {
+    const s = studySummary({ days: [], streak: 0, attempts: [], sessions: [{ mockNumber: 2, programs: [prog(2, 30)] }, { mockNumber: 2, programs: [prog(2, 30)] }] });
+    expect(s.studyMinutes).toBe(30);
+  });
+
+  it("is all zeros with no data", () => {
+    expect(studySummary({ days: [], streak: 0, attempts: [], sessions: [] })).toEqual({ daysDone: 0, daysDoneOnTime: 0, streak: 0, solvedAlone: 0, studyMinutes: 0 });
+  });
+
+  it("formats minutes", () => {
+    expect([0, 45, 60, 125, 320].map(formatMinutes)).toEqual(["0m", "45m", "1h 00m", "2h 05m", "5h 20m"]);
   });
 });

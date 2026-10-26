@@ -1,0 +1,48 @@
+{
+  "id": "pt-06",
+  "title": "Rate limiter",
+  "unlockWeek": 5,
+  "intro": "You are building the check behind an API's rate limit: each request is `(user, time)` and the limiter says whether it is allowed. Times are whole seconds and arrive in non-decreasing order. Use only the standard library. Each level extends the previous one, as a new class with the same `allow(user, t)` method.",
+  "rules": [
+    "`allow(user, t)` returns True (the request is allowed and counted) or False (rejected). A rejected request is never counted.",
+    "Users are independent: one user's requests never affect another's limit."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "Fixed window per user",
+      "prompt": "Write `FixedWindowLimiter(limit, window)`. Time is cut into fixed windows of `window` seconds: window number `t // window`. A user may make at most `limit` allowed requests in each window; the count starts again at 0 in the next window.",
+      "signature": "class FixedWindowLimiter:\n    def __init__(self, limit: int, window: int) -> None: ...\n    def allow(self, user: str, t: int) -> bool: ...",
+      "sampleInput": "events = [('u1', 1), ('u1', 2), ('u1', 3), ('u1', 4), ('u1', 11), ('u2', 5), ('u1', 12)]\nlimiter = FixedWindowLimiter(3, 10)\nprint([limiter.allow(u, t) for u, t in events])",
+      "expectedOutput": "[True, True, True, False, True, True, True]",
+      "edgeCases": [
+        "A request at t = 10 starts the second window (10 // 10 = 1)",
+        "A new user starts with a fresh count"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Sliding window log",
+      "prompt": "Write `SlidingWindowLimiter(limit, window)`. A request at time `t` is allowed when fewer than `limit` allowed requests by that user happened in the last `window` seconds, meaning at times `s` with `t - window < s <= t`. Keep a log of each user's allowed request times and drop old entries as time moves on. Rejected requests are not logged.",
+      "signature": "class SlidingWindowLimiter:\n    def __init__(self, limit: int, window: int) -> None: ...\n    def allow(self, user: str, t: int) -> bool: ...",
+      "sampleInput": "events = [('u1', 1), ('u1', 2), ('u1', 3), ('u1', 10), ('u1', 11), ('u1', 12), ('u1', 13), ('u2', 13)]\nlimiter = SlidingWindowLimiter(3, 10)\nprint([limiter.allow(u, t) for u, t in events])",
+      "expectedOutput": "[True, True, True, False, True, True, True, True]",
+      "edgeCases": [
+        "An entry exactly `window` seconds old no longer counts (t - s == window is outside the window)",
+        "Pop old entries from the front so each request does O(1) amortized work"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "Token bucket with refill",
+      "prompt": "Write `TokenBucket(capacity, refill_per_second)`. Each user has a bucket that starts full with `capacity` tokens. Before each request, add `(t - last_time) * refill_per_second` tokens, never going above `capacity`. A request costs 1 token: it is allowed when at least 1 token is available (then 1 is removed), otherwise it is rejected and no token is removed. A user's `last_time` is the time of their previous request, allowed or not (their first request has nothing to refill).",
+      "signature": "class TokenBucket:\n    def __init__(self, capacity: int, refill_per_second: int) -> None: ...\n    def allow(self, user: str, t: int) -> bool: ...",
+      "sampleInput": "events = [('u1', 0), ('u1', 0), ('u1', 0), ('u1', 0), ('u1', 1), ('u1', 1), ('u1', 3), ('u1', 3), ('u1', 3), ('u2', 3)]\nbucket = TokenBucket(3, 1)\nprint([bucket.allow(u, t) for u, t in events])",
+      "expectedOutput": "[True, True, True, False, True, False, True, True, False, True]",
+      "edgeCases": [
+        "Tokens never exceed the capacity, however long the user was idle",
+        "Store tokens and last_time per user, not per bucket class"
+      ]
+    }
+  ]
+}
