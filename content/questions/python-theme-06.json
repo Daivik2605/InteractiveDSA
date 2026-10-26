@@ -1,0 +1,183 @@
+{
+  "theme": 6,
+  "week": 2,
+  "questions": [
+    {
+      "id": "t06-q01",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Mutable Defaults",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 6,
+      "code": "def add(x, acc=[]):\n    acc.append(x)\n    return acc\n\nadd(1)\nadd(2)\nprint(add(3), add(4, []))",
+      "options": [
+        "[3] [4]",
+        "[1, 2, 3] [1, 2, 3, 4]",
+        "[1, 2, 3] [4]",
+        "[1, 2, 3, 4] [4]"
+      ],
+      "answer": 2,
+      "explanation": "The default `acc=[]` is created once, when `def` runs, and shared by every call that omits it: the calls add(1), add(2) and add(3) all append to that one list, giving [1, 2, 3]. `add(4, [])` passes its own fresh list, so it returns [4] and leaves the shared list alone."
+    },
+    {
+      "id": "t06-q02",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: *args and **kwargs",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 6,
+      "code": "def f(a, *args, b=2, **kw):\n    return a, args, b, kw\n\nprint(f(1, 2, 3, b=4, c=5))",
+      "options": [
+        "(1, (2, 3), 4, {'c': 5})",
+        "(1, (2, 3), 2, {'b': 4, 'c': 5})",
+        "(1, [2, 3], 4, {'c': 5})",
+        "(1, (2, 3, 4), 2, {'c': 5})"
+      ],
+      "answer": 0,
+      "explanation": "`a` takes the first positional argument. `*args` collects the extra positionals as a tuple (2, 3). `b` comes after `*args`, so it is keyword-only and is set by `b=4`. Everything else by keyword goes into the `**kw` dict: {'c': 5}."
+    },
+    {
+      "id": "t06-q03",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Scope",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 6,
+      "code": "def outer():\n    x = \"early\"\n    def inner():\n        return x\n    x = \"late\"\n    return inner\n\nprint(outer()())",
+      "options": [
+        "early",
+        "None",
+        "late",
+        "NameError is raised"
+      ],
+      "answer": 2,
+      "explanation": "The inner function does not copy x; it reads the variable x of the enclosing function at the time it is called. By the time `outer()()` calls it, x has been reassigned to \"late\". Closures capture variables, not values."
+    },
+    {
+      "id": "t06-q04",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: nonlocal",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 6,
+      "code": "def make():\n    n = 0\n    def inc():\n        nonlocal n\n        n += 1\n        return n\n    return inc\n\na, b = make(), make()\nprint(a(), a(), b())",
+      "options": [
+        "1 2 1",
+        "1 2 3",
+        "1 1 1",
+        "1 2 2"
+      ],
+      "answer": 0,
+      "explanation": "Each call to `make()` creates its own `n`, so `a` and `b` count separately. `nonlocal n` lets `inc` rebind the enclosing variable instead of creating a local one. a() gives 1 then 2; b() starts from its own n and gives 1."
+    },
+    {
+      "id": "t06-q05",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: Scope",
+      "difficulty": "medium",
+      "prompt": "add(5) raises UnboundLocalError. What is the bug?",
+      "theme": 6,
+      "code": "total = 0\n\ndef add(x):\n    total += x\n    return total",
+      "options": [
+        "`total` must be declared before the function with `var`",
+        "`+=` cannot be used with integers",
+        "`return total` must come before the assignment",
+        "`total += x` assigns to total, which makes it local to add(); declare `global total` (or return the new value instead)"
+      ],
+      "answer": 3,
+      "explanation": "Python decides at compile time that any name assigned inside a function is local to it. `total += x` reads the local total before it has a value. Add `global total` to rebind the module variable, or better, avoid global state and pass values in and out."
+    },
+    {
+      "id": "t06-q06",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: Keyword-only",
+      "difficulty": "medium",
+      "prompt": "connect(\"db\", 30) raises TypeError. What is the bug in the call?",
+      "theme": 6,
+      "code": "def connect(host, *, timeout=5):\n    return host, timeout\n\nconnect(\"db\", 30)",
+      "options": [
+        "The function needs a third positional parameter",
+        "`timeout` is keyword-only (it comes after `*`), so it must be passed as timeout=30",
+        "`*` must be placed after the last parameter",
+        "Keyword-only parameters cannot have a default"
+      ],
+      "answer": 1,
+      "explanation": "Parameters after a bare `*` can only be given by name. The call passes 30 positionally, but the function accepts just one positional argument (host). Write `connect(\"db\", timeout=30)`."
+    },
+    {
+      "id": "t06-q07",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: Defaults",
+      "difficulty": "hard",
+      "prompt": "The caller passes an empty set and expects collect to fill it, but the set stays empty. What is the bug?",
+      "theme": 6,
+      "code": "def collect(x, seen=None):\n    seen = seen or set()\n    seen.add(x)\n    return seen",
+      "options": [
+        "The default should be `seen=set()`",
+        "`set.add` returns a new set instead of changing it",
+        "Sets passed to functions are always copied",
+        "`seen or set()` replaces an empty (falsy) set with a new one; use `if seen is None: seen = set()`"
+      ],
+      "answer": 3,
+      "explanation": "An empty set is falsy, so `seen or set()` creates a new set exactly when the caller passed an empty container. The function then fills the new set and the caller's set is untouched. Testing `is None` replaces only the missing argument."
+    },
+    {
+      "id": "t06-q08",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Python: Scope",
+      "difficulty": "medium",
+      "prompt": "In which order does Python look up a name inside a nested function?",
+      "theme": 6,
+      "options": [
+        "Global, then Local, then Built-in, then Enclosing",
+        "Local, then Enclosing functions, then Global, then Built-in",
+        "Built-in, then Global, then Enclosing, then Local",
+        "Local, then Global, then Enclosing, then Built-in"
+      ],
+      "answer": 1,
+      "explanation": "This is the LEGB rule. The first scope that defines the name wins, which is how a local variable can shadow a built-in such as `list` or `sum` (and break later code that needs the built-in)."
+    },
+    {
+      "id": "t06-q09",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Python: Mutable Defaults",
+      "difficulty": "medium",
+      "prompt": "When is the default value of a parameter evaluated?",
+      "theme": 6,
+      "options": [
+        "Once, when the def statement runs, so one object is shared by all calls that use the default",
+        "Every time the function is called without that argument",
+        "Only the first time the function is called",
+        "When the function returns"
+      ],
+      "answer": 0,
+      "explanation": "Default expressions are evaluated at definition time. Immutable defaults (numbers, strings, None, tuples) are safe; a mutable default (list, dict, set) is shared and keeps its changes between calls. Use None as the default and create the object inside the function."
+    },
+    {
+      "id": "t06-q10",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Python: *args",
+      "difficulty": "medium",
+      "prompt": "Write a signature for total that takes any number of numbers plus a keyword-only round_to argument defaulting to 2. Which one is right?",
+      "theme": 6,
+      "options": [
+        "def total(round_to=2, *nums)",
+        "def total(**nums, round_to=2)",
+        "def total(*nums, round_to=2)",
+        "def total(nums=[], round_to=2)"
+      ],
+      "answer": 2,
+      "explanation": "Parameters after `*nums` can only be passed by keyword, which is what makes round_to keyword-only. With `round_to=2` first, `total(1, 2, 3)` would assign 1 to round_to. `**nums` must come last and collects keyword arguments, and a list default is both the wrong shape and a mutable default."
+    }
+  ]
+}

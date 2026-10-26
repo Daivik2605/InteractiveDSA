@@ -251,15 +251,15 @@ describe("Mocks page", () => {
 
   it("disables Start with 'Content not ready' when the theme or week questions are not written", async () => {
     await setup("2026-10-26", "/mocks");
-    const m5 = within(await screen.findByRole("listitem", { name: "Mock 5" }));
-    expect(m5.getByRole("button", { name: "Start" })).toBeDisabled();
-    expect(m5.getByText(/Content not ready: Python theme 5/)).toBeInTheDocument();
-    expect(m5.queryByRole("link")).not.toBeInTheDocument();
+    const m9 = within(await screen.findByRole("listitem", { name: "Mock 9" }));
+    expect(m9.getByRole("button", { name: "Start" })).toBeDisabled();
+    expect(m9.getByText(/Content not ready: Python theme 9/)).toBeInTheDocument();
+    expect(m9.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("opening a not-ready mock directly cannot start it either", async () => {
-    await setup("2026-10-26", "/mock/5");
-    expect(await screen.findByText(/Content not ready: Python theme 5/)).toBeInTheDocument();
+    await setup("2026-10-26", "/mock/9");
+    expect(await screen.findByText(/Content not ready: Python theme 9/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start mock" })).toBeDisabled();
   });
 

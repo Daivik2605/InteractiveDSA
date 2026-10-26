@@ -1,0 +1,199 @@
+{
+  "theme": 8,
+  "week": 3,
+  "questions": [
+    {
+      "id": "t08-q01",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: deque",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 8,
+      "code": "from collections import deque\nd = deque([1, 2, 3, 4])\nd.rotate(1)\nd.appendleft(0)\nprint(list(d), d.popleft(), len(d))",
+      "options": [
+        "[0, 4, 1, 2, 3] 0 4",
+        "[4, 1, 2, 3] 0 4",
+        "[0, 1, 2, 3, 4] 0 4",
+        "[0, 4, 1, 2, 3] 4 4"
+      ],
+      "answer": 0,
+      "explanation": "`rotate(1)` moves the right end to the front: [4, 1, 2, 3]. `appendleft(0)` makes it [0, 4, 1, 2, 3]. print's arguments are evaluated left to right: list(d) is taken first, then popleft() removes the 0, then len(d) is 4. Every deque end operation is O(1)."
+    },
+    {
+      "id": "t08-q02",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: heapq",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 8,
+      "code": "import heapq\nh = []\nfor x in [5, 1, 8, 3]:\n    heapq.heappush(h, -x)\nprint(-heapq.heappop(h), -heapq.heappop(h))",
+      "options": [
+        "1 3",
+        "8 3",
+        "8 5",
+        "5 8"
+      ],
+      "answer": 2,
+      "explanation": "heapq is a min-heap, so a common trick for a max-heap is to push negated values. After pushing -5, -1, -8, -3 the smallest stored value is -8; popping it and negating gives 8, then 5. Each push and pop is O(log n)."
+    },
+    {
+      "id": "t08-q03",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: bisect",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 8,
+      "code": "from bisect import bisect_left, bisect_right\na = [1, 2, 2, 2, 5]\nprint(bisect_left(a, 2), bisect_right(a, 2), bisect_left(a, 3), bisect_right(a, 9))",
+      "options": [
+        "1 3 4 5",
+        "1 4 4 5",
+        "1 4 3 5",
+        "0 4 4 4"
+      ],
+      "answer": 1,
+      "explanation": "`bisect_left` returns the first index where the value could go before equal items, so for 2 it is 1. `bisect_right` returns the index after the last equal item: 4. 3 would be inserted at index 4 (after the three 2s). 9 is bigger than everything, so bisect_right gives len(a) = 5. Each call is O(log n)."
+    },
+    {
+      "id": "t08-q04",
+      "week": 3,
+      "type": "output",
+      "pattern": "Python: heapq",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 8,
+      "code": "import heapq\nh = [(2, \"b\"), (1, \"z\"), (1, \"a\")]\nheapq.heapify(h)\nprint(heapq.heappop(h), heapq.nlargest(2, [4, 1, 9, 7]))",
+      "options": [
+        "(1, 'z') [9, 7]",
+        "(1, 'a') [4, 1]",
+        "(2, 'b') [9, 7]",
+        "(1, 'a') [9, 7]"
+      ],
+      "answer": 3,
+      "explanation": "Tuples are compared item by item, so (1, 'a') is smaller than (1, 'z') and (2, 'b'): the heap's smallest tuple is (1, 'a'). `heapq.nlargest(2, ...)` returns the two biggest values in descending order: [9, 7]. heapify is O(n); nlargest is O(n log k)."
+    },
+    {
+      "id": "t08-q05",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: heapq",
+      "difficulty": "hard",
+      "prompt": "largest([5, 1, 8, 3]) should return 8 but does not. What is the bug?",
+      "theme": 8,
+      "code": "import heapq\n\ndef largest(nums):\n    h = []\n    for x in nums:\n        heapq.heappush(h, x)\n    return h[-1]",
+      "options": [
+        "heappush must be given the list as the second argument",
+        "heapq sorts the list, so the maximum is h[0]",
+        "heapq keeps the SMALLEST item at h[0]; the last list element is not the maximum. Push negated values and read -h[0]",
+        "`h[-1]` raises IndexError on a heap"
+      ],
+      "answer": 2,
+      "explanation": "A binary heap only guarantees the heap property (a parent is not larger than its children), not a sorted list, so the last element is just some leaf. For the largest value use a max-heap by negation, or `max(nums)` in O(n). Each push is O(log n).",
+      "complexity": {
+        "time": "O(n log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t08-q06",
+      "week": 3,
+      "type": "bug",
+      "pattern": "Python: bisect",
+      "difficulty": "medium",
+      "prompt": "has([1, 3, 5], 9) raises IndexError. What is the bug?",
+      "theme": 8,
+      "code": "from bisect import bisect_left\n\ndef has(a, x):\n    i = bisect_left(a, x)\n    return a[i] == x",
+      "options": [
+        "bisect_left returns len(a) when x is bigger than everything; check `i < len(a)` before reading a[i]",
+        "bisect_left needs the list in descending order",
+        "`a[i] == x` should be `a[i] is x`",
+        "The function must use bisect_right"
+      ],
+      "answer": 0,
+      "explanation": "bisect_left gives an insertion point, which can be one past the end. Guard it: `i < len(a) and a[i] == x`. The search is O(log n) time, O(1) space.",
+      "complexity": {
+        "time": "O(log n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t08-q07",
+      "week": 3,
+      "type": "complexity",
+      "pattern": "Python: heapq",
+      "difficulty": "hard",
+      "prompt": "What is the time complexity of this function for a list of n numbers and a given k?",
+      "theme": 8,
+      "code": "import heapq\n\ndef k_smallest(nums, k):\n    heapq.heapify(nums)\n    return [heapq.heappop(nums) for _ in range(k)]",
+      "options": [
+        "O(n log n)",
+        "O(k)",
+        "O(n + k log n)",
+        "O(n · k)"
+      ],
+      "answer": 2,
+      "explanation": "`heapify` builds a heap in O(n) (not O(n log n)). Each of the k pops costs O(log n). Total O(n + k log n), which beats a full sort when k is small. It mutates the list in place, so extra space is O(1) besides the output.",
+      "complexity": {
+        "time": "O(n + k log n)",
+        "space": "O(k)"
+      }
+    },
+    {
+      "id": "t08-q08",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: bisect",
+      "difficulty": "medium",
+      "prompt": "What is the difference between bisect_left and bisect_right?",
+      "theme": 8,
+      "options": [
+        "For a value already in the list, bisect_left returns the index of its first occurrence and bisect_right the index just after its last occurrence",
+        "bisect_left searches from the left end and bisect_right from the right end, giving the same index",
+        "bisect_left needs a sorted list and bisect_right does not",
+        "bisect_right returns the index of the last occurrence"
+      ],
+      "answer": 0,
+      "explanation": "Both do a binary search (O(log n)) on a sorted list and return an insertion point. They differ only on ties: left goes before equal items, right goes after them. `bisect_right(a, x) - bisect_left(a, x)` is the count of x in O(log n)."
+    },
+    {
+      "id": "t08-q09",
+      "week": 3,
+      "type": "concept",
+      "pattern": "Python: heapq",
+      "difficulty": "medium",
+      "prompt": "Which statement about Python's heapq module is correct?",
+      "theme": 8,
+      "options": [
+        "It provides a max-heap: heap[0] is the largest item",
+        "It keeps the list fully sorted after every push",
+        "heappop removes the last element of the list",
+        "It provides a min-heap on a plain list: heap[0] is the smallest item, push and pop are O(log n), and heapify is O(n)"
+      ],
+      "answer": 3,
+      "explanation": "There is no max-heap in heapq; negate numbers (or store (-priority, item) tuples) to get one. The list is only partially ordered, so never read it as sorted. heappop removes and returns the smallest item."
+    },
+    {
+      "id": "t08-q10",
+      "week": 3,
+      "type": "approach",
+      "pattern": "Python: heapq",
+      "difficulty": "hard",
+      "prompt": "Find the k largest numbers in a large list in O(n log k) time and O(k) space. Which plan works?",
+      "theme": 8,
+      "options": [
+        "Sort the whole list and take the last k",
+        "Keep a min-heap of size k: push each number and pop the smallest whenever the heap grows past k",
+        "Push everything into a max-heap and pop k times",
+        "Call max() k times, removing the result each time"
+      ],
+      "answer": 1,
+      "explanation": "The min-heap holds the k biggest seen so far; its root is the weakest of them, which is the one to evict. Each of n numbers costs O(log k): O(n log k) time, O(k) space. Sorting is O(n log n) and the full heap needs O(n) space. Repeated max() with remove is O(n · k).",
+      "complexity": {
+        "time": "O(n log k)",
+        "space": "O(k)"
+      }
+    }
+  ]
+}

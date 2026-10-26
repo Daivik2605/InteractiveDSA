@@ -1,0 +1,49 @@
+{
+  "id": "pt-04",
+  "title": "Log analyzer",
+  "unlockWeek": 4,
+  "intro": "You are reading a web server's request log. Each line has six space-separated fields: an ISO timestamp, a user id, an HTTP method, a path, the latency in milliseconds and the status code. Use only the standard library. Each level extends the previous one.",
+  "rules": [
+    "A line is valid only if it has exactly six fields, the timestamp parses with `datetime.fromisoformat`, and the latency and status are whole numbers. Skip every other line without raising an error.",
+    "Keep the input order unless a level says otherwise."
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "title": "Parse request log lines",
+      "prompt": "Write `parse_log(lines)` that returns a list of dicts with the keys `time` (the original string), `user`, `method`, `path`, `ms` (int) and `status` (int), one per valid line, in input order. Invalid lines are skipped.",
+      "signature": "def parse_log(lines: list[str]) -> list[dict]",
+      "sampleInput": "lines = [\n    '2026-03-01T09:00:05 u1 GET /home 120 200',\n    '2026-03-01T09:00:40 u2 GET /home 80 200',\n    '2026-03-01T09:10:00 u1 GET /search 300 200',\n    'this line is not a log entry',\n    '2026-03-01T09:15:30 u2 POST /cart 450 500',\n    '2026-03-01T09:50:10 u1 GET /home 100 200',\n    '2026-03-01T09:55:00 u2 GET /home abc 200',\n    '2026-03-01T10:20:00 u2 GET /cart 250 200',\n    '2026-03-01T10:25:00 u1 GET /search 280 404',\n    '2026-03-01T10:30:00 u1 GET /home 90 200',\n]\nrecords = parse_log(lines)\nprint(len(records))\nprint(records[0])\nprint(records[-1])",
+      "expectedOutput": "8\n{'time': '2026-03-01T09:00:05', 'user': 'u1', 'method': 'GET', 'path': '/home', 'ms': 120, 'status': 200}\n{'time': '2026-03-01T10:30:00', 'user': 'u1', 'method': 'GET', 'path': '/home', 'ms': 90, 'status': 200}",
+      "edgeCases": [
+        "An empty list returns []",
+        "\"abc\" as a latency makes the line invalid",
+        "A line with five or seven fields is invalid"
+      ]
+    },
+    {
+      "level": 2,
+      "title": "Requests and average latency per endpoint",
+      "prompt": "Write `endpoint_stats(records)` that returns a dict keyed by path, in alphabetical order of the path. Each value is a dict with `requests` (how many), `avg_ms` (the average latency rounded to 1 decimal) and `errors` (how many responses had a status of 500 or more).",
+      "signature": "def endpoint_stats(records: list[dict]) -> dict[str, dict]",
+      "sampleInput": "lines = [\n    '2026-03-01T09:00:05 u1 GET /home 120 200',\n    '2026-03-01T09:00:40 u2 GET /home 80 200',\n    '2026-03-01T09:10:00 u1 GET /search 300 200',\n    'this line is not a log entry',\n    '2026-03-01T09:15:30 u2 POST /cart 450 500',\n    '2026-03-01T09:50:10 u1 GET /home 100 200',\n    '2026-03-01T09:55:00 u2 GET /home abc 200',\n    '2026-03-01T10:20:00 u2 GET /cart 250 200',\n    '2026-03-01T10:25:00 u1 GET /search 280 404',\n    '2026-03-01T10:30:00 u1 GET /home 90 200',\n]\nprint(endpoint_stats(parse_log(lines)))",
+      "expectedOutput": "{'/cart': {'requests': 2, 'avg_ms': 350.0, 'errors': 1}, '/home': {'requests': 4, 'avg_ms': 97.5, 'errors': 0}, '/search': {'requests': 2, 'avg_ms': 290.0, 'errors': 0}}",
+      "edgeCases": [
+        "No records returns {}",
+        "A 404 is not counted as an error"
+      ]
+    },
+    {
+      "level": 3,
+      "title": "Sessionize users with a 30-minute gap",
+      "prompt": "Write `sessionize(records, gap_minutes=30)` that groups each user's requests into sessions. A new session starts when the time since the user's previous request is MORE than `gap_minutes` minutes (exactly 30 minutes still continues the session). Return a dict keyed by user (alphabetical) whose value is a list of sessions in time order; a session is a dict with `start` and `end` (the first and last timestamp strings) and `requests` (how many). Sort each user's requests by time first.",
+      "signature": "def sessionize(records: list[dict], gap_minutes: int = 30) -> dict[str, list[dict]]",
+      "sampleInput": "lines = [\n    '2026-03-01T09:00:05 u1 GET /home 120 200',\n    '2026-03-01T09:00:40 u2 GET /home 80 200',\n    '2026-03-01T09:10:00 u1 GET /search 300 200',\n    'this line is not a log entry',\n    '2026-03-01T09:15:30 u2 POST /cart 450 500',\n    '2026-03-01T09:50:10 u1 GET /home 100 200',\n    '2026-03-01T09:55:00 u2 GET /home abc 200',\n    '2026-03-01T10:20:00 u2 GET /cart 250 200',\n    '2026-03-01T10:25:00 u1 GET /search 280 404',\n    '2026-03-01T10:30:00 u1 GET /home 90 200',\n]\nprint(sessionize(parse_log(lines)))",
+      "expectedOutput": "{'u1': [{'start': '2026-03-01T09:00:05', 'end': '2026-03-01T09:10:00', 'requests': 2}, {'start': '2026-03-01T09:50:10', 'end': '2026-03-01T09:50:10', 'requests': 1}, {'start': '2026-03-01T10:25:00', 'end': '2026-03-01T10:30:00', 'requests': 2}], 'u2': [{'start': '2026-03-01T09:00:40', 'end': '2026-03-01T09:15:30', 'requests': 2}, {'start': '2026-03-01T10:20:00', 'end': '2026-03-01T10:20:00', 'requests': 1}]}",
+      "edgeCases": [
+        "A user with one request has one session with start == end",
+        "A gap of exactly 30:00 stays in the same session"
+      ]
+    }
+  ]
+}

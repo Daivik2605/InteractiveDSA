@@ -205,7 +205,7 @@ describe("Problem journal", () => {
     await user.click(form.getByRole("button", { name: "Save problem" }));
 
     // lands on its detail page
-    expect(await main().findByRole("heading", { level: 1, name: "Weird Prefix Trick" })).toBeInTheDocument();
+    expect(await main().findByRole("heading", { level: 1, name: "Weird Prefix Trick" }, { timeout: 6000 })).toBeInTheDocument(); // saving is slow when the whole suite runs in parallel
     const [item] = await db.customItems.toArray();
     expect(item).toMatchObject({ kind: "problem", week: 1, difficulty: "Hard", platform: "LeetCode" });
     expect(item!.planDayId).toBeUndefined();

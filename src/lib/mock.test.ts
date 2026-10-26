@@ -379,8 +379,9 @@ describe("buildMockRows", () => {
 
   it("marks a mock Content not ready until its theme and week questions exist", () => {
     const rows = rowsFor("2026-10-26", snap());
-    expect(rows.slice(0, 4).every((r) => r.ready)).toBe(true); // theme 1-4 and week 1 are written
-    expect(rows[4]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/theme 5/) });
+    expect(rows.slice(0, 7).every((r) => r.ready)).toBe(true); // Mocks 1-7: themes 1-7 and weeks 1-2 are written
+    expect(rows[7]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/Week 3/) }); // Mock 8: theme 8 is written, Week 3 is not
+    expect(rows[8]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/theme 9/) });
     const noWeek = mockContentStatus({ pythonTheme: 1 }, 6, bank.questions);
     expect(noWeek).toEqual({ ready: false, reason: "Week 6 questions are not written yet" });
   });

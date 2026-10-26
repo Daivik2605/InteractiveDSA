@@ -1,0 +1,203 @@
+{
+  "theme": 5,
+  "week": 2,
+  "questions": [
+    {
+      "id": "t05-q01",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Comprehensions",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 5,
+      "code": "print([x * x for x in range(6) if x % 2 == 0], {x % 3 for x in range(7)})",
+      "options": [
+        "[0, 4, 16] {0, 1, 2, 3}",
+        "[0, 2, 4] {0, 1, 2}",
+        "[0, 4, 16] {0, 1, 2}",
+        "[4, 16] {0, 1, 2}"
+      ],
+      "answer": 2,
+      "explanation": "The list comprehension keeps the squares of the even numbers 0, 2, 4: [0, 4, 16]. The set comprehension collects x % 3 for x in 0..6: 0, 1, 2, 0, 1, 2, 0, which is the set {0, 1, 2}. Both build their result in O(n) time and space."
+    },
+    {
+      "id": "t05-q02",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Generators",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 5,
+      "code": "g = (x * 2 for x in [1, 2, 3])\nprint(sum(g), sum(g))",
+      "options": [
+        "12 0",
+        "12 12",
+        "6 6",
+        "12 6"
+      ],
+      "answer": 0,
+      "explanation": "A generator expression is a one-shot iterator. The first `sum(g)` consumes it (2 + 4 + 6 = 12). The second `sum(g)` finds it already exhausted and returns 0. Generators use O(1) memory but cannot be rewound."
+    },
+    {
+      "id": "t05-q03",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: zip",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 5,
+      "code": "print(list(zip(\"abc\", [1, 2])), list(zip(*[(1, \"a\"), (2, \"b\")])))",
+      "options": [
+        "[('a', 1), ('b', 2), ('c', None)] [(1, 'a'), (2, 'b')]",
+        "[('a', 1), ('b', 2)] [(1, 'a'), (2, 'b')]",
+        "[('a', 1), ('b', 2)] [[1, 2], ['a', 'b']]",
+        "[('a', 1), ('b', 2)] [(1, 2), ('a', 'b')]"
+      ],
+      "answer": 3,
+      "explanation": "`zip` stops at the shortest input, so \"abc\" and [1, 2] give two pairs. `zip(*pairs)` unpacks the pairs as arguments and so transposes them: the first items together, then the second items. Each call is O(n)."
+    },
+    {
+      "id": "t05-q04",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: any / all",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 5,
+      "code": "print(any([]), all([]), any([0, \"\", None]), all([1, \"x\", [0]]))",
+      "options": [
+        "False False False True",
+        "False True False True",
+        "True True False True",
+        "False True True True"
+      ],
+      "answer": 1,
+      "explanation": "`any` of an empty iterable is False and `all` of an empty iterable is True (vacuous truth). `any([0, \"\", None])` is False because every item is falsy. `all([1, \"x\", [0]])` is True because a non-empty list is truthy even if it contains a falsy item."
+    },
+    {
+      "id": "t05-q05",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: Generators",
+      "difficulty": "medium",
+      "prompt": "square_count([1, 2, 3]) raises an error instead of returning 3. What is the bug?",
+      "theme": 5,
+      "code": "def square_count(nums):\n    sq = (x * x for x in nums)\n    return len(sq)",
+      "options": [
+        "Generator expressions must use square brackets",
+        "`nums` was already consumed by the loop",
+        "`len` only works on numbers",
+        "A generator expression has no len(); build a list, or count with sum(1 for _ in ...)"
+      ],
+      "answer": 3,
+      "explanation": "Parentheses create a lazy generator, which has no length: `len(sq)` raises TypeError. Use a list comprehension (O(n) space) or `sum(1 for _ in sq)` (O(1) space, consumes the generator). Time is O(n) either way.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t05-q06",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: enumerate",
+      "difficulty": "medium",
+      "prompt": "first_even_index([3, 5, 4]) should return 2 (the 0-based position) but returns 3. What is the bug?",
+      "theme": 5,
+      "code": "def first_even_index(nums):\n    for i, x in enumerate(nums, 1):\n        if x % 2 == 0:\n            return i\n    return -1",
+      "options": [
+        "`x % 2 == 0` should be `x % 2 == 1`",
+        "`enumerate(nums, 1)` starts counting at 1; drop the start argument",
+        "`enumerate` returns (value, index), not (index, value)",
+        "The loop must use `range(len(nums))`, because enumerate cannot be used with return"
+      ],
+      "answer": 1,
+      "explanation": "The second argument of enumerate is the starting number of the counter, so every index is one too big. Use `enumerate(nums)` for 0-based positions. The scan is O(n) time, O(1) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t05-q07",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Python: Generators",
+      "difficulty": "medium",
+      "prompt": "What are the time and extra space of this function for a list of n numbers?",
+      "theme": 5,
+      "code": "def sum_squares(nums):\n    return sum([x * x for x in nums])",
+      "options": [
+        "O(n) time, O(n) space",
+        "O(n) time, O(1) space",
+        "O(n²) time, O(1) space",
+        "O(n log n) time, O(n) space"
+      ],
+      "answer": 0,
+      "explanation": "The square brackets build the whole list of n squares before `sum` runs, so extra space is O(n). Writing `sum(x * x for x in nums)` (a generator expression) feeds the values to sum one at a time and needs O(1) extra space, with the same O(n) time.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t05-q08",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Python: Comprehensions",
+      "difficulty": "medium",
+      "prompt": "How does a list comprehension differ from a generator expression?",
+      "theme": 5,
+      "options": [
+        "The generator expression is faster because it is compiled to C",
+        "The list comprehension is lazy and the generator expression builds a list",
+        "The list comprehension builds every result immediately and can be reused; the generator expression produces values lazily and can be consumed only once",
+        "They are identical except for the brackets used"
+      ],
+      "answer": 2,
+      "explanation": "`[f(x) for x in it]` runs to completion and stores all n results (O(n) space). `(f(x) for x in it)` returns an iterator that computes one value per request (O(1) space) and is empty after one pass. Use a generator when you only loop once, for example inside `sum`, `any` or `all`."
+    },
+    {
+      "id": "t05-q09",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Python: zip",
+      "difficulty": "medium",
+      "prompt": "Transpose a matrix m (a list of rows) into a list of columns using idiomatic Python. Which expression does that?",
+      "theme": 5,
+      "options": [
+        "list(zip(m))",
+        "[list(col) for col in zip(*m)]",
+        "[row[::-1] for row in m]",
+        "zip(m, m)"
+      ],
+      "answer": 1,
+      "explanation": "`zip(*m)` unpacks the rows as separate arguments, so zip pairs up their first items, then their second items, and so on: the columns, as tuples. Wrapping each in `list(...)` gives lists. `zip(m)` just wraps each row in a 1-tuple and `row[::-1]` reverses each row. Time O(m·n), space O(m·n).",
+      "complexity": {
+        "time": "O(m·n)",
+        "space": "O(m·n)"
+      }
+    },
+    {
+      "id": "t05-q10",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Python: any / all",
+      "difficulty": "hard",
+      "prompt": "Check whether every word in a list is a palindrome, stopping at the first word that is not. Which expression does that?",
+      "theme": 5,
+      "options": [
+        "all([w == w[::-1] for w in words])",
+        "any(w != w[::-1] for w in words)",
+        "sum(w == w[::-1] for w in words) == 0",
+        "all(w == w[::-1] for w in words)"
+      ],
+      "answer": 3,
+      "explanation": "`all` over a generator expression short-circuits: it stops at the first False and never checks the rest. The list version `all([...])` builds the whole list first, so it checks every word. The other two expressions answer different questions (`any(w != ...)` is True when some word is NOT a palindrome). Worst case O(total length), best case O(length of the first bad word).",
+      "complexity": {
+        "time": "O(total length)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "theme": 7,
+  "week": 2,
+  "questions": [
+    {
+      "id": "t07-q01",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Sorting",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 7,
+      "code": "words = [\"bb\", \"a\", \"ccc\", \"dd\"]\nprint(sorted(words, key=len), sorted(words, key=len, reverse=True))",
+      "options": [
+        "['a', 'bb', 'dd', 'ccc'] ['ccc', 'dd', 'bb', 'a']",
+        "['a', 'bb', 'dd', 'ccc'] ['ccc', 'bb', 'dd', 'a']",
+        "['a', 'dd', 'bb', 'ccc'] ['ccc', 'bb', 'dd', 'a']",
+        "['a', 'bb', 'ccc', 'dd'] ['dd', 'ccc', 'bb', 'a']"
+      ],
+      "answer": 1,
+      "explanation": "`key=len` sorts by length and Python's sort is stable, so \"bb\" and \"dd\" (both length 2) stay in their original order. `reverse=True` also preserves the original order of equal elements, so \"bb\" still comes before \"dd\". Time O(n log n)."
+    },
+    {
+      "id": "t07-q02",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Tuple Comparison",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 7,
+      "code": "pts = [(2, \"b\"), (1, \"z\"), (2, \"a\")]\nprint(sorted(pts), sorted(pts, key=lambda p: p[0]))",
+      "options": [
+        "[(1, 'z'), (2, 'b'), (2, 'a')] [(1, 'z'), (2, 'a'), (2, 'b')]",
+        "[(2, 'a'), (2, 'b'), (1, 'z')] [(1, 'z'), (2, 'b'), (2, 'a')]",
+        "[(1, 'z'), (2, 'a'), (2, 'b')] [(1, 'z'), (2, 'a'), (2, 'b')]",
+        "[(1, 'z'), (2, 'a'), (2, 'b')] [(1, 'z'), (2, 'b'), (2, 'a')]"
+      ],
+      "answer": 3,
+      "explanation": "Tuples compare element by element, so plain sorting breaks the tie on the second item: (2, 'a') before (2, 'b'). With `key=lambda p: p[0]` only the first item counts, and because the sort is stable the two 2s stay in their input order: 'b' then 'a'."
+    },
+    {
+      "id": "t07-q03",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: cmp_to_key",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "theme": 7,
+      "code": "from functools import cmp_to_key\nnums = [3, 30, 34, 5, 9]\nnums.sort(key=cmp_to_key(lambda a, b: -1 if str(a) + str(b) > str(b) + str(a) else 1))\nprint(\"\".join(map(str, nums)))",
+      "options": [
+        "3430345 9",
+        "9534303",
+        "9534330",
+        "9534330 and 9"
+      ],
+      "answer": 2,
+      "explanation": "The comparator puts a before b when the string a+b is larger than b+a. For 3 and 30, \"330\" > \"303\" so 3 goes first; for 5, 9 and 34 the same rule gives 9, 5, 34, 3, 30. Joined: 9534330. This is the 'largest number' trick; time O(n log n) comparisons, each O(k)."
+    },
+    {
+      "id": "t07-q04",
+      "week": 2,
+      "type": "output",
+      "pattern": "Python: Sorting",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "theme": 7,
+      "code": "people = [(\"al\", 30), (\"bo\", 25), (\"cy\", 30)]\nprint(sorted(people, key=lambda p: (-p[1], p[0])))",
+      "options": [
+        "[('al', 30), ('cy', 30), ('bo', 25)]",
+        "[('bo', 25), ('al', 30), ('cy', 30)]",
+        "[('cy', 30), ('al', 30), ('bo', 25)]",
+        "[('al', 30), ('bo', 25), ('cy', 30)]"
+      ],
+      "answer": 0,
+      "explanation": "The key (-age, name) sorts by age descending (negating the number) and then by name ascending. 'al' and 'cy' share age 30 so the name decides: al before cy; bo (25) comes last. Negating works for numbers only, not for strings."
+    },
+    {
+      "id": "t07-q05",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: sort vs sorted",
+      "difficulty": "medium",
+      "prompt": "smallest_three([3, 1, 2, 5, 4]) raises TypeError: 'NoneType' object is not subscriptable. What is the bug?",
+      "theme": 7,
+      "code": "def smallest_three(nums):\n    return nums.sort()[:3]",
+      "options": [
+        "`sort` needs a key argument",
+        "Slicing is not allowed on lists",
+        "`list.sort()` sorts in place and returns None; use `sorted(nums)[:3]` or sort first, then slice",
+        "`sort()` returns a tuple, so [:3] fails"
+      ],
+      "answer": 2,
+      "explanation": "In-place methods return None by convention. `nums.sort()[:3]` slices None. `sorted(nums)[:3]` works: O(n log n) time, O(n) space (`heapq.nsmallest(3, nums)` does it in O(n log k)).",
+      "complexity": {
+        "time": "O(n log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t07-q06",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Python: Sorting Strings",
+      "difficulty": "medium",
+      "prompt": "largest([\"10\", \"9\", \"2\"]) returns \"9\" but the largest number is 10. What is the bug?",
+      "theme": 7,
+      "code": "def largest(strs):\n    return max(strs)",
+      "options": [
+        "Strings compare character by character (\"9\" > \"10\"); compare as numbers with `max(strs, key=int)`",
+        "`max` only works on integers",
+        "The list must be sorted before calling max",
+        "`max` returns the shortest string first"
+      ],
+      "answer": 0,
+      "explanation": "Lexicographic order compares \"1\" with \"9\" first, so \"9\" beats \"10\". `key=int` converts each string for the comparison only, and `max` still returns the original string. Time O(n · d) for d digits; space O(1).",
+      "complexity": {
+        "time": "O(n·d)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "t07-q07",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Python: Sorting",
+      "difficulty": "hard",
+      "prompt": "What is the time complexity of sorting n strings of length k each with `sorted(words)`?",
+      "theme": 7,
+      "options": [
+        "O(n log n)",
+        "O(n · k)",
+        "O(n² · k)",
+        "O(n · k · log n)"
+      ],
+      "answer": 3,
+      "explanation": "The sort makes O(n log n) comparisons, and comparing two strings of length k can take O(k). Saying plain O(n log n) assumes comparisons are O(1), which is only true for fixed-size keys like ints. The sort also needs O(n) extra space for the pointers.",
+      "complexity": {
+        "time": "O(n·k·log n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "t07-q08",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Python: Stability",
+      "difficulty": "medium",
+      "prompt": "What does it mean that Python's sort is stable?",
+      "theme": 7,
+      "options": [
+        "Equal elements are removed",
+        "Elements with equal keys keep their original relative order",
+        "The sort never raises an error",
+        "The sort finishes in O(n) time on sorted input only"
+      ],
+      "answer": 1,
+      "explanation": "Stability lets you sort by several keys in passes: sort by the secondary key first, then by the primary key, and ties in the primary keep the secondary order. It also explains why `reverse=True` keeps equal items in input order. Timsort is stable and O(n log n)."
+    },
+    {
+      "id": "t07-q09",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Python: sort vs sorted",
+      "difficulty": "medium",
+      "prompt": "Which statement about sort() and sorted() is correct?",
+      "theme": 7,
+      "options": [
+        "Both sort in place; sorted() is just an alias",
+        "`sorted()` sorts in place; `list.sort()` returns a new list",
+        "`sorted()` works only on lists and tuples",
+        "`list.sort()` sorts a list in place and returns None; `sorted(it)` accepts any iterable and returns a new list"
+      ],
+      "answer": 3,
+      "explanation": "Use sort() when you own the list and can mutate it (O(1) extra space beyond the sort's internal buffer); use sorted() to keep the original, or to sort a tuple, set, dict keys or generator. Both are O(n log n)."
+    },
+    {
+      "id": "t07-q10",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Python: Sort Keys",
+      "difficulty": "hard",
+      "prompt": "Sort intervals by start ascending and, for equal starts, by end DEscending. Which call does that?",
+      "theme": 7,
+      "options": [
+        "intervals.sort(key=lambda x: x[0], reverse=True)",
+        "intervals.sort(key=lambda x: (x[0], -x[1]))",
+        "intervals.sort()",
+        "intervals.sort(key=lambda x: (x[1], x[0]))"
+      ],
+      "answer": 1,
+      "explanation": "A tuple key sorts by its first part, then the second. Negating the end flips just that part. Plain `sort()` compares (start, end) so equal starts get the end ASCENDING. `reverse=True` would reverse the start order too. Time O(n log n).",
+      "complexity": {
+        "time": "O(n log n)",
+        "space": "O(1)"
+      }
+    }
+  ]
+}

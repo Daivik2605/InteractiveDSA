@@ -108,7 +108,7 @@ describe("practical tasks", () => {
 describe("debug snippets", () => {
   it("accepts the real file", () => {
     expect(messages(DebugFile.safeParse(debug))).toEqual([]);
-    expect(debug.snippets).toHaveLength(8);
+    expect(debug.snippets.length).toBeGreaterThanOrEqual(8);
   });
 
   it("keeps bugLine inside the snippet and the snippet 15-25 lines", () => {

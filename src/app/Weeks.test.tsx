@@ -73,10 +73,10 @@ describe("Weeks page", () => {
 
   it("switching week shows that week; a week with no lesson files says so", async () => {
     const { user } = await renderWeeks("2026-10-27");
-    await user.selectOptions(screen.getByLabelText("Week"), "2");
-    expect(panel().getByText("No concept notes written for Week 2 yet.")).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Week"), "4"); // Week 4 has no lesson files yet
+    expect(panel().getByText("No concept notes written for Week 4 yet.")).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Templates" }));
-    expect(panel().getByText("No templates written for Week 2 yet.")).toBeInTheDocument();
+    expect(panel().getByText("No templates written for Week 4 yet.")).toBeInTheDocument();
   });
 
   it("old-topic problems are listed without any source week", async () => {

@@ -1,0 +1,486 @@
+{
+  "week": 2,
+  "questions": [
+    {
+      "id": "w02-q01",
+      "week": 2,
+      "type": "pattern",
+      "pattern": "Complement Lookup",
+      "difficulty": "medium",
+      "prompt": "An unsorted array and a target are given. Return the indices of two elements that sum to the target in O(n) time. Which pattern fits?",
+      "options": [
+        "Two Pointers from both ends",
+        "Sliding Window",
+        "Hash map: store each value's index and look up target - x",
+        "Sort, then Binary Search for each element"
+      ],
+      "answer": 2,
+      "explanation": "For each x, the partner target - x is either already in the map (done) or not (store x and move on). One pass: time O(n), space O(n). Two pointers need sorted input (sorting would lose the original indices), a window needs a monotone condition, and sort + binary search is O(n log n).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q02",
+      "week": 2,
+      "type": "pattern",
+      "pattern": "Prefix Sum + Count Map",
+      "difficulty": "medium",
+      "prompt": "Count the contiguous subarrays of an integer array (negative numbers allowed) whose sum equals k, in O(n). Which pattern fits?",
+      "options": [
+        "Prefix sum + a hash map counting earlier prefix totals",
+        "Sliding Window that shrinks when the sum exceeds k",
+        "Two Pointers on the sorted array",
+        "Binary Search on the answer"
+      ],
+      "answer": 0,
+      "explanation": "A subarray ending at i sums to k when an earlier prefix equals total - k, so keep a map of prefix total -> count and add the count at each step. Time O(n), space O(n). A shrinking window needs non-negative numbers: with negatives, the sum can drop after exceeding k, so the window logic breaks.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q03",
+      "week": 2,
+      "type": "pattern",
+      "pattern": "Frequency Buckets",
+      "difficulty": "medium",
+      "prompt": "Return the k most frequent elements of an array in O(n) time, not O(n log n). Which pattern fits?",
+      "options": [
+        "Sort all elements and count the runs",
+        "Keep a max-heap of every distinct value",
+        "Two Pointers over the sorted counts",
+        "Count with a hash map, then bucket the values by frequency (index = count)"
+      ],
+      "answer": 3,
+      "explanation": "A frequency is at most n, so n + 1 buckets can hold every value at its count; reading from the highest bucket down gives the top k without sorting. Time O(n), space O(n). Sorting is O(n log n) and a heap of all distinct values costs O(n log n) to build and drain.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q04",
+      "week": 2,
+      "type": "pattern",
+      "pattern": "Hash Map Grouping",
+      "difficulty": "medium",
+      "prompt": "Group a list of words so that anagrams end up together. Which pattern fits?",
+      "options": [
+        "Sort the word list and group neighbours",
+        "Hash map from a canonical key (sorted letters or a letter-count tuple) to a list of words",
+        "Two Pointers over the sorted list",
+        "A set of the words already seen"
+      ],
+      "answer": 1,
+      "explanation": "Anagrams share the same sorted letters, so that string (or a 26-count tuple) is the dict key and the words are appended to its list. With sorted keys the cost is O(n · k log k) for n words of length k; count tuples give O(n · k). Sorting the list of words does not bring anagrams together (\"tea\" and \"eat\" sort far apart), and a set cannot hold groups.",
+      "complexity": {
+        "time": "O(n·k log k)",
+        "space": "O(n·k)"
+      }
+    },
+    {
+      "id": "w02-q05",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Hash Map Grouping",
+      "difficulty": "medium",
+      "prompt": "n words each have length k. What are the time and extra space of this function?",
+      "code": "from collections import defaultdict\n\ndef group(words):\n    groups = defaultdict(list)\n    for w in words:\n        groups[\"\".join(sorted(w))].append(w)\n    return list(groups.values())",
+      "options": [
+        "O(n · k) time, O(n) space",
+        "O(n log n) time, O(n) space",
+        "O(n² · k) time, O(n · k) space",
+        "O(n · k log k) time, O(n · k) space"
+      ],
+      "answer": 3,
+      "explanation": "For each word, sorted() costs O(k log k) and building the key is O(k); the dict insert is O(k) because the key string is hashed. Over n words that is O(n · k log k). The dict stores n keys and n words, each of length k, so O(n · k) space.",
+      "complexity": {
+        "time": "O(n·k log k)",
+        "space": "O(n·k)"
+      }
+    },
+    {
+      "id": "w02-q06",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Complement Lookup",
+      "difficulty": "medium",
+      "prompt": "What is the worst-case time complexity of this function for a list of n integers?",
+      "code": "def two_sum(nums, target):\n    for i, x in enumerate(nums):\n        need = target - x\n        if need in nums and nums.index(need) != i:\n            return [i, nums.index(need)]\n    return []",
+      "options": [
+        "O(n)",
+        "O(n²)",
+        "O(n log n)",
+        "O(n) amortized"
+      ],
+      "answer": 1,
+      "explanation": "`nums.index(...)` scans the list, and `need in nums` also scans it, so each iteration is O(n) and there are n iterations: O(n²). A dict of value -> index makes both the membership test and the lookup O(1), giving O(n) time and O(n) space.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w02-q07",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Counter",
+      "difficulty": "medium",
+      "prompt": "s and t both have length n. What are the time and extra space of this anagram check (k = number of distinct characters)?",
+      "code": "from collections import Counter\n\ndef is_anagram(s, t):\n    return len(s) == len(t) and Counter(s) == Counter(t)",
+      "options": [
+        "O(n) time, O(k) space",
+        "O(n log n) time, O(1) space",
+        "O(n²) time, O(k) space",
+        "O(n) time, O(n) space always"
+      ],
+      "answer": 0,
+      "explanation": "Building each Counter is one pass over its string: O(n). Comparing two Counters compares at most k entries. The two Counters hold at most k distinct keys each, so extra space is O(k), which is O(1) for a fixed alphabet like 26 letters. It is not always O(n): space depends on distinct characters, not length.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(k)"
+      }
+    },
+    {
+      "id": "w02-q08",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Prefix Sums",
+      "difficulty": "medium",
+      "prompt": "A list of n numbers is prefix-summed once, then q range-sum queries are answered. What is the total time and extra space?",
+      "code": "def build(nums):\n    pre = [0]\n    for x in nums:\n        pre.append(pre[-1] + x)\n    return pre\n\ndef query(pre, i, j):\n    return pre[j + 1] - pre[i]",
+      "options": [
+        "O(n · q) time, O(1) space",
+        "O(n + q log n) time, O(n) space",
+        "O(n + q) time, O(n) space",
+        "O(q) time, O(n) space"
+      ],
+      "answer": 2,
+      "explanation": "Building `pre` is one O(n) pass. Each query `pre[j + 1] - pre[i]` is O(1), so q queries add O(q). The prefix array needs n + 1 numbers: O(n) space. Without the prefix array every query would sum a slice, O(n · q) in total.",
+      "complexity": {
+        "time": "O(n + q)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q09",
+      "week": 2,
+      "type": "complexity",
+      "pattern": "Hash Collisions",
+      "difficulty": "hard",
+      "prompt": "Every one of n keys has the same hash value. What is the worst-case total time to insert all n keys into a dict?",
+      "options": [
+        "O(n)",
+        "O(n²)",
+        "O(n log n)",
+        "O(1) amortized per insert, so O(n)"
+      ],
+      "answer": 1,
+      "explanation": "With one shared hash, each insert has to compare the new key against every key already in that probe sequence before it finds a free slot, so insert number i costs O(i) and the total is 1 + 2 + ... + n = O(n²). The O(1) average assumes a hash that spreads keys evenly; resizing does not help when the hashes are equal.",
+      "complexity": {
+        "time": "O(n²)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q10",
+      "week": 2,
+      "type": "output",
+      "pattern": "Counter",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "from collections import Counter\ncounts = Counter(\"abracadabra\")\nprint(counts[\"a\"], counts[\"z\"], len(counts))",
+      "options": [
+        "5 0 6",
+        "5 KeyError 5",
+        "5 0 5 but len is 6 after the lookup",
+        "5 0 5"
+      ],
+      "answer": 3,
+      "explanation": "A Counter returns 0 for a missing key without storing it, so `counts[\"z\"]` leaves the Counter at 5 distinct letters (a, b, r, c, d). A defaultdict(int) would have inserted z and made the length 6. Counting is O(n)."
+    },
+    {
+      "id": "w02-q11",
+      "week": 2,
+      "type": "output",
+      "pattern": "Prefix Sums",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "from itertools import accumulate\npre = [0, *accumulate([2, -1, 3, 4])]\nprint(pre[4] - pre[1])",
+      "options": [
+        "8",
+        "7",
+        "6",
+        "2"
+      ],
+      "answer": 2,
+      "explanation": "`accumulate` yields 2, 1, 4, 8, so pre = [0, 2, 1, 4, 8]. pre[4] - pre[1] = 8 - 2 = 6, the sum of the slice nums[1:4] = -1 + 3 + 4. Building the prefix array is O(n); each range sum is then O(1)."
+    },
+    {
+      "id": "w02-q12",
+      "week": 2,
+      "type": "output",
+      "pattern": "Hashable Keys",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "d = {}\nd[(1, 2)] = 1\nd[(2, 1)] = 2\nd[(1, 2)] += 5\nprint(d, len(d))",
+      "options": [
+        "{(1, 2): 6, (2, 1): 2} 2",
+        "{(2, 1): 6, (1, 2): 2} 2",
+        "{(1, 2): 1, (2, 1): 2} 2",
+        "{(1, 2): 6} 1"
+      ],
+      "answer": 0,
+      "explanation": "Tuples compare by position, so (1, 2) and (2, 1) are different keys. `d[(1, 2)] += 5` finds the existing key and updates its value from 1 to 6, so there are still two keys. (A frozenset would treat both orders as one key.)"
+    },
+    {
+      "id": "w02-q13",
+      "week": 2,
+      "type": "output",
+      "pattern": "Hash Map Grouping",
+      "difficulty": "hard",
+      "prompt": "What does this code print?",
+      "code": "from collections import defaultdict\ng = defaultdict(list)\nfor w in [\"tea\", \"eat\", \"ate\", \"bat\"]:\n    g[\"\".join(sorted(w))].append(w)\nprint(list(g.values()))",
+      "options": [
+        "[['tea', 'ate', 'eat'], ['bat']]",
+        "[['bat'], ['tea', 'eat', 'ate']]",
+        "[['tea', 'eat', 'ate'], ['bat']]",
+        "[['tea'], ['eat'], ['ate'], ['bat']]"
+      ],
+      "answer": 2,
+      "explanation": "\"tea\", \"eat\" and \"ate\" all sort to \"aet\", \"bat\" sorts to \"abt\". A defaultdict keeps keys in insertion order (aet first) and appends words in the order they appear, so the groups are [tea, eat, ate] and [bat]. Time O(n · k log k)."
+    },
+    {
+      "id": "w02-q14",
+      "week": 2,
+      "type": "output",
+      "pattern": "Sets",
+      "difficulty": "medium",
+      "prompt": "What does this code print?",
+      "code": "a = {1, 2, 3}\nb = {3, 4}\nprint(sorted(a | b), sorted(a & b), sorted(a - b), sorted(a ^ b))",
+      "options": [
+        "[1, 2, 3, 4] [3] [1, 2] [1, 2, 4]",
+        "[1, 2, 3, 4] [3] [1, 2] [1, 2, 4, 5]",
+        "[1, 2, 3, 4] [3] [1, 2, 3] [1, 2, 4]",
+        "[3] [1, 2, 3, 4] [4] [1, 2, 4]"
+      ],
+      "answer": 0,
+      "explanation": "`|` is union, `&` intersection, `-` difference (in a but not in b) and `^` symmetric difference (in exactly one set). a - b = {1, 2}, a ^ b = {1, 2, 4}. Sets have no order, so sorted() makes the output predictable. Each operation is O(len(a) + len(b)) or O(min) for intersection."
+    },
+    {
+      "id": "w02-q15",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Complement Lookup",
+      "difficulty": "medium",
+      "prompt": "two_sum([2, 7, 11, 15], 9) raises an error instead of returning [0, 1]. What is the bug?",
+      "code": "def two_sum(nums, target):\n    seen = {}\n    for i, x in enumerate(nums):\n        need = target - x\n        if need in seen:\n            return [seen[x], i]\n        seen[x] = i\n    return []",
+      "options": [
+        "`enumerate` returns (value, index), not (index, value)",
+        "The dictionary must be filled completely before the loop",
+        "`need in seen` should be `need not in seen`",
+        "It returns `seen[x]`; x has not been stored yet, so it should return `seen[need]`"
+      ],
+      "answer": 3,
+      "explanation": "When the loop finds that `need` is in `seen`, the earlier index is `seen[need]`. `seen[x]` is looked up before x is stored, so it raises KeyError. Return `[seen[need], i]`. The corrected scan is O(n) time, O(n) space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q16",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Prefix Sum + Count Map",
+      "difficulty": "hard",
+      "prompt": "count_k([1, -1, 1, -1], 0) should return 4 but returns a smaller number. What is the bug?",
+      "code": "def count_k(nums, k):\n    counts = {0: 1}\n    total = result = 0\n    for x in nums:\n        total += x\n        result += counts.get(total - k, 0)\n        counts[total] = 1\n    return result",
+      "options": [
+        "The map must start empty, not with {0: 1}",
+        "`counts[total] = 1` overwrites the count; it must increment: `counts[total] = counts.get(total, 0) + 1`",
+        "`total - k` should be `total + k`",
+        "The loop should run over `reversed(nums)`"
+      ],
+      "answer": 1,
+      "explanation": "The same prefix total can occur many times (here 0, 1, 0, 1, 0), and each earlier occurrence is a different starting point. Overwriting with 1 forgets the repeats, so subarrays are undercounted. Increment instead. Time O(n), space O(n).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q17",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Counter",
+      "difficulty": "hard",
+      "prompt": "is_anagram(\"a\", \"aa\") returns True but should return False. What is the bug?",
+      "code": "from collections import Counter\n\ndef is_anagram(s, t):\n    return not (Counter(s) - Counter(t))",
+      "options": [
+        "`not` should be removed, because an empty Counter is falsy",
+        "Counter subtraction raises an error when t is longer",
+        "`Counter(s)` counts words, not characters",
+        "`Counter(s) - Counter(t)` only keeps positive counts of s, so extra letters in t are ignored; compare `Counter(s) == Counter(t)`"
+      ],
+      "answer": 3,
+      "explanation": "Counter subtraction drops zero and negative results, so `Counter(\"a\") - Counter(\"aa\")` is empty and `not` of an empty Counter is True. Equality of the two Counters (or a length check plus subtraction) is the correct test. Time O(n), space O(k).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(k)"
+      }
+    },
+    {
+      "id": "w02-q18",
+      "week": 2,
+      "type": "bug",
+      "pattern": "Frequency Buckets",
+      "difficulty": "hard",
+      "prompt": "top_k([1, 2, 2, 3, 3, 3], 2) should return [3, 2] but returns [1, 2]. What is the bug?",
+      "code": "from collections import Counter\n\ndef top_k(nums, k):\n    buckets = [[]] * (len(nums) + 1)\n    for v, f in Counter(nums).items():\n        buckets[f].append(v)\n    out = []\n    for f in range(len(buckets) - 1, 0, -1):\n        for v in buckets[f]:\n            out.append(v)\n            if len(out) == k:\n                return out\n    return out",
+      "options": [
+        "The loop `range(len(buckets) - 1, 0, -1)` should start at 0",
+        "`[[]] * (len(nums) + 1)` makes every bucket the same list; use a list comprehension",
+        "`Counter(nums).items()` yields (count, value)",
+        "`out` must be a set, not a list"
+      ],
+      "answer": 1,
+      "explanation": "List multiplication repeats one reference, so appending to buckets[3] also appears in buckets[2] and buckets[1]. All values end up in every bucket, so the highest bucket returns them in the order they were first seen (1, 2, ...) instead of by frequency. Build the buckets with `[[] for _ in range(n + 1)]`. O(n) time and space.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q19",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Hash Set",
+      "difficulty": "hard",
+      "prompt": "Find the length of the longest run of consecutive integers (like 4, 5, 6, 7) in an unsorted array in O(n) time. Which plan works?",
+      "options": [
+        "Put all numbers in a set; only start counting from x when x - 1 is not in the set, then walk x + 1, x + 2, ...",
+        "Sort the array and scan for runs",
+        "For every number, walk up and down while the neighbours are in the set",
+        "Count the numbers with a Counter and take the largest count"
+      ],
+      "answer": 0,
+      "explanation": "Starting only at run beginnings means each number is visited at most twice (once in the outer loop, once inside a run), so the work is O(n) time and O(n) space. Sorting is O(n log n). Walking from every number without the start check is O(n²) on one long run. A Counter measures duplicates, not consecutive values.",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q20",
+      "week": 2,
+      "type": "approach",
+      "pattern": "In-place Hashing",
+      "difficulty": "hard",
+      "prompt": "Find the smallest missing positive integer in O(n) time and O(1) extra space. Which plan works?",
+      "options": [
+        "Put all numbers in a set and test 1, 2, 3, ... in order",
+        "Sort the array and scan for the first gap",
+        "Move each value v in 1..n to index v - 1 by swapping, then scan for the first index where nums[i] != i + 1",
+        "Count the numbers with a Counter and look for a zero count"
+      ],
+      "answer": 2,
+      "explanation": "The answer is in 1..n + 1, so the array itself can be the hash table: swap each value into its home slot (each swap places one value for good, so the total is O(n)), then the first mismatch is the answer. A set or Counter uses O(n) space and sorting is O(n log n). Time O(n), space O(1).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w02-q21",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Prefix Sum + Hash Map",
+      "difficulty": "hard",
+      "prompt": "Find the longest contiguous subarray of a 0/1 array with equally many 0s and 1s in O(n). Which plan works?",
+      "options": [
+        "Slide a window and shrink when zeros outnumber ones",
+        "Treat each 0 as -1, keep a running sum, and store the first index of each sum; equal sums at i and j mean a balanced slice i+1..j",
+        "Sort the array and pair zeros with ones",
+        "Check every subarray with two counters"
+      ],
+      "answer": 1,
+      "explanation": "With 0 as -1, a balanced slice sums to 0, so it lies between two equal prefix sums. Storing only the first index of each sum maximizes the length. Seed the map with {0: -1}. Time O(n), space O(n). A window cannot work because the balance is not monotone, and all subarrays is O(n²).",
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)"
+      }
+    },
+    {
+      "id": "w02-q22",
+      "week": 2,
+      "type": "approach",
+      "pattern": "Hash Set Validation",
+      "difficulty": "medium",
+      "prompt": "Check that a 9x9 Sudoku board has no repeated digit in any row, column or 3x3 box, in a single pass. Which plan works?",
+      "options": [
+        "Solve the puzzle with backtracking and compare",
+        "Check only rows and columns, because boxes follow",
+        "Sort every row, column and box and compare neighbours",
+        "One pass with a set per row, per column and per box, using the box id (r // 3, c // 3)"
+      ],
+      "answer": 3,
+      "explanation": "Each cell is checked against three sets in O(1), so the whole board is 81 cells of work: O(1) for a fixed size (O(n²) for an n x n board). Backtracking solves a different, exponential problem, and rows plus columns alone miss box duplicates.",
+      "complexity": {
+        "time": "O(1)",
+        "space": "O(1)"
+      }
+    },
+    {
+      "id": "w02-q23",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Hash Table",
+      "difficulty": "medium",
+      "prompt": "What happens when a hash table's load factor gets too high?",
+      "options": [
+        "Lookups become O(log n) because the keys are re-sorted",
+        "Python raises MemoryError and the insert fails",
+        "It resizes: allocates a bigger table and re-inserts every key, an O(n) step that keeps inserts O(1) amortized",
+        "Collisions disappear because every key gets its own slot"
+      ],
+      "answer": 2,
+      "explanation": "A higher load factor means more collisions, so the table grows by a constant factor and rehashes every key. Because each growth is followed by many cheap inserts, the average cost per insert stays O(1). Rehashing is needed because slot = hash % table size changes when the size changes."
+    },
+    {
+      "id": "w02-q24",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Hash Table",
+      "difficulty": "medium",
+      "prompt": "Why is dict lookup O(1) on average but O(n) in the worst case?",
+      "options": [
+        "Keys that collide share a probe sequence; if many keys collide, a lookup compares against many of them",
+        "A dict stores its keys in a sorted array and uses binary search",
+        "Lookup is O(n) whenever the dict has more than 1000 keys",
+        "The worst case only happens for string keys"
+      ],
+      "answer": 0,
+      "explanation": "The average case assumes the hash function spreads keys evenly, so a lookup inspects about one slot. If all keys collide (a bad __hash__, or crafted input), a lookup walks through all of them: O(n). The standard interview answer: O(1) average, O(n) worst case, and treat it as O(1)."
+    },
+    {
+      "id": "w02-q25",
+      "week": 2,
+      "type": "concept",
+      "pattern": "Counter vs defaultdict",
+      "difficulty": "hard",
+      "prompt": "Which statement about reading a missing key is correct?",
+      "options": [
+        "Both add the key with value 0",
+        "Neither adds the key; both return 0",
+        "`Counter()[k]` returns 0 without adding k; `defaultdict(int)[k]` returns 0 and adds k",
+        "`Counter()[k]` raises KeyError; `defaultdict(int)[k]` returns 0"
+      ],
+      "answer": 2,
+      "explanation": "Counter overrides __missing__ to return 0 and leaves the Counter unchanged. defaultdict calls its factory and stores the result, so merely reading a key grows the dict (a common cause of surprising len() values). Use `k in d` or `d.get(k)` to peek without inserting."
+    }
+  ]
+}
