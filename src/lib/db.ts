@@ -5,6 +5,7 @@ import type {
   DayLog,
   ItemCompletion,
   ItemMove,
+  MockRun,
   MockSession,
   ProblemAttempt,
   ProblemEntry,
@@ -18,8 +19,9 @@ import type {
 // Schema versions: NEVER drop or clear user tables in an upgrade. To change the schema, add a
 // new `db.version(n+1).stores({...}).upgrade(...)` that migrates rows, and bump EXPORT_SCHEMA_VERSION
 // if the exported JSON shape changes.
+// v3 added the mockNumber index on mocks and the mockRuns table (Phase B); v1 and v2 exports still import.
 // v2 added customItems, itemMoves, dayLogs and problemEntries (SPEC 3.13, 3.14); v1 exports still import.
-export const EXPORT_SCHEMA_VERSION = 2;
+export const EXPORT_SCHEMA_VERSION = 3;
 
 export class DsaDB extends Dexie {
   completions!: EntityTable<ItemCompletion, "itemId">;
@@ -30,6 +32,7 @@ export class DsaDB extends Dexie {
   cards!: EntityTable<CardState, "questionId">;
   restDays!: EntityTable<RestDay, "date">;
   mocks!: EntityTable<MockSession, "id">;
+  mockRuns!: EntityTable<MockRun, "mockNumber">;
   settings!: EntityTable<Settings, "id">;
   customItems!: EntityTable<CustomItem, "id">;
   itemMoves!: EntityTable<ItemMove, "itemId">;
@@ -56,6 +59,11 @@ export class DsaDB extends Dexie {
       dayLogs: "planDayId",
       problemEntries: "problemId",
     });
+    // v3 adds an index and a table; existing rows are untouched.
+    this.version(3).stores({
+      mocks: "++id, date, mockNumber",
+      mockRuns: "mockNumber",
+    });
   }
 }
 
@@ -75,8 +83,10 @@ export const TABLE_NAMES = [
   "itemMoves",
   "dayLogs",
   "problemEntries",
+  "mockRuns",
 ] as const;
 const V1_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 9);
+const V2_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 13);
 export type TableName = (typeof TABLE_NAMES)[number];
 
 export type ExportData = { schemaVersion: number } & { [K in TableName]: unknown[] };
@@ -108,10 +118,10 @@ export async function importAll(database: DsaDB, data: unknown): Promise<void> {
   if (typeof data !== "object" || data === null) throw new Error("Import file is not a JSON object.");
   const obj = data as Record<string, unknown>;
   const version = obj.schemaVersion;
-  if (version !== 1 && version !== EXPORT_SCHEMA_VERSION) {
-    throw new Error(`Unsupported schemaVersion ${String(version)} (expected 1 or ${EXPORT_SCHEMA_VERSION}).`);
+  if (version !== 1 && version !== 2 && version !== EXPORT_SCHEMA_VERSION) {
+    throw new Error(`Unsupported schemaVersion ${String(version)} (expected 1, 2 or ${EXPORT_SCHEMA_VERSION}).`);
   }
-  const required = version === 1 ? V1_TABLES : TABLE_NAMES;
+  const required = version === 1 ? V1_TABLES : version === 2 ? V2_TABLES : TABLE_NAMES;
   for (const name of required) {
     if (!Array.isArray(obj[name])) throw new Error(`Import file is missing the "${name}" table.`);
   }
@@ -119,7 +129,7 @@ export async function importAll(database: DsaDB, data: unknown): Promise<void> {
     for (const name of TABLE_NAMES) {
       const table = database.table(name);
       await table.clear();
-      const rows = Array.isArray(obj[name]) ? (obj[name] as unknown[]) : []; // tables a v1 file lacks come in empty
+      const rows = Array.isArray(obj[name]) ? (obj[name] as unknown[]) : []; // tables an older file lacks come in empty
       await table.bulkAdd(rows);
     }
   });

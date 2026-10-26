@@ -9,7 +9,6 @@ export const NAV_ITEMS = [
   { to: "/", label: "Today", end: true },
   { to: "/calendar", label: "Calendar" },
   { to: "/weeks", label: "Weeks" },
-  { to: "/quiz", label: "Quizzes" },
   { to: "/problems", label: "Problems" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/settings", label: "Settings" },

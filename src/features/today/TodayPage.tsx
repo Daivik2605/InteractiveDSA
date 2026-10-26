@@ -1,3 +1,4 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
@@ -44,6 +45,18 @@ function learnRow(plan: Plan, item: DayItem): { label: string; meta: string } {
   return { label: `Mock ${m.number}`, meta: [badge, extra].filter(Boolean).join(" · ") + (moved && ` ${moved}`) };
 }
 
+/** "Start mock" / "Resume mock" / "View result" for a mock day's Mock N row. */
+function MockAction({ number }: { number: number }) {
+  const { db } = usePlanContext();
+  const state = useLiveQuery(async () => ((await db.mockRuns.get(number)) ? "run" : (await db.mocks.where("mockNumber").equals(number).count()) > 0 ? "saved" : "new"), [db, number]);
+  const label = state === "run" ? "Resume mock" : state === "saved" ? "View result" : "Start mock";
+  return (
+    <Link to={`/mock/${number}`} className="rounded-md border border-indigo-600 px-2 py-0.5 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-indigo-950">
+      {label}
+    </Link>
+  );
+}
+
 function movedLabel(plan: Plan, planDayId: string) {
   const d = plan.schedule.find((x) => x.planDayId === planDayId);
   return d ? formatShort(d.date) : planDayId;
@@ -58,9 +71,6 @@ function BeforeStart({ plan }: { plan: Plan }) {
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
         <Link to="/weeks" className="text-indigo-700 underline dark:text-indigo-300">
           Preview the Week 1 lesson
-        </Link>
-        <Link to="/quiz" className="text-indigo-700 underline dark:text-indigo-300">
-          Quizzes &amp; drills
         </Link>
       </div>
     </div>
@@ -160,14 +170,14 @@ function TodayBody() {
   const doneElsewhere = [...plan.completions.values()].filter(
     (c) => c.completedOn === today && !todayItemIds.has(c.itemId) && !c.itemId.includes(":s") && !(c.attemptId !== undefined && todayAttemptIds.has(c.attemptId)),
   );
-  const standaloneRedos = plan.snapshot.attempts.filter(
+  const standaloneRedos = plan.dayAttempts.filter(
     (a) => a.date === today && a.isRedo && a.id !== undefined && ![...plan.completions.values()].some((c) => c.attemptId === a.id),
   );
 
   const redoProblems = [...new Map(plan.redoDue.map((r) => [r.problemId, r])).values()];
   const curDay = kind === "plan" ? curriculumDay(planDayId) : undefined;
   const fallback = curDay?.fallback && plan.redoDue.length === 0 ? curDay.fallback : null;
-  const fallbackTries = fallback ? plan.snapshot.attempts.filter((a) => a.problemId === fallback.id).length : 0;
+  const fallbackTries = fallback ? plan.dayAttempts.filter((a) => a.problemId === fallback.id).length : 0;
   const restOn = plan.restDates.has(today);
   const restCheck = canAddRestDay(plan.schedule, plan.restDates, today);
 
@@ -189,7 +199,7 @@ function TodayBody() {
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} />
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} actions={item.mock ? <MockAction number={item.mock.number} /> : undefined} />
           ) : item.kind === "task" ? (
             <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
           ) : item.kind === "problem" ? (
@@ -217,7 +227,6 @@ function TodayBody() {
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link to={`/day/${planDayId}`} className="text-sm text-indigo-700 underline dark:text-indigo-300">Edit day</Link>
-        <Link to="/quiz" className="text-sm text-indigo-700 underline dark:text-indigo-300">Quizzes &amp; drills</Link>
         <button type="button" onClick={() => setFinding(true)} className="text-sm text-indigo-700 underline dark:text-indigo-300">Log a problem I found</button>
         {restOn ? (
           <button type="button" className="text-sm text-indigo-700 underline dark:text-indigo-300" onClick={() => setRestDay(db, plan.schedule, plan.restDates, today, false)}>

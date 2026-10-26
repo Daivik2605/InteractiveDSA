@@ -54,6 +54,8 @@ export interface Plan {
   completions: ReadonlyMap<string, ItemCompletion>;
   restDates: ReadonlySet<string>;
   attemptsById: ReadonlyMap<number, ProblemAttempt>;
+  /** Attempts made outside mocks. Anything about a day's problem items (tries, redo labels) reads this, never `snapshot.attempts`. */
+  dayAttempts: ProblemAttempt[];
   catchUp: CatchUpItem[];
   redoDue: RedoTask[];
   streak: { current: number; longest: number };
@@ -97,6 +99,7 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
     completions,
     restDates,
     attemptsById: new Map(snapshot.attempts.filter((a) => a.id !== undefined).map((a) => [a.id!, a])),
+    dayAttempts: snapshot.attempts.filter((a) => a.source !== "mock"),
     catchUp,
     redoDue: redosDue(snapshot.redos, today),
     streak: streaks(days, today),

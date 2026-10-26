@@ -198,7 +198,7 @@ function Detail({ id }: { id: string }) {
           dateRange={{ value: plan.today, min: "2000-01-01", max: plan.today }}
           onCancel={() => setLogging(false)}
           onSubmit={async (v) => {
-            await logAttempt(db, { problemId: id, date: v.date, outcome: v.outcome, minutes: v.minutes, note: v.note, isRedo: attempts.length > 0, completes: [] });
+            await logAttempt(db, { problemId: id, date: v.date, outcome: v.outcome, minutes: v.minutes, note: v.note, isRedo: attempts.some((a) => a.source !== "mock"), completes: [] });
             setLogging(false);
           }}
         />

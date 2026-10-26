@@ -33,7 +33,7 @@ describe("db", () => {
     await seed(db);
     await saveSettings(db, { theme: "dark" }, "2026-10-26");
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(2);
+    expect(snapshot.schemaVersion).toBe(3);
 
     await resetAll(db);
     expect(await db.completions.count()).toBe(0);

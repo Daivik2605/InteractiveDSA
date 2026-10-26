@@ -6,22 +6,18 @@ import { DsaDB } from "./db";
 import { itemsForDay } from "./schedule";
 import { derivePlan, type Snapshot } from "./plan";
 import { learnKind } from "./learn";
-import { bank, buildBank, patternOf } from "./questions";
+import { bank, patternOf } from "./questions";
 import {
   BOX_INTERVAL_DAYS,
-  DRILL_OPTIONS,
   mulberry32,
   nextCard,
-  patternPool,
   patternStats,
   present,
   scoreByType,
-  selectDrill,
-  selectReviewQuestions,
   shuffle,
 } from "./quiz";
 import { buildSchedule, canAttach } from "./schedule";
-import type { CardState, CustomItem, DrillPrompt, Question, QuestionFile, QuizAnswer } from "../types/content";
+import type { CardState, CustomItem, Question, QuizAnswer } from "../types/content";
 
 const q = (id: string, week: number, over: Partial<Question> = {}): Question => ({
   id,
@@ -35,9 +31,7 @@ const q = (id: string, week: number, over: Partial<Question> = {}): Question => 
   explanation: "e",
   ...over,
 });
-const ids = (list: Question[]) => list.map((x) => x.id);
 const card = (questionId: string, box: CardState["box"], dueOn: string): CardState => ({ questionId, box, dueOn });
-const ans = (questionId: string, correct: boolean, at = "2026-11-01T10:00:00.000Z"): QuizAnswer => ({ questionId, correct, answeredAt: at, mode: "weekly" });
 
 describe("shuffle and present", () => {
   it("is a permutation and deterministic for a seed", () => {
@@ -67,85 +61,6 @@ describe("Leitner boxes", () => {
   });
   it("uses intervals 1, 3, 7, 14, 30", () => {
     expect(Object.values(BOX_INTERVAL_DAYS)).toEqual([1, 3, 7, 14, 30]);
-  });
-});
-
-describe("review selection", () => {
-  const rng = () => mulberry32(3);
-  const week = (w: number, n: number) => Array.from({ length: n }, (_, i) => q(`w${w}-q${i + 1}`, w));
-
-  it("puts due cards first, lowest box first, then never-seen, then the rest", () => {
-    const questions = [...week(1, 4)];
-    const cards = [card("w1-q1", 3, "2026-11-01"), card("w1-q2", 1, "2026-11-01"), card("w1-q3", 2, "2026-11-30")];
-    const out = selectReviewQuestions({ questions, currentWeek: 2, cards, answers: [ans("w1-q3", true)], today: "2026-11-05", rng: rng(), count: 4 });
-    expect(ids(out)).toEqual(["w1-q2", "w1-q1", "w1-q4", "w1-q3"]); // due (box 1, box 3), unseen, then not-due-but-seen
-  });
-  it("skips cards that are not due before unseen ones", () => {
-    const questions = week(1, 3);
-    const out = selectReviewQuestions({ questions, currentWeek: 2, cards: [card("w1-q1", 5, "2027-01-01")], answers: [ans("w1-q1", true)], today: "2026-11-05", rng: rng(), count: 2 });
-    expect(ids(out)).not.toContain("w1-q1");
-  });
-  it("caps questions at 5 per week so older weeks appear", () => {
-    const questions = [...week(1, 30), ...week(2, 30), ...week(3, 30)];
-    const out = selectReviewQuestions({ questions, currentWeek: 4, cards: [], answers: [], today: "2026-11-05", rng: rng() });
-    expect(out).toHaveLength(15);
-    for (const w of [1, 2, 3]) expect(out.filter((x) => x.week === w)).toHaveLength(5);
-  });
-  it("relaxes the cap only when the cap would leave the quiz short", () => {
-    const out = selectReviewQuestions({ questions: week(1, 30), currentWeek: 2, cards: [], answers: [], today: "2026-11-05", rng: rng() });
-    expect(out).toHaveLength(15);
-  });
-  it("only draws from earlier weeks", () => {
-    const out = selectReviewQuestions({ questions: [...week(1, 5), ...week(2, 5)], currentWeek: 2, cards: [], answers: [], today: "2026-11-05", rng: rng() });
-    expect(out.every((x) => x.week === 1)).toBe(true);
-  });
-  it("week 1 has no earlier weeks: wrong answers first, then random week-1 questions", () => {
-    const questions = week(1, 6);
-    const out = selectReviewQuestions({
-      questions,
-      currentWeek: 1,
-      cards: [],
-      answers: [ans("w1-q4", false), ans("w1-q2", true), ans("w1-q5", false), ans("w1-q5", true, "2026-11-02T10:00:00.000Z")],
-      today: "2026-11-05",
-      rng: rng(),
-      count: 15,
-    });
-    expect(out).toHaveLength(6);
-    expect(ids(out)[0]).toBe("w1-q4"); // latest answer wrong; q5 was later corrected
-    expect(new Set(ids(out)).size).toBe(6);
-  });
-});
-
-describe("pattern drill selection", () => {
-  const prompt = (id: string, week: number, answer: string): DrillPrompt => ({ id, week, description: id, answer, distractors: ["D1", "D2", "D3", "D4", "D5"].filter((d) => d !== answer).concat(["D6"]).slice(0, 5) });
-  const file: QuestionFile = {
-    week: 1,
-    questions: [q("w01-q01", 1, { type: "pattern", options: ["Two Pointers", "Sliding Window", "Hash Map", "Binary Search"], answer: 0 }), q("w01-q02", 1)],
-    drill: [prompt("w01-dr01", 1, "Greedy"), prompt("w02-dr01", 2, "Heap")],
-  };
-  const b = buildBank([file]);
-
-  it("pool holds every pattern name", () => {
-    expect(patternPool(b)).toEqual(expect.arrayContaining(["Two Pointers", "Greedy", "Heap", "D1", "Binary Search"]));
-  });
-  it("draws prompts and pattern questions only from weeks up to the current one", () => {
-    const items = selectDrill({ bank: b, upToWeek: 1, rng: mulberry32(1), count: 10 });
-    expect(items.map((i) => i.id).sort()).toEqual(["w01-dr01", "w01-q01"]);
-  });
-  it("gives every item six distinct options with the right answer index", () => {
-    for (let seed = 0; seed < 10; seed++) {
-      for (const item of selectDrill({ bank: b, upToWeek: 2, rng: mulberry32(seed) })) {
-        expect(item.options).toHaveLength(DRILL_OPTIONS);
-        expect(new Set(item.options).size).toBe(DRILL_OPTIONS);
-        expect(item.options[item.answer]).toBe(item.pattern);
-      }
-    }
-  });
-  it("limits to the count and never repeats", () => {
-    const many = buildBank([{ week: 1, questions: [], drill: Array.from({ length: 20 }, (_, i) => prompt(`w01-dr${String(i + 1).padStart(2, "0")}`, 1, `A${i}`)) }]);
-    const items = selectDrill({ bank: many, upToWeek: 1, rng: mulberry32(2) });
-    expect(items).toHaveLength(10);
-    expect(new Set(items.map((i) => i.id)).size).toBe(10);
   });
 });
 

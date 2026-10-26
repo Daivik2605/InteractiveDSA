@@ -120,6 +120,7 @@ export interface Question {
   complexity?: { time: string; space: string };
   visual?: { component: string; props: Record<string, unknown> }; // optional diagram
   tags?: string[];
+  theme?: number; // 1–15; set on Python-theme questions (ids "t01-q07")
 }
 
 export interface DrillPrompt {
@@ -130,8 +131,44 @@ export interface DrillPrompt {
   distractors: string[]; // 5 other pattern names
 }
 
+// ── Mock content (content/practical/pt-NN.json, content/mock-extras/debug.json) ─
+export interface PracticalLevel {
+  level: 1 | 2 | 3;
+  title: string;
+  prompt: string;
+  signature: string;
+  sampleInput: string;
+  expectedOutput: string;
+  edgeCases: string[];
+}
+
+export interface PracticalTaskContent {
+  id: string; // "pt-01"
+  title: string;
+  unlockWeek: number;
+  intro: string;
+  rules: string[];
+  levels: [PracticalLevel, PracticalLevel, PracticalLevel];
+}
+
+export interface DebugSnippet {
+  id: string; // "dbg-01"
+  title: string;
+  topic: string;
+  week: number;
+  code: string;
+  bugLine: number; // 1-based line in `code`
+  bug: string;
+  fix: string;
+  fixedCode: string;
+  expected: string;
+  actual: string;
+  explanation: string;
+}
+
 export interface QuestionFile {
   week: number;
+  theme?: number;
   questions: Question[];
   drill?: DrillPrompt[];
 }
@@ -169,6 +206,8 @@ export interface ProblemAttempt {
   minutes: number;
   note?: string;
   isRedo: boolean;
+  /** "mock": made during a mock. Never ticks a plan item and never counts toward a day's problems. */
+  source?: "mock";
 }
 
 export interface RedoTask {
@@ -229,8 +268,9 @@ export interface QuizAnswer {
   questionId: string;
   correct: boolean;
   answeredAt: string; // ISO timestamp
-  mode: "weekly" | "review" | "targeted" | "drill";
+  mode: "weekly" | "review" | "targeted" | "drill" | "mock"; // the first four only exist in data saved before v2
   ms?: number; // time to answer (drill)
+  mockNumber?: number; // set when mode is "mock", so the dashboard can skip the diagnostic mock
 }
 
 export interface CardState {
@@ -243,15 +283,43 @@ export interface RestDay {
   date: string;
 }
 
+export interface MockProgram {
+  part: 1 | 2;
+  problemId: string; // Program 1: a problem id; Program 2: a practical task id ("pt-02")
+  outcome: "alone" | "hint" | "solution" | "failed";
+  minutes: number;
+  levelsDone?: number; // Program 2 only
+  skipped?: boolean;
+}
+
+/** A finished mock. Saving it ticks the "Mock N" row. */
 export interface MockSession {
   id?: number;
   mockNumber: number;
-  date: string;                                  // YYYY-MM-DD actually taken
+  date: string; // YYYY-MM-DD actually taken
+  diagnostic: boolean; // copied from the curriculum's mock.diagnostic at save time
   mcq: { total: number; correct: number; byType: Record<string, { total: number; correct: number }> };
-  programs: { problemId: string; outcome: "alone" | "hint" | "solution" | "failed"; minutes: number; levelsDone?: number }[];
-  extra: { kind: MockExtra; done: boolean };
+  questionIds: string[];
+  programs: MockProgram[];
+  extra: { kind: MockExtra; done: boolean; snippetId?: string };
   rating: 1 | 2 | 3 | 4 | 5;
   notes?: string;
+}
+
+/** What a started mock will show, picked once so a reload does not reshuffle. Cleared when the session is saved. */
+export interface MockRun {
+  mockNumber: number; // primary key
+  startedOn: string;
+  questionIds: string[];
+  groups: { theme: number; current: number; review: number };
+  program1: { problemId: string | null; note?: string };
+  program2: { taskId: string | null } | null;
+  extra: { kind: MockExtra; snippetId?: string };
+  /** Answers given so far, in question order (true = correct). */
+  answers: boolean[];
+  phase: "A" | "B" | "C" | "D" | "end";
+  programs: MockProgram[];
+  extraDone: boolean;
 }
 
 export interface Settings {

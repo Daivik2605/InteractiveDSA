@@ -5,69 +5,12 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { z } from "zod";
+import type { z } from "zod";
+import { DebugFile, PracticalTask, QuestionFile, practicalProblems, questionFileProblems, type PracticalTaskData, type QuestionFileData } from "./content-schema";
 import { Curriculum, type CurriculumFile } from "./curriculum-schema";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contentDir = join(root, "content");
-
-const nonEmpty = z.string().min(1);
-
-// ── questions ────────────────────────────────────────────────────────────────
-
-const Question = z
-  .strictObject({
-    id: z.string().regex(/^w\d{2}-q\d{2,}$/, 'expected an id like "w01-q07"'),
-    week: z.number().int().min(1).max(13),
-    type: z.enum(["pattern", "complexity", "output", "bug", "approach", "concept"]),
-    pattern: nonEmpty,
-    difficulty: z.enum(["medium", "hard"]),
-    prompt: nonEmpty,
-    code: z.string().optional(),
-    options: z.array(nonEmpty).length(4),
-    answer: z.number().int().min(0).max(3),
-    explanation: nonEmpty,
-    complexity: z.strictObject({ time: nonEmpty, space: nonEmpty }).optional(),
-    visual: z.strictObject({ component: nonEmpty, props: z.record(z.string(), z.unknown()) }).optional(),
-    tags: z.array(nonEmpty).optional(),
-  })
-  .superRefine((q, ctx) => {
-    if (new Set(q.options).size !== q.options.length) ctx.addIssue({ code: "custom", path: ["options"], message: "options must be distinct" });
-    if (q.type === "output" && !q.code) ctx.addIssue({ code: "custom", path: ["code"], message: "output questions need code" });
-  });
-
-const DrillPrompt = z
-  .strictObject({
-    id: z.string().regex(/^w\d{2}-dr\d{2,}$/, 'expected an id like "w03-dr04"'),
-    week: z.number().int().min(1).max(13),
-    description: nonEmpty,
-    answer: nonEmpty,
-    distractors: z.array(nonEmpty).length(5),
-  })
-  .superRefine((d, ctx) => {
-    if (d.distractors.includes(d.answer)) ctx.addIssue({ code: "custom", path: ["distractors"], message: "distractors must not contain the answer" });
-    if (new Set(d.distractors).size !== d.distractors.length) ctx.addIssue({ code: "custom", path: ["distractors"], message: "distractors must be distinct" });
-  });
-
-const QuestionFile = z
-  .strictObject({
-    week: z.number().int().min(1).max(13),
-    questions: z.array(Question),
-    drill: z.array(DrillPrompt).optional(),
-  })
-  .superRefine((f, ctx) => {
-    const ids = new Set<string>();
-    f.questions.forEach((q, i) => {
-      if (q.week !== f.week) ctx.addIssue({ code: "custom", path: ["questions", i, "week"], message: `week ${q.week} in a week-${f.week} file` });
-      if (ids.has(q.id)) ctx.addIssue({ code: "custom", path: ["questions", i, "id"], message: `duplicate question id "${q.id}"` });
-      ids.add(q.id);
-    });
-    f.drill?.forEach((d, i) => {
-      if (d.week !== f.week) ctx.addIssue({ code: "custom", path: ["drill", i, "week"], message: `week ${d.week} in a week-${f.week} file` });
-      if (ids.has(d.id)) ctx.addIssue({ code: "custom", path: ["drill", i, "id"], message: `duplicate id "${d.id}"` });
-      ids.add(d.id);
-    });
-  });
 
 // ── runner ───────────────────────────────────────────────────────────────────
 
@@ -102,18 +45,35 @@ if (curriculum) {
 }
 
 const questionsDir = join(contentDir, "questions");
+const seenQuestionIds = new Map<string, string>();
 if (existsSync(questionsDir)) {
   for (const name of readdirSync(questionsDir).filter((n) => n.endsWith(".json")).sort()) {
-    const file = check(`content/questions/${name}`, join(questionsDir, name), QuestionFile) as
-      | z.infer<typeof QuestionFile>
-      | undefined;
-    const m = /^week-(\d{2})\.json$/.exec(name);
-    if (file && m && file.week !== Number(m[1])) {
-      console.error(`✗ content/questions/${name}: file says week ${file.week}`);
-      failures++;
+    const file = check(`content/questions/${name}`, join(questionsDir, name), QuestionFile) as QuestionFileData | undefined;
+    if (!file) continue;
+    const problems = questionFileProblems(name, file);
+    for (const q of file.questions) {
+      const other = seenQuestionIds.get(q.id);
+      if (other) problems.push(`${q.id} is also in ${other}`);
+      seenQuestionIds.set(q.id, name);
     }
+    for (const p of problems) console.error(`    content/questions/${name}: ${p}`);
+    if (problems.length > 0) failures++;
   }
 }
+
+const practicalDir = join(contentDir, "practical");
+if (existsSync(practicalDir)) {
+  for (const name of readdirSync(practicalDir).filter((n) => n.endsWith(".json")).sort()) {
+    const task = check(`content/practical/${name}`, join(practicalDir, name), PracticalTask) as PracticalTaskData | undefined;
+    if (!task) continue;
+    const problems = practicalProblems(name, task, curriculum);
+    for (const p of problems) console.error(`    content/practical/${name}: ${p}`);
+    if (problems.length > 0) failures++;
+  }
+}
+
+const debugFile = join(contentDir, "mock-extras", "debug.json");
+if (existsSync(debugFile)) check("content/mock-extras/debug.json", debugFile, DebugFile);
 
 // ── lessons: content/concepts/week-NN.md and content/templates/week-NN.md ───
 // Each `## ` heading must match the curriculum's list for that week, in order; every section needs a Python block

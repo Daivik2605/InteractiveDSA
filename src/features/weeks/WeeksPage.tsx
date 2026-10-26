@@ -86,7 +86,7 @@ function ProblemsTab({ plan, week }: { plan: Plan; week: number }) {
   const w = weekOf(week)!;
   const dateOf = (planDayId: string) => plan.schedule.find((d) => d.planDayId === planDayId)?.date;
   const lastOutcome = (id: string) => {
-    const tries = plan.snapshot.attempts.filter((a) => a.problemId === id);
+    const tries = plan.dayAttempts.filter((a) => a.problemId === id);
     const last = tries.sort((a, b) => (a.date === b.date ? (a.id ?? 0) - (b.id ?? 0) : a.date < b.date ? -1 : 1)).at(-1);
     return last ? OUTCOME_LABEL[last.outcome] : undefined;
   };

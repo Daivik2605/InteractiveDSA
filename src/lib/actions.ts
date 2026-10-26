@@ -21,6 +21,8 @@ import type {
   ItemCompletion,
   ProblemAttempt,
   ProblemEntry,
+  MockRun,
+  MockSession,
   QuizAnswer,
   ScheduledDay,
   WeekExtension,
@@ -38,6 +40,8 @@ export interface LogInput {
   minutes: number;
   note?: string;
   isRedo: boolean;
+  /** "mock": the attempt belongs to a mock. It never completes a plan item, whatever `completes` says. */
+  source?: "mock";
   /** Plan items this attempt completes: a problem, a slot, or both (slot filled from catch-up). */
   completes: CompletionTarget[];
 }
@@ -56,10 +60,11 @@ export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
       minutes: input.minutes,
       isRedo: input.isRedo,
       ...(input.note ? { note: input.note } : {}),
+      ...(input.source ? { source: input.source } : {}),
     };
     const attemptId = (await db.attempts.add(attempt)) as number;
 
-    for (const t of input.completes) {
+    for (const t of input.source === "mock" ? [] : input.completes) {
       if (await db.completions.get(t.itemId)) continue; // never overwrite an earlier completion
       await db.completions.put({ itemId: t.itemId, planDayId: t.planDayId, completedOn: input.date, attemptId });
     }
@@ -323,7 +328,7 @@ export async function setCustomItemDay(
  */
 export async function recordAnswer(
   db: DsaDB,
-  input: { questionId: string; correct: boolean; mode: QuizAnswer["mode"]; ms?: number },
+  input: { questionId: string; correct: boolean; mode: QuizAnswer["mode"]; ms?: number; mockNumber?: number },
   answeredAt: string,
   today: string,
 ): Promise<void> {
@@ -334,10 +339,74 @@ export async function recordAnswer(
       mode: input.mode,
       answeredAt,
       ...(input.ms !== undefined ? { ms: input.ms } : {}),
+      ...(input.mockNumber !== undefined ? { mockNumber: input.mockNumber } : {}),
     });
     if (input.mode !== "drill") {
       const prev = await db.cards.get(input.questionId);
       await db.cards.put(nextCard(input.questionId, prev, input.correct, today));
     }
   });
+}
+
+// ── mocks (Phase B) ──────────────────────────────────────────────────────────
+
+/** Saves the picks for a started mock, so a reload shows the same questions and programs. */
+export async function startMockRun(db: DsaDB, run: MockRun): Promise<void> {
+  await db.mockRuns.put(run);
+}
+
+export async function updateMockRun(db: DsaDB, mockNumber: number, patch: Partial<Omit<MockRun, "mockNumber">>): Promise<void> {
+  await db.mockRuns.update(mockNumber, patch);
+}
+
+/**
+ * Logs a Program 1 attempt. It goes through `logAttempt` so redo dates apply, but with source "mock" it never
+ * completes a plan item. An approach and code, when given, are merged into the problem's journal entry.
+ */
+export async function logMockProgram(
+  db: DsaDB,
+  input: { problemId: string; date: string; outcome: ProblemAttempt["outcome"]; minutes: number; approach?: string; code?: string },
+): Promise<number> {
+  const attemptId = await logAttempt(db, {
+    problemId: input.problemId,
+    date: input.date,
+    outcome: input.outcome,
+    minutes: input.minutes,
+    isRedo: false,
+    source: "mock",
+    completes: [],
+    ...(input.approach ? { note: input.approach } : {}),
+  });
+  if (input.approach || input.code) {
+    const prev = await db.problemEntries.get(input.problemId);
+    await db.problemEntries.put({
+      tags: [],
+      ...prev,
+      problemId: input.problemId,
+      ...(input.approach ? { approach: input.approach } : {}),
+      ...(input.code ? { code: input.code } : {}),
+      updatedOn: input.date,
+    });
+  }
+  return attemptId;
+}
+
+/**
+ * Saves a finished mock and, in the same transaction, ticks its "Mock N" row (when given) and drops the run.
+ * The tick carries no attemptId, so unticking the row never undoes a program attempt.
+ */
+export async function saveMockSession(db: DsaDB, session: MockSession, tick: CompletionTarget | null): Promise<number> {
+  return db.transaction("rw", [db.mocks, db.mockRuns, db.completions], async () => {
+    const id = (await db.mocks.add(session)) as number;
+    await db.mockRuns.delete(session.mockNumber);
+    if (tick && !(await db.completions.get(tick.itemId))) {
+      await db.completions.put({ itemId: tick.itemId, planDayId: tick.planDayId, completedOn: session.date });
+    }
+    return id;
+  });
+}
+
+/** Appends one MCQ result to a run. `modify` makes two quick answers safe. */
+export async function appendMockAnswer(db: DsaDB, mockNumber: number, correct: boolean): Promise<void> {
+  await db.mockRuns.where("mockNumber").equals(mockNumber).modify((r) => void r.answers.push(correct));
 }

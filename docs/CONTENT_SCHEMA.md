@@ -22,7 +22,7 @@ See `scripts/curriculum-schema.ts` for every validated rule (90 days, mock numbe
 export type QuestionType = "pattern" | "complexity" | "output" | "bug" | "approach" | "concept";
 
 export interface Question {
-  id: string;            // "w01-q07" — stable, never reuse
+  id: string;            // "w01-q07" (week file) or "t01-q07" (Python-theme file) — stable, never reuse
   week: number;
   type: QuestionType;
   pattern: string;       // e.g. "Sliding Window", used by the dashboard
@@ -35,9 +35,10 @@ export interface Question {
   complexity?: { time: string; space: string };
   visual?: { component: string; props: Record<string, unknown> }; // optional diagram
   tags?: string[];
+  theme?: number;        // 1–15, required on Python-theme questions (ids "t01-q07")
 }
 
-export interface QuestionFile { week: number; questions: Question[]; drill?: DrillPrompt[]; }
+export interface QuestionFile { week: number; theme?: number; questions: Question[]; drill?: DrillPrompt[]; }
 
 export interface DrillPrompt {
   id: string;            // "w03-dr04"
@@ -49,10 +50,11 @@ export interface DrillPrompt {
 ```
 
 Rules:
-- ≥ 30 questions per week; ≥ 5 of each of `pattern`, `complexity`, `output`, `bug`, `approach`.
+- `content/questions/week-NN.json`: ≥ 20 questions, `week` = NN, ids `wNN-qXX`. No minimum per type.
+- `content/questions/python-theme-NN.json` (NN = 1–15): ≥ 8 questions, `"theme": NN` on the file and on every question, ids `tNN-qXX`, `week` = the week of the theme's first mock. Question ids are unique across all files.
 - `output` questions: `code` must print exactly one line; the correct option must equal that line. Checked by `scripts/check_outputs.py`.
 - Distractors must be plausible (common mistakes), never joke answers.
-- ≥ 10 drill prompts per week.
+- `drill` prompts are optional (the drill is being replaced by mocks).
 
 ### Example
 ```json
@@ -73,6 +75,12 @@ Rules:
 
 ## Templates (`content/templates/week-NN.md`)
 Markdown, one `## Heading` per template followed by a ```python block and a one-line "Use when…" note.
+
+## Practical tasks (`content/practical/pt-NN.json`)
+`{ id, title, unlockWeek, intro, rules[], levels: [3 × { level 1–3, title, prompt, signature, sampleInput, expectedOutput, edgeCases[] }] }`. `id`, `title` and `unlockWeek` must match the entry in `curriculum.json` `practicalTasks`.
+
+## Debug snippets (`content/mock-extras/debug.json`)
+`{ snippets: [{ id "dbg-NN", title, topic, week, code (15–25 lines), bugLine (1-based, inside code), bug, fix, fixedCode, expected, actual, explanation }] }`. `actual` is what the buggy code outputs; `expected` what the fixed code outputs.
 
 ## Progress (Dexie / IndexedDB)
 ```ts

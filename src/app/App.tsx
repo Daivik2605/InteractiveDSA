@@ -1,9 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import { CalendarPage } from "../features/calendar/CalendarPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
-import { DrillPage } from "../features/drill/DrillPage";
-import { QuizHubPage, ReviewQuizPage, WeeklyQuizPage } from "../features/quiz/QuizPages";
 import { EditDayPage } from "../features/day/EditDayPage";
+import { MockPage } from "../features/mock/MockPage";
 import { ProblemDetailPage } from "../features/problems/ProblemDetailPage";
 import { ProblemsPage } from "../features/problems/ProblemsPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
@@ -20,10 +19,10 @@ export function App() {
         <Route index element={<TodayPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="weeks" element={<WeeksPage />} />
-        <Route path="quiz" element={<QuizHubPage />} />
-        <Route path="quiz/week/:week" element={<WeeklyQuizPage />} />
-        <Route path="quiz/review" element={<ReviewQuizPage />} />
-        <Route path="quiz/drill" element={<DrillPage />} />
+
+
+
+        <Route path="mock/:number" element={<MockPage />} />
         <Route path="problems" element={<ProblemsPage />} />
         <Route path="problems/:id" element={<ProblemDetailPage />} />
         <Route path="day/:planDayId" element={<EditDayPage />} />

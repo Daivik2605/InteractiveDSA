@@ -37,16 +37,16 @@ describe("app shell", () => {
   it("shows the seven nav links and the calendar sidebar on every page", async () => {
     await renderApp({ today: "2026-10-27" });
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Weeks", "Quizzes", "Problems", "Dashboard", "Settings"]);
-    expect(NAV_ITEMS).toHaveLength(7);
+    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Weeks", "Problems", "Dashboard", "Settings"]);
+    expect(NAV_ITEMS).toHaveLength(6);
     expect(sidebar().getByText("Week 1 · Day 2")).toBeInTheDocument();
   });
 
   it("keeps the sidebar on other pages and marks the active link", async () => {
     const { user } = await renderApp({ today: "2026-10-27" });
-    for (const name of ["Calendar", "Weeks", "Quizzes", "Problems", "Dashboard", "Settings"]) {
+    for (const name of ["Calendar", "Weeks", "Problems", "Dashboard", "Settings"]) {
       await user.click(screen.getByRole("link", { name }));
-      expect(screen.getByRole("heading", { level: 1, name: name === "Quizzes" ? "Quizzes & drills" : name })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
       expect(screen.getByRole("link", { name })).toHaveAttribute("aria-current", "page");
       expect(sidebar().getByText("Week 1 · Day 2")).toBeInTheDocument();
     }
@@ -306,14 +306,6 @@ describe("Today page", () => {
   it("before the start date: countdown", async () => {
     await renderApp({ today: "2026-10-20" });
     expect(screen.getByText("6 days")).toBeInTheDocument();
-  });
-
-  it("before the start date: links to the quiz hub, where Week 1's quiz can already be started", async () => {
-    const { user } = await renderApp({ today: "2026-10-20" });
-    await user.click(within(screen.getByRole("main")).getByRole("link", { name: "Quizzes & drills" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Quizzes & drills" })).toBeInTheDocument();
-    await user.click(await within(screen.getByRole("main")).findByRole("link", { name: /Start.*Week 1 quiz/ }));
-    expect(await screen.findByRole("region", { name: "Question" })).toBeInTheDocument();
   });
 
   it("after the plan finishes", async () => {

@@ -31,7 +31,9 @@ export function QuizRunner({
   onAnswer,
   onFinish,
   onRetry,
-  backTo = "/quiz",
+  backTo = "/",
+  startIndex = 0,
+  hideResults = false,
 }: {
   title: string;
   questions: Question[];
@@ -39,9 +41,13 @@ export function QuizRunner({
   onFinish: (results: QuizResult[]) => void | Promise<void>;
   onRetry: (missed: Question[]) => void;
   backTo?: string;
+  /** Resume: skip the first `startIndex` questions (they were answered in an earlier visit). */
+  startIndex?: number;
+  /** Mocks show their own end screen: the last "Next" calls `onFinish` and renders nothing more. */
+  hideResults?: boolean;
 }) {
   const presented = useMemo(() => questions.map((q) => present(q, Math.random)), [questions]);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(startIndex);
   const [picked, setPicked] = useState<number | null>(null);
   const [results, setResults] = useState<QuizResult[]>([]);
   const [done, setDone] = useState(false);
@@ -89,6 +95,7 @@ export function QuizRunner({
   });
 
   if (presented.length === 0) return <p className="mt-4 text-slate-500">There are no questions here yet.</p>;
+  if (done && hideResults) return null;
   if (done) return <Results title={title} results={results} onRetry={onRetry} backTo={backTo} />;
   const q = current!.question;
   const wasCorrect = picked !== null && picked === current!.answer;
@@ -137,7 +144,7 @@ export function QuizRunner({
             </p>
           )}
           <button type="button" onClick={next} className="mt-3 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white">
-            {index + 1 < presented.length ? "Next" : "See results"} <span className="text-xs opacity-80">(Enter)</span>
+            {index + 1 < presented.length ? "Next" : hideResults ? "Continue" : "See results"} <span className="text-xs opacity-80">(Enter)</span>
           </button>
         </div>
       )}
@@ -181,7 +188,7 @@ function Results({ title, results, onRetry, backTo }: { title: string; results: 
             Retry missed ({missed.length})
           </button>
         )}
-        <Link to={backTo} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700">Back to quizzes</Link>
+        <Link to={backTo} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700">Back to Today</Link>
       </div>
     </section>
   );
