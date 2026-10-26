@@ -7,14 +7,18 @@ import type {
   CardState,
   Curriculum,
   DebugSnippet,
+  MockAnswer,
   MockExtra,
+  MockRetake,
   MockRun,
+  MockSection,
   MockSession,
   MockSlot,
   PracticalTask,
   Problem,
   ProblemAttempt,
   Question,
+  QuestionType,
   QuizAnswer,
 } from "../types/content";
 
@@ -246,6 +250,8 @@ export interface MockInputs {
   answers: readonly QuizAnswer[];
   attempts: readonly ProblemAttempt[];
   sessions: readonly MockSession[];
+  /** Practical task ids that have content; others are never picked. Leave out to allow every curriculum task. */
+  practicalIds?: ReadonlySet<string>;
   today: string;
   rng: Rng;
 }
@@ -258,7 +264,7 @@ export function buildMockRun(number: number, inputs: MockInputs): MockRun | unde
   const qs = selectMockQuestions({ questions: inputs.questions, mock: slot, week, cards: inputs.cards, answers: inputs.answers, today: inputs.today, rng: inputs.rng });
   const p1 = pickProgram1({ curriculum: inputs.curriculum, week, attempted: attemptedIds(inputs.attempts), rng: inputs.rng });
   const usedTasks = new Set(inputs.sessions.flatMap((s) => s.programs.filter((p) => p.part === 2).map((p) => p.problemId)));
-  const taskId = slot.program2 ? pickProgram2({ tasks: inputs.curriculum.practicalTasks, week, usedTaskIds: usedTasks, rng: inputs.rng }) : null;
+  const taskId = slot.program2 ? pickProgram2({ tasks: inputs.curriculum.practicalTasks.filter((t) => !inputs.practicalIds || inputs.practicalIds.has(t.id)), week, usedTaskIds: usedTasks, rng: inputs.rng }) : null;
   const usedSnippets = new Set(inputs.sessions.map((s) => s.extra.snippetId).filter((x): x is string => !!x));
   const snippet = slot.extra === "debug" ? pickDebugSnippet(inputs.debugSnippets, usedSnippets, inputs.rng) : undefined;
   return {
@@ -274,4 +280,150 @@ export function buildMockRun(number: number, inputs: MockInputs): MockRun | unde
     programs: [],
     extraDone: false,
   };
+}
+
+// ── results: breakdown and answer key ────────────────────────────────────────
+
+export const SECTION_LABEL: Record<MockSection, string> = {
+  theme: "Python language",
+  current: "This and last week",
+  review: "Spaced review",
+};
+const SECTION_ORDER: MockSection[] = ["theme", "current", "review"];
+const TYPE_ORDER: QuestionType[] = ["pattern", "complexity", "output", "bug", "approach", "concept"];
+
+/** Which section the i-th question of a mock belongs to; questions are asked theme, then current, then review. */
+export function sectionOfIndex(i: number, groups: { theme: number; current: number; review: number }): MockSection {
+  return i < groups.theme ? "theme" : i < groups.theme + groups.current ? "current" : "review";
+}
+
+export interface Bucket {
+  key: string;
+  total: number;
+  correct: number;
+}
+
+export interface Breakdown {
+  total: number;
+  correct: number;
+  percent: number;
+  byType: Bucket[];
+  bySection: Bucket[];
+}
+
+/** Score, and the same score split by question type and by section. Buckets with no questions are left out. */
+export function breakdown(answers: readonly MockAnswer[], typeOf: (questionId: string) => QuestionType | undefined): Breakdown {
+  const tally = <K extends string>(keyOf: (a: MockAnswer) => K | undefined, order: readonly K[]): Bucket[] =>
+    order
+      .map((key) => {
+        const mine = answers.filter((a) => keyOf(a) === key);
+        return { key, total: mine.length, correct: mine.filter((a) => a.correct).length };
+      })
+      .filter((b) => b.total > 0);
+  const correct = answers.filter((a) => a.correct).length;
+  return {
+    total: answers.length,
+    correct,
+    percent: answers.length === 0 ? 0 : Math.round((correct / answers.length) * 100),
+    byType: tally((a) => typeOf(a.questionId), TYPE_ORDER),
+    bySection: tally((a) => a.section, SECTION_ORDER),
+  };
+}
+
+/** A MockSession.mcq summary from answers, so sessions and retakes store the same shape. */
+export function mcqOfAnswers(answers: readonly MockAnswer[], typeOf: (questionId: string) => QuestionType | undefined): MockSession["mcq"] {
+  const b = breakdown(answers, typeOf);
+  return { total: b.total, correct: b.correct, byType: Object.fromEntries(b.byType.map((t) => [t.key, { total: t.total, correct: t.correct }])) };
+}
+
+export type KeyFilter = "all" | "wrong" | "right";
+
+export function filterKey<T extends { correct: boolean }>(items: readonly T[], filter: KeyFilter): T[] {
+  return filter === "all" ? [...items] : items.filter((a) => (filter === "right" ? a.correct : !a.correct));
+}
+
+// ── the Mocks page: one row per mock ─────────────────────────────────────────
+
+/** Fewest this-week questions a mock needs before it can start. */
+export const MOCK_MIN_WEEK_QUESTIONS = 6;
+
+export type MockStatus = "not-taken" | "in-progress" | "done";
+/** "taken" once done; otherwise how the scheduled date compares with today. */
+export type MockDateTag = "taken" | "today" | "overdue" | "upcoming";
+
+export interface MockListRow {
+  number: number;
+  week: number;
+  planDay: number; // 1–90
+  planDayId: string; // where the Mock row is now (after moves and extension days)
+  date: string | null;
+  dateTag: MockDateTag;
+  themeId: number;
+  themeTitle: string;
+  extra: MockExtra;
+  program2: boolean;
+  diagnostic: boolean;
+  final: boolean;
+  status: MockStatus;
+  score: { correct: number; total: number } | null;
+  retakes: number;
+  ready: boolean;
+  /** Why Start is disabled; shown with "Content not ready". */
+  notReadyReason: string | null;
+}
+
+/** Whether the question bank can fill a mock's Python-theme and this-week parts. */
+export function mockContentStatus(slot: Pick<MockSlot, "pythonTheme">, week: number, questions: readonly Question[]): { ready: boolean; reason: string | null } {
+  const themeCount = questions.filter((q) => q.theme === slot.pythonTheme).length;
+  if (themeCount < MOCK_THEME_COUNT) return { ready: false, reason: `Python theme ${slot.pythonTheme} questions are not written yet` };
+  const weekCount = questions.filter((q) => q.theme === undefined && q.week === week).length;
+  if (weekCount < MOCK_MIN_WEEK_QUESTIONS) return { ready: false, reason: `Week ${week} questions are not written yet` };
+  return { ready: true, reason: null };
+}
+
+export function buildMockRows(args: {
+  curriculum: Curriculum;
+  days: readonly { day: { planDayId: string; date: string }; items: readonly { itemId: string }[] }[];
+  today: string;
+  sessions: readonly MockSession[];
+  runs: readonly Pick<MockRun, "mockNumber">[];
+  retakes: readonly Pick<MockRetake, "mockNumber">[];
+  questions: readonly Question[];
+}): MockListRow[] {
+  const { curriculum, days, today, sessions, runs, retakes, questions } = args;
+  const rows: MockListRow[] = [];
+  for (const w of curriculum.weeks) {
+    for (const d of w.days) {
+      const slot = d.mock;
+      if (!slot) continue;
+      const homeDayId = `w${String(w.week).padStart(2, "0")}-d${d.day}`;
+      const itemId = `${homeDayId}:learn`;
+      const scheduled = days.find((x) => x.items.some((i) => i.itemId === itemId));
+      const session = [...sessions].reverse().find((s) => s.mockNumber === slot.number);
+      const status: MockStatus = session ? "done" : runs.some((r) => r.mockNumber === slot.number) ? "in-progress" : "not-taken";
+      const date = scheduled?.day.date ?? null;
+      const dateTag: MockDateTag = session ? "taken" : date === today ? "today" : date !== null && date < today ? "overdue" : "upcoming";
+      const content = mockContentStatus(slot, w.week, questions);
+      rows.push({
+        number: slot.number,
+        week: w.week,
+        planDay: d.planDay,
+        planDayId: scheduled?.day.planDayId ?? homeDayId,
+        date,
+        dateTag,
+        themeId: slot.pythonTheme,
+        themeTitle: curriculum.mockSpec.pythonThemes.find((t) => t.id === slot.pythonTheme)?.title ?? `Theme ${slot.pythonTheme}`,
+        extra: slot.extra,
+        program2: slot.program2,
+        diagnostic: slot.diagnostic,
+        final: slot.final,
+        status,
+        score: session ? { correct: session.mcq.correct, total: session.mcq.total } : null,
+        retakes: retakes.filter((r) => r.mockNumber === slot.number).length,
+        ready: content.ready,
+        notReadyReason: content.reason,
+      });
+    }
+  }
+  return rows.sort((a, b) => a.number - b.number);
 }

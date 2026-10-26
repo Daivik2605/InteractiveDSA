@@ -37,14 +37,14 @@ describe("app shell", () => {
   it("shows the seven nav links and the calendar sidebar on every page", async () => {
     await renderApp({ today: "2026-10-27" });
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Weeks", "Problems", "Dashboard", "Settings"]);
-    expect(NAV_ITEMS).toHaveLength(6);
+    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Weeks", "Problems", "Mocks", "Dashboard", "Settings"]);
+    expect(NAV_ITEMS).toHaveLength(7);
     expect(sidebar().getByText("Week 1 · Day 2")).toBeInTheDocument();
   });
 
   it("keeps the sidebar on other pages and marks the active link", async () => {
     const { user } = await renderApp({ today: "2026-10-27" });
-    for (const name of ["Calendar", "Weeks", "Problems", "Dashboard", "Settings"]) {
+    for (const name of ["Calendar", "Weeks", "Problems", "Mocks", "Dashboard", "Settings"]) {
       await user.click(screen.getByRole("link", { name }));
       expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
       expect(screen.getByRole("link", { name })).toHaveAttribute("aria-current", "page");
@@ -283,10 +283,11 @@ describe("Today page", () => {
     expect(await db.attempts.toArray()).toMatchObject([{ problemId: "w01-d7-fb", outcome: "hint", isRedo: false }]);
     expect(await db.completions.count()).toBe(0); // nothing ticked
     expect((await db.redos.toArray()).map((r) => r.problemId)).toEqual(["w01-d7-fb"]); // normal redo scheduling still runs
+    // the Dexie write finishes before the live query re-renders, so wait for the display
+    expect(await within(screen.getByRole("region", { name: "Try this instead" })).findByText(/1 attempt logged/)).toBeInTheDocument();
     expect(checklist().getAllByRole("checkbox")).toHaveLength(1);
     expect(checklist().getByRole("checkbox", { name: "Mock 4" })).not.toBeChecked();
     expect(within(screen.getByRole("region", { name: "Catch-up queue" })).getAllByRole("checkbox")).toHaveLength(catchUpBefore);
-    expect(within(screen.getByRole("region", { name: "Try this instead" })).getByText(/1 attempt logged/)).toBeInTheDocument();
   });
 
   it("fallback: hidden while redos are due", async () => {

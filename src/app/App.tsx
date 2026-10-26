@@ -3,6 +3,7 @@ import { CalendarPage } from "../features/calendar/CalendarPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { EditDayPage } from "../features/day/EditDayPage";
 import { MockPage } from "../features/mock/MockPage";
+import { MocksPage } from "../features/mock/MocksPage";
 import { ProblemDetailPage } from "../features/problems/ProblemDetailPage";
 import { ProblemsPage } from "../features/problems/ProblemsPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
@@ -22,6 +23,7 @@ export function App() {
 
 
 
+        <Route path="mocks" element={<MocksPage />} />
         <Route path="mock/:number" element={<MockPage />} />
         <Route path="problems" element={<ProblemsPage />} />
         <Route path="problems/:id" element={<ProblemDetailPage />} />

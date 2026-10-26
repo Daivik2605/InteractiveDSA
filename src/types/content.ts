@@ -289,7 +289,31 @@ export interface MockProgram {
   outcome: "alone" | "hint" | "solution" | "failed";
   minutes: number;
   levelsDone?: number; // Program 2 only
+  notes?: string; // Program 2 only: what you got done
   skipped?: boolean;
+}
+
+export type MockSection = "theme" | "current" | "review";
+
+/** One MCQ answer inside a mock attempt. `picked` is an index into the question's own (unshuffled) options; -1 = not recorded. */
+export interface MockAnswer {
+  questionId: string;
+  picked: number;
+  correct: boolean;
+  section?: MockSection;
+}
+
+/**
+ * A repeat of a mock's MCQs only. It lives in its own table and never touches the official session, the Mock row's
+ * tick, Leitner cards, quizAnswers or weak spots.
+ */
+export interface MockRetake {
+  id?: number;
+  mockNumber: number;
+  retakeNumber: number; // 1 for the first retake
+  date: string;
+  mcq: { total: number; correct: number; byType: Record<string, { total: number; correct: number }> };
+  answers: MockAnswer[];
 }
 
 /** A finished mock. Saving it ticks the "Mock N" row. */
@@ -300,6 +324,9 @@ export interface MockSession {
   diagnostic: boolean; // copied from the curriculum's mock.diagnostic at save time
   mcq: { total: number; correct: number; byType: Record<string, { total: number; correct: number }> };
   questionIds: string[];
+  /** The first attempt's answers, in the order asked. Absent on sessions saved before answers were recorded. */
+  answers?: MockAnswer[];
+  groups?: { theme: number; current: number; review: number };
   programs: MockProgram[];
   extra: { kind: MockExtra; done: boolean; snippetId?: string };
   rating: 1 | 2 | 3 | 4 | 5;
@@ -313,10 +340,13 @@ export interface MockRun {
   questionIds: string[];
   groups: { theme: number; current: number; review: number };
   program1: { problemId: string | null; note?: string };
-  program2: { taskId: string | null } | null;
+  /** Program 2 on even mocks. `taskId` is null when no practical task is unlocked yet. `levelsDone` is saved as you go. */
+  program2: { taskId: string | null; levelsDone?: number } | null;
   extra: { kind: MockExtra; snippetId?: string };
   /** Answers given so far, in question order (true = correct). */
   answers: boolean[];
+  /** Option picked per answer (index into the question's own options). Absent on runs started before this was recorded. */
+  picks?: number[];
   phase: "A" | "B" | "C" | "D" | "end";
   programs: MockProgram[];
   extraDone: boolean;

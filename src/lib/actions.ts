@@ -21,6 +21,7 @@ import type {
   ItemCompletion,
   ProblemAttempt,
   ProblemEntry,
+  MockRetake,
   MockRun,
   MockSession,
   QuizAnswer,
@@ -406,7 +407,26 @@ export async function saveMockSession(db: DsaDB, session: MockSession, tick: Com
   });
 }
 
-/** Appends one MCQ result to a run. `modify` makes two quick answers safe. */
-export async function appendMockAnswer(db: DsaDB, mockNumber: number, correct: boolean): Promise<void> {
-  await db.mockRuns.where("mockNumber").equals(mockNumber).modify((r) => void r.answers.push(correct));
+/** Appends one MCQ result (and the option picked) to a run. `modify` makes two quick answers safe. */
+export async function appendMockAnswer(db: DsaDB, mockNumber: number, correct: boolean, picked: number): Promise<void> {
+  await db.mockRuns.where("mockNumber").equals(mockNumber).modify((r) => {
+    r.picks = (r.picks ?? r.answers.map(() => -1)).concat(picked);
+    r.answers.push(correct);
+  });
+}
+
+/**
+ * Saves an MCQ-only retake. Deliberately touches nothing but `mockRetakes`: not the session, the Mock row's tick,
+ * Leitner cards or quizAnswers, so the official score and spaced review stay as the first attempt left them.
+ */
+export async function saveMockRetake(db: DsaDB, retake: Omit<MockRetake, "id" | "retakeNumber">): Promise<number> {
+  return db.transaction("rw", db.mockRetakes, async () => {
+    const retakeNumber = (await db.mockRetakes.where("mockNumber").equals(retake.mockNumber).count()) + 1;
+    return (await db.mockRetakes.add({ ...retake, retakeNumber })) as number;
+  });
+}
+
+/** Throws away an unfinished mock attempt. Answers and the Program 1 attempt already logged stay in your history. */
+export async function discardMockRun(db: DsaDB, mockNumber: number): Promise<void> {
+  await db.mockRuns.delete(mockNumber);
 }

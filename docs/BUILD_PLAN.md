@@ -30,19 +30,26 @@ Check the result in the browser before moving on. You (not Claude Code) commit a
 **Done when:** a sample quiz runs end to end and answers are saved; review quiz picks due cards.
 
 ### Migration v2 — 90-day Python curriculum (docs/MIGRATION_V2.md)
-**Status:** in progress (Phase A done; B–D not started). Do this before the remaining phases below: Phases 4 and later are superseded by Migration v2 Phases B–D.
+**Status:** in progress (Phase A done; B Stage 1 done; C not started; D in progress — Week 1 content written). Do this before the remaining phases below: Phases 4 and later are superseded by Migration v2 Phases B–D.
 
 - **A — Load the v2 curriculum.** **Status:** done. v2 types, `scripts/curriculum-schema.ts` validator (+ test), 90-day / 6-day-Week-13 schedule, item model (fallback is not an item, wrap-up manual item, no day-7 slots), `learnKind` from `mock`/`kind`, "Mock N" row, day kind / timed hint / coding note on Today, old-topic problems hidden from topic labels, platform badges. Quizzes/drill still work but no longer tick plan items.
-- **B — Mock engine.** **Status:** not started.
+- **B — Mock engine.** **Status:** Stage 1 done (the old weekly quiz, review quiz and drill pages were deleted first; `QuizRunner` and the Leitner helpers in `lib/quiz.ts` are reused).
+  - `lib/mock.ts` (pure, tested): question picker (7 theme, then this and last week, then due review cards, backfilled so Mock 1 still gets 18), Program 1 picker (pool tiers with a clear message when the pool is used up; Mocks 1–13 never run dry), Program 2 picker (only tasks with content), `buildMockRun`, result breakdown by type and section, Mocks-page rows.
+  - Route `/mock/N`: intro → A MCQs → B Program 1 → C Program 2 (even mocks; 3 levels one at a time, progress saved per level; Week 1 has no unlocked task, so it shows an Interview Preparation Kit link and logs `ipk-free`) → D extra → end screen → save. Every part has Skip and an advisory timer. Progress is stored in `mockRuns`, so a reload resumes at the same question or part; "Discard attempt" clears it.
+  - Saving writes the `MockSession` (with each answer, the option picked and its section) and ticks the Mock row in one transaction. Mock attempts carry `source: "mock"`: they never tick or count toward a day's items (`plan.dayAttempts` excludes them) but redo scheduling applies. `MockSession.diagnostic` is copied from the curriculum at save time.
+  - Result screen: score and percentage, tables with bars by type and by section, programs and extra, every question in an answer key (All / Wrong only / Right only), and "Retake MCQs". Retakes are stored only in `mockRetakes` (Dexie v4): they never change the official score, the tick, Leitner cards, `quizAnswers`, weak spots or the dashboard trend. Attempts are listed with score and date; each shows its own answer key.
+  - Mocks page `#/mocks` (nav, under Problems): all 45 mocks by week with real dates (follow the start date and extension days), Today / Overdue / Upcoming, status and first-attempt score with retake count, Start / Do it earlier / Resume / View result. A mock can be done before its day (built from its own week; it ticks its own plan day). "Content not ready" disables Start until its theme and week questions exist.
+  - Export/import is schema version 4 (adds `mockRuns`, `mockRetakes`); v1–v3 exports still import.
+  - Not done: weak-spot ranking and the dashboard trend (Phase C) must read only `quizAnswers` with `mode: "mock"` and skip mocks whose session has `diagnostic: true`; a retake is not saved until finished (reloading mid-retake loses it).
 - **C — Weeks page, dashboard, export.** **Status:** not started.
-- **D — Content (a week at a time).** **Status:** not started.
+- **D — Content (a week at a time).** **Status:** in progress. Written and validated: `week-01.json` (25 MCQs), `python-theme-01`–`04` (10 each), `practical/pt-01`–`03`, `mock-extras/debug.json` (8 snippets). Mocks 1–4 can start; Mock 5 onward shows "Content not ready" until its theme file and week file exist. Next: Week 2 (concepts, templates, 25 MCQs), themes 5–7, then Week 3 with themes 8–11 and pt-04/pt-05. Validator rules: ≥20 questions per week file, ≥8 per theme file, ids `wNN-qXX` / `tNN-qXX`, `theme` on theme files and questions, practical and debug files checked (`scripts/content-schema.ts`).
 
 ### Phase 3.5 — Supabase sync
 **Status:** paused until the v2 migration is done (3.5.1 done; 3.5.2–3.5.6 not started). `docs/DATA_CONTRACT.md`, `supabase/dsa_schema.sql` and SPEC 3.15 still describe the 91-day plan and the old quizzes, so they must be reworked after Phase B.
 > Read CLAUDE.md, ../CLAUDE.md, ../docs/ARCHITECTURE.md, ../docs/CONTRACT.md and docs/DATA_CONTRACT.md, then do the next unfinished sub-phase. Stop after each and list what to check by hand. Each ends with `npm test`, `npm run typecheck`, `npm run validate` and `python3 scripts/check_outputs.py` passing. With no `.env.local` the app must behave exactly as before.
 
 - **3.5.1 — Schema + docs.** **Status:** done. `supabase/dsa_schema.sql`, `docs/DATA_CONTRACT.md`, SPEC 3.15, CLAUDE.md, README, `.env.example`, DECISIONS lines. No app code.
-- **3.5.2 — Foundations.** **Status:** not started. Spike test first: a Dexie hook writes `outbox` in the same transaction (else explicit outbox writes). Dexie v3 (`outbox`, `syncMeta`), hooks on every data table (opt-out per transaction for import/reset/restore), `saveExtensions` diff instead of `clear()`, optional `createdOn` on new redo rows, `ms` recorded on weekly/review/targeted answers, Supabase client (null without env), sign-in UI.
+- **3.5.2 — Foundations.** **Status:** not started. Spike test first: a Dexie hook writes `outbox` in the same transaction (else explicit outbox writes). Dexie v5 (`outbox`, `syncMeta`; the DB is at v4 after the mock engine), hooks on every data table (opt-out per transaction for import/reset/restore), `saveExtensions` diff instead of `clear()`, optional `createdOn` on new redo rows, `ms` recorded on weekly/review/targeted answers, Supabase client (null without env), sign-in UI.
 - **3.5.3 — Push sync.** **Status:** not started. Coalescing outbox push with retry/backoff, first-sync guard ("needs choice"), backfill, status UI and sync dot. Test: a fresh install signing in to a populated cloud pushes nothing and its default settings never overwrite the cloud's.
 - **3.5.4 — Summary + views.** **Status:** not started. `src/lib/summary.ts`, hashed upsert of `dsa_daily_summary` and `dsa_current_state`, views live. Then run `../supabase/checks.sql`: queries 1–8 must return zero rows.
 - **3.5.5 — Restore, import, reset.** **Status:** not started. Restore from cloud (round-trips exactly), "Replace cloud with this device", import re-push, reset with optional cloud soft-delete.
@@ -53,7 +60,7 @@ Check the result in the browser before moving on. You (not Claude Code) commit a
 > Read ../docs/prompts/07-reset-hook.md and follow it.
 
 What it adds: when a TaskFlow nap/reset is running and I **start work here**, the reset ends at that moment and DSA shows a popup — *"Reset ended at 4:12 pm — nap 1h 05m, reset 42m. Recorded."* — with an "Open TaskFlow" link.
-- **Start moments** (confirm in the plan step): starting a problem attempt, starting any quiz mode (weekly / review / targeted), starting a study session/log, starting mock interview mode (once Phase 6 exists). Opening the app, browsing lessons and settings are **not** starts.
+- **Start moments** (confirm in the plan step): starting a problem attempt, starting a mock (or a mock retake), starting a study session/log. Opening the app, browsing lessons and settings are **not** starts.
 - `endTaskflowReset(detail)` calls `supabase.rpc('taskflow_end_reset', { p_app: 'dsa', p_detail, p_at })` fire-and-forget (≈3 s timeout, never blocks or throws into the UI, only when signed in).
 - **Offline:** queue `{detail, at}` locally (a tiny Dexie table or `syncMeta` entry, excluded from export/import/reset like `outbox`) and send on reconnect with the original start time; popup shows on sync.
 - With no `.env.local`, no TaskFlow, or the function missing, the app behaves exactly as before.
@@ -62,7 +69,7 @@ What it adds: when a TaskFlow nap/reset is running and I **start work here**, th
 **Done when:** with a reset running in TaskFlow, starting a quiz shows the popup and TaskFlow shows the reset ended then; with none running nothing visible happens; offline start → popup after reconnect with the right time. `npm test`, `npm run typecheck`, `npm run validate` and `check_outputs.py` pass.
 
 ### Phase 4 — Week 1 content
-**Status:** superseded by Migration v2 Phase D
+**Status:** superseded by Migration v2 Phase D (the strict 30+ per week / 5 per type / 10 drill rules were relaxed to 20+ per week and 8+ per theme)
 > Do Phase 4: write content/questions/week-01.json (35 MCQs following the CONTENT_SCHEMA rules, plus 10 drill prompts) and content/templates/week-01.md for Week 1 in docs/CURRICULUM.md. Interview-level, Python 3.11. Run validate and check_outputs.py and fix anything failing. Turn on strict question-count rules in validate-content (30+ per week, ≥5 per type, ≥10 drill prompts).
 
 **Done when:** both scripts pass. **You:** take the quiz and flag any question that feels wrong or too easy.
@@ -74,7 +81,7 @@ What it adds: when a TaskFlow nap/reset is running and I **start work here**, th
 **Done when:** Week 1 lesson page is complete and works on a phone-width screen.
 
 ### Phase 6 — Dashboard + mock mode
-**Status:** not started
+**Status:** superseded: mock mode is Migration v2 Phase B (done); the dashboard is Phase C
 > Do Phase 6: Dashboard (SPEC 3.9) with Recharts and Mock interview mode (3.10).
 
 ### Phase 7 — Deploy

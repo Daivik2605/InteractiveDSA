@@ -33,7 +33,7 @@ describe("db", () => {
     await seed(db);
     await saveSettings(db, { theme: "dark" }, "2026-10-26");
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(3);
+    expect(snapshot.schemaVersion).toBe(4);
 
     await resetAll(db);
     expect(await db.completions.count()).toBe(0);
@@ -132,5 +132,26 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
     const full = await exportAll(db);
     const { dayLogs: _omit, ...partial } = full;
     await expect(importAll(db, partial)).rejects.toThrow(/dayLogs/);
+  });
+
+  it("exports and re-imports mock sessions, runs and retakes", async () => {
+    const mcq = { total: 1, correct: 1, byType: { bug: { total: 1, correct: 1 } } };
+    const answers = [{ questionId: "w01-q05", picked: 0, correct: true, section: "current" as const }];
+    await db.mocks.add({ mockNumber: 1, date: "2026-10-26", diagnostic: true, mcq, questionIds: ["w01-q05"], answers, programs: [], extra: { kind: "debug", done: true }, rating: 4 });
+    await db.mockRetakes.add({ mockNumber: 1, retakeNumber: 1, date: "2026-10-27", mcq, answers });
+    const snapshot = await exportAll(db);
+    expect(snapshot.mockRetakes).toHaveLength(1);
+    await resetAll(db);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect(await db.mockRetakes.toArray()).toMatchObject([{ mockNumber: 1, retakeNumber: 1 }]);
+    expect(await exportAll(db)).toEqual(snapshot);
+  });
+
+  it("still imports a v3 export that has no mockRetakes table", async () => {
+    await db.mockRetakes.add({ mockNumber: 9, retakeNumber: 1, date: "2026-10-27", mcq: { total: 0, correct: 0, byType: {} }, answers: [] });
+    const { mockRetakes: _omit, ...v3 } = await exportAll(db);
+    await importAll(db, { ...v3, schemaVersion: 3 });
+    expect(await db.mockRetakes.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v3, schemaVersion: 4 })).rejects.toThrow(/mockRetakes/);
   });
 });

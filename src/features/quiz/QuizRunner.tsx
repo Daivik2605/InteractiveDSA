@@ -37,7 +37,8 @@ export function QuizRunner({
 }: {
   title: string;
   questions: Question[];
-  onAnswer: (question: Question, correct: boolean) => void | Promise<void>;
+  /** `picked` is the index into `question.options` (the unshuffled order). */
+  onAnswer: (question: Question, correct: boolean, picked: number) => void | Promise<void>;
   onFinish: (results: QuizResult[]) => void | Promise<void>;
   onRetry: (missed: Question[]) => void;
   backTo?: string;
@@ -60,7 +61,7 @@ export function QuizRunner({
     const correct = i === current.answer;
     setPicked(i);
     setResults((r) => [...r, { question: current.question, correct }]);
-    void onAnswer(current.question, correct);
+    void onAnswer(current.question, correct, current.question.options.indexOf(current.options[i]!));
   }
 
   function next() {
