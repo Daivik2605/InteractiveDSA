@@ -387,6 +387,66 @@ describe("Program 2", () => {
   });
 });
 
+describe("mock timer", () => {
+  it("pauses, resumes and adds 10 minutes repeatedly, all saved in the run", async () => {
+    const db = new DsaDB(`mock-${n++}`);
+    dbs.push(db);
+    const user = userEvent.setup();
+    await seedRun(db, 1, "2026-10-26", { phase: "D" });
+    mount(db, "2026-10-26", "/mock/1");
+    await screen.findByRole("region", { name: "Part D" });
+    await waitFor(async () => expect((await db.mockRuns.get(1))?.timer?.phase).toBe("D"));
+    const timer = screen.getByLabelText("Timer");
+    expect(timer).toHaveTextContent("of 10:00");
+
+    await user.click(screen.getByRole("button", { name: "+10 min" }));
+    await user.click(screen.getByRole("button", { name: "+10 min" }));
+    await waitFor(() => expect(screen.getByLabelText("Timer")).toHaveTextContent("of 30:00"));
+    expect(screen.getByLabelText("Timer")).toHaveTextContent("10 + 20 added");
+    expect((await db.mockRuns.get(1))?.timer?.addedMinutes).toBe(20);
+
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    expect(await screen.findByText("Paused")).toBeInTheDocument();
+    expect((await db.mockRuns.get(1))?.timer?.runningSince).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Resume" }));
+    await waitFor(() => expect(screen.queryByText("Paused")).not.toBeInTheDocument());
+    expect((await db.mockRuns.get(1))?.timer?.runningSince).not.toBeNull();
+    // advisory: the part still has its Done button
+    expect(screen.getByRole("button", { name: "Done" })).toBeEnabled();
+  });
+
+  it("stays paused with its added time after leaving and coming back, and does not restart", async () => {
+    const db = new DsaDB(`mock-${n++}`);
+    dbs.push(db);
+    await seedRun(db, 1, "2026-10-26", { phase: "D", timer: { phase: "D", elapsedSec: 125, runningSince: null, addedMinutes: 10 } });
+    mount(db, "2026-10-26", "/mock/1");
+    await screen.findByRole("region", { name: "Part D" });
+    const timer = screen.getByLabelText("Timer");
+    expect(timer).toHaveTextContent("2:05 of 20:00");
+    expect(screen.getByText("Paused")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Resume" })).toBeInTheDocument();
+    expect(await db.mockRuns.get(1)).toMatchObject({ timer: { elapsedSec: 125, runningSince: null, addedMinutes: 10 } });
+  });
+
+  it("a running timer carries on from the wall clock after a reload", async () => {
+    const db = new DsaDB(`mock-${n++}`);
+    dbs.push(db);
+    await seedRun(db, 1, "2026-10-26", { phase: "D", timer: { phase: "D", elapsedSec: 0, runningSince: Date.now() - 90_000, addedMinutes: 0 } });
+    mount(db, "2026-10-26", "/mock/1");
+    await screen.findByRole("region", { name: "Part D" });
+    expect(screen.getByLabelText("Timer")).toHaveTextContent(/1:(29|30|31|32) of 10:00/);
+  });
+
+  it("gives each part its own fresh timer", async () => {
+    const db = new DsaDB(`mock-${n++}`);
+    dbs.push(db);
+    await seedRun(db, 1, "2026-10-26", { phase: "D", timer: { phase: "B", elapsedSec: 500, runningSince: null, addedMinutes: 10 } });
+    mount(db, "2026-10-26", "/mock/1");
+    await screen.findByRole("region", { name: "Part D" });
+    await waitFor(async () => expect((await db.mockRuns.get(1))?.timer).toMatchObject({ phase: "D", addedMinutes: 0 }));
+  });
+});
+
 describe("resume", () => {
   it("returns to the next unanswered question with the same questions", async () => {
     const db = new DsaDB(`mock-${n++}`);

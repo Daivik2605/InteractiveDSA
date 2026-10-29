@@ -5,7 +5,13 @@ import { usePlanContext } from "../../app/PlanContext";
 import { appendMockAnswer, discardMockRun, logMockProgram, recordAnswer, saveMockRetake, saveMockSession, startMockRun, updateMockRun } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
 import {
+  addTimerMinutes,
   breakdown,
+  EXTRA_TIME_STEP,
+  freshTimer,
+  pauseTimer,
+  resumeTimer,
+  timerElapsed,
   buildMockRun,
   EXTRA_LABEL,
   mockContentStatus,
@@ -28,7 +34,7 @@ import { OUTCOME_LABEL } from "../../lib/problems";
 import { shuffle } from "../../lib/quiz";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Markdown } from "../../components/Markdown";
-import type { MockAnswer, MockProgram, MockRun, MockSection, MockSession, ProblemAttempt, Problem, Question } from "../../types/content";
+import type { MockAnswer, MockProgram, MockRun, MockSection, MockSession, MockTimer, ProblemAttempt, Problem, Question } from "../../types/content";
 import { DIFF_STYLE } from "../today/Row";
 import { QuizRunner, TYPE_LABEL } from "../quiz/QuizRunner";
 
@@ -119,17 +125,37 @@ function Intro({ loc, number }: { loc: MockLocation; number: number }) {
 
 // ── a mock in progress ───────────────────────────────────────────────────────
 
-function AdvisoryTimer({ minutes }: { minutes: number }) {
-  const [seconds, setSeconds] = useState(0);
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/** Advisory only: nothing locks at zero. State lives in the mockRun, so reloads and leaving the page keep it. */
+function AdvisoryTimer({ run, phase, minutes }: { run: MockRun; phase: MockTimer["phase"]; minutes: number }) {
+  const { db } = usePlanContext();
+  const [now, setNow] = useState(() => Date.now());
+  const saved = run.timer?.phase === phase ? run.timer : undefined;
+  const timer = saved ?? freshTimer(phase, now);
+  const paused = timer.runningSince === null;
+
   useEffect(() => {
-    const id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    if (!saved) void updateMockRun(db, run.mockNumber, { timer: freshTimer(phase, Date.now()) });
+  }, [db, run.mockNumber, phase, saved]);
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, []);
-  const over = seconds > minutes * 60;
-  const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }, [paused]);
+
+  const change = (next: MockTimer) => void updateMockRun(db, run.mockNumber, { timer: next });
+  const seconds = timerElapsed(timer, now);
+  const total = minutes + timer.addedMinutes;
+  const over = seconds > total * 60;
   return (
-    <span className={`tabular-nums ${over ? "text-amber-700 dark:text-amber-300" : "text-slate-500"}`} aria-label="Timer">
-      {mmss(seconds)} of {minutes}:00 <span className="text-xs">(a guide only)</span>
+    <span className="flex flex-wrap items-center gap-2">
+      <span className={`tabular-nums ${over ? "text-amber-700 dark:text-amber-300" : "text-slate-500"}`} aria-label="Timer">
+        {mmss(seconds)} of {total}:00 <span className="text-xs">({timer.addedMinutes > 0 ? `${minutes} + ${timer.addedMinutes} added, ` : ""}a guide only)</span>
+        {paused && <strong className="ml-1 text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">Paused</strong>}
+      </span>
+      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change(paused ? resumeTimer(timer, Date.now()) : pauseTimer(timer, Date.now()))}>{paused ? "Resume" : "Pause"}</button>
+      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change(addTimerMinutes(timer))}>+{EXTRA_TIME_STEP} min</button>
     </span>
   );
 }
@@ -145,7 +171,7 @@ function PartShell({ run, phase, minutes, onSkip, children }: { run: MockRun; ph
           </span>
         ))}
         <span className="ml-auto flex items-center gap-3">
-          <AdvisoryTimer key={phase} minutes={minutes} />
+          <AdvisoryTimer key={phase} run={run} phase={phase} minutes={minutes} />
           <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={onSkip}>Skip this part</button>
         </span>
       </div>

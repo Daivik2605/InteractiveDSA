@@ -7,14 +7,19 @@ import { derivePlan, type Snapshot } from "./plan";
 import { bank } from "./questions";
 import { mulberry32 } from "./quiz";
 import {
+  addTimerMinutes,
   breakdown,
   buildMockRows,
   buildMockRun,
   filterKey,
   findMock,
+  freshTimer,
   mcqOfAnswers,
   mockContentStatus,
   nextPhase,
+  pauseTimer,
+  resumeTimer,
+  timerElapsed,
   phasesOf,
   pickProgram1,
   pickProgram2,
@@ -388,5 +393,26 @@ describe("buildMockRows", () => {
     expect(mockContentStatus({ pythonTheme: 5 }, 2, [...themeQs.slice(1), ...weekQs])).toEqual({ ready: false, reason: "Python theme 5 questions are not written yet" });
     expect(mockContentStatus({ pythonTheme: 5 }, 2, [...themeQs, ...weekQs.slice(1)])).toEqual({ ready: false, reason: "Week 2 questions are not written yet" });
     expect(mockContentStatus({ pythonTheme: 5 }, 3, [...themeQs, ...weekQs])).toEqual({ ready: false, reason: "Week 3 questions are not written yet" });
+  });
+});
+
+describe("advisory timer", () => {
+  it("counts wall-clock seconds while running and freezes while paused", () => {
+    const t = freshTimer("A", 1_000);
+    expect(timerElapsed(t, 1_000)).toBe(0);
+    expect(timerElapsed(t, 66_500)).toBe(65);
+    const paused = pauseTimer(t, 11_000);
+    expect(paused).toMatchObject({ elapsedSec: 10, runningSince: null });
+    expect(timerElapsed(paused, 900_000)).toBe(10);
+    expect(pauseTimer(paused, 950_000)).toBe(paused);
+    const resumed = resumeTimer(paused, 100_000);
+    expect(timerElapsed(resumed, 105_000)).toBe(15);
+    expect(resumeTimer(resumed, 200_000)).toBe(resumed);
+  });
+
+  it("adds 10 minutes each press without touching elapsed time", () => {
+    const t = addTimerMinutes(addTimerMinutes(freshTimer("B", 0)));
+    expect(t.addedMinutes).toBe(20);
+    expect(timerElapsed(t, 0)).toBe(0);
   });
 });

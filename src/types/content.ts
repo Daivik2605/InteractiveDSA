@@ -350,6 +350,16 @@ export interface MockRun {
   phase: "A" | "B" | "C" | "D" | "end";
   programs: MockProgram[];
   extraDone: boolean;
+  /** Advisory timer of the current part. Absent on runs started before it was saved; it is created when the part is shown. */
+  timer?: MockTimer;
+}
+
+/** `runningSince` is epoch ms while ticking and null while paused, so a reload carries on from the wall clock. */
+export interface MockTimer {
+  phase: "A" | "B" | "C" | "D";
+  elapsedSec: number; // seconds counted before `runningSince`
+  runningSince: number | null;
+  addedMinutes: number; // extra time added with "+10 min" on this part
 }
 
 export interface Settings {

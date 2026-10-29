@@ -14,6 +14,7 @@ import type {
   MockSection,
   MockSession,
   MockSlot,
+  MockTimer,
   PracticalTask,
   Problem,
   ProblemAttempt,
@@ -208,6 +209,30 @@ export const EXTRA_LABEL: Record<MockExtra, string> = {
 
 /** Minutes the timer for a part suggests. Timers are advisory only. */
 export const PART_MINUTES = { A: 20, B: 25, C: 30, D: 10 } as const;
+
+// ── advisory timer (pure; the run stores the state) ──────────────────────────
+
+export const EXTRA_TIME_STEP = 10;
+
+export function freshTimer(phase: MockTimer["phase"], now: number): MockTimer {
+  return { phase, elapsedSec: 0, runningSince: now, addedMinutes: 0 };
+}
+
+export function timerElapsed(t: MockTimer, now: number): number {
+  return t.elapsedSec + (t.runningSince === null ? 0 : Math.max(0, Math.floor((now - t.runningSince) / 1000)));
+}
+
+export function pauseTimer(t: MockTimer, now: number): MockTimer {
+  return t.runningSince === null ? t : { ...t, elapsedSec: timerElapsed(t, now), runningSince: null };
+}
+
+export function resumeTimer(t: MockTimer, now: number): MockTimer {
+  return t.runningSince === null ? { ...t, runningSince: now } : t;
+}
+
+export function addTimerMinutes(t: MockTimer, minutes = EXTRA_TIME_STEP): MockTimer {
+  return { ...t, addedMinutes: t.addedMinutes + minutes };
+}
 
 // ── building and running a mock ──────────────────────────────────────────────
 
