@@ -1,14 +1,17 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { curriculum } from "../../lib/curriculum";
 import { addMonths, formatDayMonth, formatShort, monthLabel, parseDate } from "../../lib/dates";
+import { useNotes } from "../notes/Notes";
 import { DayDetails } from "./DayDetails";
 import { MonthGrid } from "./MonthGrid";
 import { STATUS_META, weekHue } from "./status";
 
 export function CalendarPage() {
-  const { plan, openExtension } = usePlanContext();
+  const { plan, openExtension, db } = usePlanContext();
+  const notes = useNotes();
   const anchor = plan.phase === "before" ? plan.startDate : plan.today;
   const [month, setMonth] = useState({ y: parseDate(anchor).y, m: parseDate(anchor).m });
   const [selected, setSelected] = useState<string | null>(plan.todayDay ? plan.today : null);
@@ -16,7 +19,7 @@ export function CalendarPage() {
 
   const weeks = curriculum.weeks.map((w) => {
     const days = plan.schedule.filter((d) => d.week === w.week);
-    return { ...w, first: days[0]?.date, last: days.at(-1)?.date, extra: days.filter((d) => d.kind === "extension").length };
+    return { ...w, progress: plan.weekProgress.find((p) => p.week === w.week), first: days[0]?.date, last: days.at(-1)?.date, extra: days.filter((d) => d.kind === "extension").length };
   });
   const [search, setSearch] = useState("");
   const logHits = useMemo(() => {
@@ -27,24 +30,36 @@ export function CalendarPage() {
       .map((l) => ({ log: l, day: plan.schedule.find((d) => d.planDayId === l.planDayId) }))
       .sort((a, b) => (a.day?.date ?? "").localeCompare(b.day?.date ?? ""));
   }, [plan, search]);
+  const allNotes = useLiveQuery(() => db.dayNotes.toArray(), [db]);
+  const noteHits = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [];
+    return (allNotes ?? []).filter((n) => n.text.toLowerCase().includes(q)).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+  }, [allNotes, search]);
   const stats: [string, number][] = [
     ["Current streak", plan.streak.current],
     ["Longest streak", plan.streak.longest],
     ["Days missed", plan.stats.missed],
-    ["Catch-up items", plan.stats.catchUpCount],
+    ["Incomplete tasks", plan.stats.catchUpCount],
+    ["Days online", plan.daysOnline],
   ];
 
   return (
     <div className="max-w-4xl">
       <h1 className="text-2xl font-semibold">Calendar</h1>
 
-      <section aria-label="Streaks and totals" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-            <div className="text-2xl font-semibold tabular-nums">{value}</div>
-            <div className="text-xs text-slate-500">{label}</div>
-          </div>
-        ))}
+      <section aria-label="Streaks and totals" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {stats.map(([label, value]) => {
+          const link = label === "Days missed" || label === "Incomplete tasks";
+          const box = `rounded-lg border p-3 ${label === "Days missed" ? "border-rose-200 dark:border-rose-900" : "border-slate-200 dark:border-slate-800"} ${link ? "hover:bg-slate-50 dark:hover:bg-slate-900" : ""}`;
+          const body = (
+            <>
+              <div className={`text-2xl font-semibold tabular-nums ${label === "Days missed" && value > 0 ? "text-rose-700 dark:text-rose-300" : ""}`}>{value}</div>
+              <div className="text-xs text-slate-500">{label}</div>
+            </>
+          );
+          return link ? <Link key={label} to="/incomplete" className={box}>{body}</Link> : <div key={label} className={box}>{body}</div>;
+        })}
       </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
@@ -71,24 +86,32 @@ export function CalendarPage() {
       </div>
 
       <section className="mt-8" aria-label="Search study logs">
-        <h2 className="text-lg font-semibold">Search study logs</h2>
+        <h2 className="text-lg font-semibold">Search study logs and notes</h2>
         <input
           type="search"
           aria-label="Search study logs"
-          placeholder="Search what you studied"
+          placeholder="Search what you studied and your notes"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mt-2 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
         />
         {search.trim() && (
           <ul className="mt-2 space-y-2 text-sm" aria-label="Study log results">
-            {logHits.length === 0 && <li className="text-slate-500">No matches.</li>}
+            {logHits.length === 0 && noteHits.length === 0 && <li className="text-slate-500">No matches.</li>}
             {logHits.map(({ log, day }) => (
               <li key={log.planDayId} className="rounded-lg border border-slate-200 p-2 dark:border-slate-800">
                 <Link to={`/day/${log.planDayId}`} className="font-medium text-indigo-700 hover:underline dark:text-indigo-300">
                   {day ? formatShort(day.date) : log.planDayId}
                 </Link>
                 <p className="line-clamp-2 whitespace-pre-wrap text-slate-600 dark:text-slate-400">{log.notes || log.links.join(", ")}</p>
+              </li>
+            ))}
+            {noteHits.map((n) => (
+              <li key={`note-${n.id}`} className="rounded-lg border border-slate-200 p-2 dark:border-slate-800" aria-label="Note result">
+                <button type="button" onClick={() => notes.open(n.date)} className="font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                  Note · {formatShort(n.date)}{n.mockNumber !== undefined ? ` · Mock ${n.mockNumber}` : ""}
+                </button>
+                <p className="line-clamp-2 whitespace-pre-wrap text-slate-600 dark:text-slate-400">{n.text}</p>
               </li>
             ))}
           </ul>
@@ -102,6 +125,9 @@ export function CalendarPage() {
             <li key={w.week} className="flex items-center gap-3 py-1.5">
               <span aria-hidden className="h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: `hsl(${weekHue(w.week)} 65% 50%)` }} />
               <span className="flex-1">Week {w.week} · {w.title}{w.extra > 0 && <span className="text-amber-700 dark:text-amber-300"> (+{w.extra} days)</span>}</span>
+              <span className={`text-xs ${w.progress?.complete ? "font-medium text-emerald-700 dark:text-emerald-300" : "text-slate-500"}`} aria-label={`Week ${w.week} progress`}>
+                {w.progress?.complete ? "✓ complete" : `${w.progress?.daysDone ?? 0}/${w.progress?.daysTotal ?? 0} days · ${w.progress?.mocksDone ?? 0}/${w.progress?.mocksTotal ?? 0} mocks`}
+              </span>
               {w.first && w.last && <span className="text-xs text-slate-500">{formatDayMonth(w.first)} – {formatDayMonth(w.last)}</span>}
             </li>
           ))}

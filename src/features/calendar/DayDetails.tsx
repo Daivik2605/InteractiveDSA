@@ -1,3 +1,4 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import { Link } from "react-router-dom";
 import { Markdown } from "../../components/Markdown";
 import { usePlanContext } from "../../app/PlanContext";
@@ -7,11 +8,15 @@ import { itemLabel } from "../../lib/labels";
 import type { EvaluatedDay } from "../../lib/schedule";
 import { MAX_EXTENSION_AT_ONCE } from "../../lib/schedule";
 import { currentWeek } from "../../lib/plan";
+import { useNotes } from "../notes/Notes";
+import { MissedReason } from "./MissedReason";
 import { STATUS_META } from "./status";
 
 export function DayDetails({ day }: { day: EvaluatedDay }) {
-  const { plan, openExtension } = usePlanContext();
+  const { plan, openExtension, db } = usePlanContext();
+  const notes = useNotes();
   const { week, planDayId, date, kind } = day.day;
+  const dayNotes = (useLiveQuery(() => db.dayNotes.where("date").equals(date).sortBy("createdAt"), [db, date]) ?? []).filter((n) => n.text.trim() !== "");
   const w = curriculum.weeks.find((x) => x.week === week);
   const n = Number(planDayId.split(/[dx]/)[1]);
   const meta = STATUS_META[day.status];
@@ -57,6 +62,29 @@ export function DayDetails({ day }: { day: EvaluatedDay }) {
           );
         })}
       </ul>
+      <div className="mt-2 rounded bg-slate-50 p-2 text-xs dark:bg-slate-900" aria-label="Day notes">
+        <p className="font-medium">Notes{dayNotes.length > 0 ? ` · ${dayNotes.length}` : ""}</p>
+        {dayNotes.map((n) => (
+          <p key={n.id} className="mt-1 whitespace-pre-wrap">
+            {n.mockNumber !== undefined && <span className="mr-1 rounded bg-sky-100 px-1 py-0.5 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200">Mock {n.mockNumber}</span>}
+            {n.text}
+          </p>
+        ))}
+        <button type="button" onClick={() => notes.open(date)} className="mt-1 text-indigo-700 underline dark:text-indigo-300">
+          {dayNotes.length > 0 ? "Edit notes" : "Add a note"}
+        </button>
+      </div>
+      {day.status === "missed" && (
+        <div className="mt-2 rounded border border-rose-200 bg-rose-50 p-2 dark:border-rose-900 dark:bg-rose-950/40">
+          <p className="text-xs font-medium text-rose-800 dark:text-rose-200">✕ Missed: nothing was ticked on this day.</p>
+          <MissedReason planDayId={planDayId} />
+        </div>
+      )}
+      {day.status === "partial" && (
+        <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">
+          ◐ Incomplete: {day.items.filter((i) => !plan.completions.has(i.itemId)).length} item(s) still to do. <Link to="/incomplete" className="underline">See all incomplete</Link>
+        </p>
+      )}
       <Link
         to={`/day/${planDayId}`}
         className="mt-3 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-center hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"

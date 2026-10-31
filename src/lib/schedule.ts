@@ -2,7 +2,8 @@
 //
 // Item ids (ItemCompletion.itemId):
 //   problem              "w03-d2-p1"
-//   learn item           "w03-d2:learn"   (a mock day's "Mock N" row is its learn item)
+//   learn item           "w03-d1:learn"   (new-topic days only; mocks are not plan items since curriculum v3)
+//   review slot          "w03-d6:review-1", "w03-d6:review-2"   (plan day 5 on; the problem is drawn by the app, see review.ts)
 //   wrap-up item         "w13-d6:wrapup"  (the last day has no learn item or problems; one manual tick)
 //   redo slot            "w03-x1:s1", "w03-x1:s2"   (every extension day; plan days have none)
 // A day's fallback problem is not an item: it never counts towards status or the catch-up queue.
@@ -14,9 +15,9 @@ import type {
   Curriculum,
   CustomItem,
   DayKind,
+  DayDraw,
   ItemCompletion,
   ItemMove,
-  MockSlot,
   Problem,
   ProblemAttempt,
   RedoTask,
@@ -35,19 +36,38 @@ export type DayStatus = "done" | "done-late" | "partial" | "missed" | "rest" | "
 export interface DayItem {
   itemId: string;
   planDayId: string; // the day the item is on now (after moves)
-  kind: "learn" | "problem" | "slot" | "task";
+  kind: "learn" | "problem" | "review" | "slot" | "task";
+  /** A plan or custom problem; for a review item, the problem drawn for it (undefined until the day is first opened). */
   problem?: Problem;
+  /** Review items only: 1 or 2. */
+  reviewSlot?: number;
   custom?: CustomItem; // set for custom problems and tasks
   movedFrom?: string; // plan day id the item was moved from
-  /** Learn items only: the curriculum day's kind and mock, copied from its home day so a moved item keeps them. */
+  /** Learn items only: the curriculum day's kind, copied from its home day so a moved item keeps it. */
   dayKind?: DayKind;
-  mock?: MockSlot;
 }
 
 /** Edits layered over the curriculum (SPEC 3.13). */
 export interface DayEdits {
   customItems?: readonly CustomItem[];
   moves?: readonly ItemMove[];
+  /** Review problems drawn so far (db.dayDraws); a review slot without one has no problem yet. */
+  draws?: readonly DayDraw[];
+}
+
+const problemIndexCache = new WeakMap<Curriculum, ReadonlyMap<string, Problem>>();
+/** Every problem in the curriculum by id (day problems, fallbacks, pools). */
+export function problemIndex(curriculum: Curriculum): ReadonlyMap<string, Problem> {
+  let index = problemIndexCache.get(curriculum);
+  if (!index) {
+    index = new Map(
+      curriculum.weeks
+        .flatMap((w) => [...w.days.flatMap((d) => [...d.problems, ...(d.fallback ? [d.fallback] : [])]), ...w.pool])
+        .map((p) => [p.id, p]),
+    );
+    problemIndexCache.set(curriculum, index);
+  }
+  return index;
 }
 
 /** A custom problem as a Problem, so the log modal and redo scheduling treat it like a plan problem. */
@@ -142,19 +162,27 @@ export function finishDate(schedule: readonly ScheduledDay[]): string | null {
  * Curriculum items of a plan day, before moves: the learn item (when the day has one) + problems.
  * The wrap-up day has neither, so it gets one manual item. Fallbacks are not items. Extension days have none.
  */
-function curriculumItems(curriculum: Curriculum, id: string): DayItem[] {
+function curriculumItems(curriculum: Curriculum, id: string, draws: readonly DayDraw[] = []): DayItem[] {
   const { week, kind, n } = parsePlanDayId(id);
   if (kind === "extension") return [];
   const d = curriculum.weeks.find((x) => x.week === week)?.days.find((x) => x.day === n);
   if (!d) throw new Error(`Unknown plan day "${id}"`);
   const learn: DayItem[] = d.learn
-    ? [{ itemId: `${id}:learn`, planDayId: id, kind: "learn", dayKind: d.kind, ...(d.mock ? { mock: d.mock } : {}) }]
+    ? [{ itemId: `${id}:learn`, planDayId: id, kind: "learn", dayKind: d.kind }]
     : d.kind === "wrap-up"
       ? [{ itemId: `${id}:wrapup`, planDayId: id, kind: "learn", dayKind: d.kind }]
       : [];
+  const index = problemIndex(curriculum);
+  const reviews = Array.from({ length: d.reviewSlots }, (_, i): DayItem => {
+    const itemId = `${id}:review-${i + 1}`;
+    const drawn = draws.find((x) => x.slotId === itemId);
+    const problem = drawn ? index.get(drawn.problemId) : undefined;
+    return { itemId, planDayId: id, kind: "review", reviewSlot: i + 1, ...(problem ? { problem } : {}) };
+  });
   return [
     ...learn,
     ...d.problems.map((p): DayItem => ({ itemId: p.id, planDayId: id, kind: "problem", problem: p })),
+    ...reviews,
   ];
 }
 
@@ -162,18 +190,18 @@ const slotItems = (id: string): DayItem[] =>
   SLOT_IDS.map((s) => ({ itemId: `${id}:${s}`, planDayId: id, kind: "slot" }));
 
 /**
- * Items on one day, in order: learn item, problems, items moved here, custom items, then redo
+ * Items on one day, in order: learn item, problems, review slots, items moved here, custom items, then redo
  * slots (extension days only). Items moved away are left out.
  */
 export function itemsForDay(curriculum: Curriculum, id: string, edits: DayEdits = {}): DayItem[] {
-  const { customItems = [], moves = [] } = edits;
+  const { customItems = [], moves = [], draws = [] } = edits;
   const { kind } = parsePlanDayId(id);
   const movedAway = new Set(moves.filter((m) => m.fromPlanDayId === id && m.toPlanDayId !== id).map((m) => m.itemId));
-  const own = curriculumItems(curriculum, id).filter((i) => !movedAway.has(i.itemId));
+  const own = curriculumItems(curriculum, id, draws).filter((i) => !movedAway.has(i.itemId));
   const movedIn = moves
     .filter((m) => m.toPlanDayId === id && m.fromPlanDayId !== id)
     .flatMap((m) =>
-      curriculumItems(curriculum, m.fromPlanDayId)
+      curriculumItems(curriculum, m.fromPlanDayId, draws)
         .filter((i) => i.itemId === m.itemId)
         .map((i): DayItem => ({ ...i, planDayId: id, movedFrom: m.fromPlanDayId })),
     );
@@ -468,6 +496,7 @@ export function canMoveItem(args: {
 }): Result<object> {
   const { schedule, item, toPlanDayId, completions } = args;
   if (item.kind === "slot") return { ok: false, reason: "Redo slots can't be moved." };
+  if (item.kind === "review") return { ok: false, reason: "Review slots can't be moved." };
   if (completions.has(item.itemId)) return { ok: false, reason: "Untick it before moving it." };
   const from = schedule.find((d) => d.planDayId === item.planDayId);
   const to = schedule.find((d) => d.planDayId === toPlanDayId);

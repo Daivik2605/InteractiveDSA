@@ -1,4 +1,8 @@
-"""Builds curriculum.json (schema v2) for the 90-day Python DSA plan and validates it."""
+"""Builds curriculum.json (schema v3) for the 90-day Python DSA plan and validates it.
+
+v3: no mock on any plan day (mocks are an on-demand list in `mocks`), two app-drawn review slots on every day from
+plan day 5, and at least two counted problems a day from plan day 5. Plan days 1-4 and every existing id are unchanged.
+"""
 import json
 import re
 import sys
@@ -43,9 +47,9 @@ SLUG_OVERRIDES = {
 }
 
 
-def lc(num, title, d):
+def lc(num, title, d, slug_=None):
     return {"platform": "LeetCode", "lcNumber": num, "title": title,
-            "difficulty": DIFF[d], "url": LC.format(SLUG_OVERRIDES.get(num, slug(title)))}
+            "difficulty": DIFF[d], "url": LC.format(slug_ or SLUG_OVERRIDES.get(num, slug(title)))}
 
 
 def hr(slug_, title, d):
@@ -54,8 +58,8 @@ def hr(slug_, title, d):
 
 # ---------- problem catalogue (number -> problem) ----------
 P = {}
-def add(num, title, d):
-    P[num] = lc(num, title, d)
+def add(num, title, d, slug_=None):
+    P[num] = lc(num, title, d, slug_)
 
 for n, t, d in [
     # week 1
@@ -182,6 +186,59 @@ for n, t, d in [
 ]:
     add(n, t, d)
 
+
+# v3 additions: each one was checked on leetcode.com (number, title, difficulty, slug). Never in a pool, so pool ids stay put.
+for n, t, d, sl in [
+    # week 1
+    (1480, "Running Sum of 1d Array", "E", "running-sum-of-1d-array"), (27, "Remove Element", "E", "remove-element"),
+    (59, "Spiral Matrix II", "M", "spiral-matrix-ii"),
+    # week 2
+    (409, "Longest Palindrome", "E", "longest-palindrome"), (119, "Pascal's Triangle II", "E", "pascals-triangle-ii"),
+    (974, "Subarray Sums Divisible by K", "M", "subarray-sums-divisible-by-k"),
+    # week 3
+    (344, "Reverse String", "E", "reverse-string"),
+    (1456, "Maximum Number of Vowels in a Substring of Given Length", "M", "maximum-number-of-vowels-in-a-substring-of-given-length"),
+    (680, "Valid Palindrome II", "E", "valid-palindrome-ii"), (80, "Remove Duplicates from Sorted Array II", "M", "remove-duplicates-from-sorted-array-ii"),
+    (904, "Fruit Into Baskets", "M", "fruit-into-baskets"),
+    # week 4
+    (69, "Sqrt(x)", "E", "sqrtx"), (844, "Backspace String Compare", "E", "backspace-string-compare"),
+    (374, "Guess Number Higher or Lower", "E", "guess-number-higher-or-lower"),
+    # week 5
+    (682, "Baseball Game", "E", "baseball-game"), (1544, "Make The String Great", "E", "make-the-string-great"),
+    (225, "Implement Stack using Queues", "E", "implement-stack-using-queues"),
+    (2390, "Removing Stars From a String", "M", "removing-stars-from-a-string"),
+    (1475, "Final Prices With a Special Discount in a Shop", "E", "final-prices-with-a-special-discount-in-a-shop"),
+    # week 6
+    (203, "Remove Linked List Elements", "E", "remove-linked-list-elements"),
+    (1021, "Remove Outermost Parentheses", "E", "remove-outermost-parentheses"),
+    (83, "Remove Duplicates from Sorted List", "E", "remove-duplicates-from-sorted-list"),
+    # week 7
+    (101, "Symmetric Tree", "E", "symmetric-tree"), (94, "Binary Tree Inorder Traversal", "E", "binary-tree-inorder-traversal"),
+    (111, "Minimum Depth of Binary Tree", "E", "minimum-depth-of-binary-tree"), (112, "Path Sum", "E", "path-sum"),
+    (108, "Convert Sorted Array to Binary Search Tree", "E", "convert-sorted-array-to-binary-search-tree"),
+    # week 8
+    (1337, "The K Weakest Rows in a Matrix", "E", "the-k-weakest-rows-in-a-matrix"), (257, "Binary Tree Paths", "E", "binary-tree-paths"),
+    (455, "Assign Cookies", "E", "assign-cookies"),
+    # week 9
+    (784, "Letter Case Permutation", "M", "letter-case-permutation"), (526, "Beautiful Arrangement", "M", "beautiful-arrangement"),
+    (677, "Map Sum Pairs", "M", "map-sum-pairs"), (1079, "Letter Tile Possibilities", "M", "letter-tile-possibilities"),
+    (491, "Non-decreasing Subsequences", "M", "non-decreasing-subsequences"),
+    # week 10
+    (463, "Island Perimeter", "E", "island-perimeter"), (676, "Implement Magic Dictionary", "M", "implement-magic-dictionary"),
+    (1791, "Find Center of Star Graph", "E", "find-center-of-star-graph"),
+    # week 11
+    (1025, "Divisor Game", "E", "divisor-game"), (983, "Minimum Cost For Tickets", "M", "minimum-cost-for-tickets"),
+    (674, "Longest Continuous Increasing Subsequence", "E", "longest-continuous-increasing-subsequence"),
+    (1048, "Longest String Chain", "M", "longest-string-chain"),
+    (714, "Best Time to Buy and Sell Stock with Transaction Fee", "M", "best-time-to-buy-and-sell-stock-with-transaction-fee"),
+    # week 12
+    (120, "Triangle", "M", "triangle"), (790, "Domino and Tromino Tiling", "M", "domino-and-tromino-tiling"),
+    (931, "Minimum Falling Path Sum", "M", "minimum-falling-path-sum"),
+    # week 13
+    (705, "Design HashSet", "E", "design-hashset"), (622, "Design Circular Queue", "M", "design-circular-queue"),
+]:
+    add(n, t, d, sl)
+
 HR_W1 = [hr("nested-list", "Nested Lists", "E"),
          hr("find-second-maximum-number-in-a-list", "Find the Runner-Up Score!", "E"),
          hr("collections-counter", "collections.Counter()", "E"),
@@ -198,8 +255,8 @@ WEEKS = [
          visuals=["Growth-rate race: O(1) … O(n!)", "Dynamic array append and resize", "Matrix rotate = transpose + reverse rows", "Spiral traversal shrinking boundaries"],
          templates=["Prefix/suffix pass", "Read/write pointer", "Transpose + reverse", "Boundary-shrinking spiral"],
          days=[([66], None, None), ([88, 26, 14], None, None), ([121], None, None),
-               ("HR", None, "Python fluency on HackerRank"), ([238], None, None), ([48, 54], None, None),
-               ([], 73, None)],
+               ("HR", None, "Python fluency on HackerRank"), ([238, 1480], None, None), ([48, 54], None, None),
+               ([27, 59], 73, None)],
          pool=[283, 118, 228, 189, 151, 443, 289, 6, 13, 12, 68]),
     dict(title="Hashing, counting, prefix sums",
          goal="Turn O(n²) searches into O(n) with dict and set; count with Counter; answer subarray-sum questions with prefix sums.",
@@ -207,8 +264,8 @@ WEEKS = [
                    "Hashable keys (tuples, frozenset)", "Counter and defaultdict", "Prefix sums + count map", "Frequency bucket sort"],
          visuals=["Hash table buckets with a resize", "Prefix-sum array and the prefix − k lookup"],
          templates=["Complement lookup", "Prefix sum + count map", "Frequency buckets"],
-         days=[([1, 242], None, None), ([49], None, None), ([347, 128, 36], None, None),
-               ([("o", 1, 151)], None, None), ([303, 560, 525], None, None), ([41], None, None),
+         days=[([1, 242], None, None), ([49, 409], None, None), ([347, 128, 36], None, None),
+               ([("o", 1, 151), ("o", 1, 119)], None, None), ([303, 560, 525], None, None), ([41, 974], None, None),
                ([("o", 1, 289), ("o", 1, 443)], None, None)],
          pool=[217, 205, 290, 383, 202, 169, 724, 451, 380, 554, 523, 304, 229, 442]),
     dict(title="Two pointers & sliding window",
@@ -217,9 +274,9 @@ WEEKS = [
                    "Why expand/shrink is O(n) amortized", "Skipping duplicates (3Sum)", "Left-max / right-max (Trapping Rain Water)"],
          visuals=["Two pointers closing in on a target", "Variable window expanding and shrinking", "Trapping rain water left/right max"],
          templates=["Opposite-end two pointers", "Variable window with a count map"],
-         days=[([125], None, None), ([167, 15, 11], None, None), ([3], None, None),
-               ([("o", 1, 12), ("o", 2, 451), ("o", 2, 523)], None, None), ([567], None, None),
-               ([76, 42], None, None), ([], 424, None)],
+         days=[([125, 344], None, None), ([167, 15, 11], None, None), ([3, 1456], None, None),
+               ([("o", 1, 12), ("o", 2, 451), ("o", 2, 523)], None, None), ([567, 680], None, None),
+               ([76, 42], None, None), ([80, 904], 424, None)],
          pool=[977, 392, 643, 75, 16, 18, 438, 209, 1004, 30]),
     dict(title="Sorting & binary search",
          goal="Write merge sort and quickselect from memory; write bug-free binary search, including search on the answer.",
@@ -228,8 +285,8 @@ WEEKS = [
                    "Lower/upper bound with bisect", "Rotated arrays: one half is always sorted", "Binary search on the answer with feasible()"],
          visuals=["Merge sort split and merge", "lo/mid/hi narrowing", "Answer-space feasible/infeasible line"],
          templates=["Merge sort", "Quickselect", "lower_bound", "Binary search on answer"],
-         days=[([912, 704], None, None), ([34], None, None), ([74, 875, 153], None, None),
-               ([("o", 3, 75)], None, None), ([33, 215], None, None), ([4], None, None),
+         days=[([912, 704], None, None), ([34, 69], None, None), ([74, 875, 153], None, None),
+               ([("o", 3, 75), ("o", 3, 844)], None, None), ([33, 215], None, None), ([4, 374], None, None),
                ([("o", 3, 16), ("o", 2, 380)], None, None)],
          pool=[35, 852, 162, 540, 1011, 981, 179, 274, 410]),
     dict(title="Stacks, queues, monotonic stack & deque",
@@ -238,9 +295,9 @@ WEEKS = [
                    "Min-stack with pairs", "Monotonic increasing/decreasing stacks", "Monotonic deque for window max", "Expression evaluation"],
          visuals=["Bracket matching push/pop", "Monotonic stack for Daily Temperatures", "Largest rectangle: each pop computes an area"],
          templates=["Monotonic stack of indices", "Monotonic deque", "Stack parser"],
-         days=[([20], None, None), ([155, 150, 232], None, None), ([739], None, None),
-               ([("o", 4, 1011), ("o", 3, 438), ("o", 2, 554)], None, None), ([853], None, None),
-               ([84, 239], None, None), ([], 735, None)],
+         days=[([20, 682], None, None), ([155, 150, 232], None, None), ([739, 1544], None, None),
+               ([("o", 4, 1011), ("o", 3, 438), ("o", 2, 554)], None, None), ([853, 225], None, None),
+               ([84, 239], None, None), ([2390, 1475], 735, None)],
          pool=[1047, 496, 933, 503, 901, 394, 71, 402, 227, 224]),
     dict(title="Recursion & linked lists",
          goal="Think recursively (base case + smaller subproblem) and manipulate pointers confidently: reverse, merge, detect cycles, build an LRU cache.",
@@ -248,9 +305,9 @@ WEEKS = [
                    "Dummy head node", "Reversal in place, iterative and recursive", "Fast/slow pointers (Floyd)", "Hash map + doubly linked list (LRU)"],
          visuals=["Call stack growing and unwinding", "Reversal: prev/curr/next flip", "Floyd cycle detection", "LRU move-to-front and evict"],
          templates=["Recursive skeleton", "Iterative reverse", "Slow/fast middle", "Dummy-node merge"],
-         days=[([50, 206, 21], None, None), ([19], None, None), ([141, 143, 2], None, None),
-               ([("o", 5, 394)], None, None), ([138, 146], None, None),
-               ([23], None, "Divide and conquer now; heap version in Week 8"),
+         days=[([50, 206, 21], None, None), ([19, 203], None, None), ([141, 143, 2], None, None),
+               ([("o", 5, 394), ("o", 5, 1021)], None, None), ([138, 146], None, None),
+               ([23, 83], None, "Divide and conquer now; heap version in Week 8"),
                ([("o", 4, 162), ("o", 5, 71)], None, None)],
          pool=[509, 876, 234, 160, 779, 24, 61, 86, 148, 92, 287, 25]),
     dict(title="Trees & BST",
@@ -259,9 +316,9 @@ WEEKS = [
                    "DFS returning a value + global answer", "Iterative traversal with a stack", "BST validation with bounds", "Lowest common ancestor"],
          visuals=["DFS order animation (pre/in/post)", "BFS level by level", "Max path sum: returned vs answer"],
          templates=["Recursive DFS returning height", "BFS by level", "Iterative inorder"],
-         days=[([226], None, None), ([104, 543, 110], None, None), ([102], None, None),
-               ([("o", 6, 148), ("o", 5, 402), ("o", 4, 981)], None, None), ([98], None, None),
-               ([236, 124], None, None), ([], 230, None)],
+         days=[([226, 101], None, None), ([104, 543, 110], None, None), ([102, 94], None, None),
+               ([("o", 6, 148), ("o", 5, 402), ("o", 4, 981)], None, None), ([98, 111], None, None),
+               ([236, 124], None, None), ([112, 108], 230, None)],
          pool=[100, 572, 235, 199, 1448, 105, 103, 113, 114, 129, 450, 297]),
     dict(title="Heaps, intervals & greedy",
          goal="Use heapq for top-k, k-way merge and running medians; solve interval problems by sorting; know when greedy is safe.",
@@ -270,8 +327,8 @@ WEEKS = [
                    "Intervals: sort by start (merge) vs by end (scheduling)", "Greedy choice and the exchange argument"],
          visuals=["Heap push/pop in tree + array views", "Two-heap median balancing", "Merging intervals on a timeline", "Jump Game farthest reach"],
          templates=["Size-k heap", "Two heaps", "Merge intervals", "Greedy farthest reach"],
-         days=[([703, 1046], None, None), ([973], None, None), ([56, 57, 435], None, None),
-               ([("o", 7, 105)], None, None), ([621, 55, 134], None, None), ([295], None, None),
+         days=[([703, 1046], None, None), ([973, 1337], None, None), ([56, 57, 435], None, None),
+               ([("o", 7, 105), ("o", 7, 257)], None, None), ([621, 55, 134], None, None), ([295, 455], None, None),
                ([("o", 7, 199), ("o", 6, 61)], None, None)],
          pool=[692, 767, 355, 1094, 763, 846, 452, 45, 1899, 678, 502, 1851]),
     dict(title="Backtracking & tries",
@@ -280,9 +337,9 @@ WEEKS = [
                    "Pruning", "Marking and restoring grid cells", "Trie node: children dict + end flag"],
          visuals=["Recursion tree for subsets of [1,2,3]", "Word Search marking and restoring cells", "Trie insert/search path"],
          templates=["Backtracking skeleton", "Grid DFS with restore", "Trie class"],
-         days=[([78], None, None), ([39, 46, 90], None, None), ([79], None, None),
-               ([("o", 8, 763), ("o", 7, 1448), ("o", 5, 901)], None, None), ([208], None, None),
-               ([211, 51], None, None), ([], 17, None)],
+         days=[([78, 784], None, None), ([39, 46, 90], None, None), ([79, 526], None, None),
+               ([("o", 8, 763), ("o", 7, 1448), ("o", 5, 901)], None, None), ([208, 677], None, None),
+               ([211, 51], None, None), ([1079, 491], 17, None)],
          pool=[77, 40, 216, 47, 22, 131, 93, 1268, 648, 212, 37]),
     dict(title="Graphs I: BFS, DFS, grids, topological sort, union-find",
          goal="Model problems as graphs and traverse them in O(V + E).",
@@ -291,8 +348,8 @@ WEEKS = [
                    "Union-find with path compression + rank"],
          visuals=["BFS wave across a grid", "Kahn's algorithm removing zero in-degree nodes", "Union-find merging components"],
          templates=["Grid BFS/DFS", "Kahn's algorithm", "UnionFind class"],
-         days=[([200, 733], None, None), ([695], None, None), ([133, 994, 417], None, None),
-               ([("o", 9, 22)], None, None), ([207, 210, 684], None, None), ([127], None, None),
+         days=[([200, 733], None, None), ([695, 463], None, None), ([133, 994, 417], None, None),
+               ([("o", 9, 22), ("o", 9, 676)], None, None), ([207, 210, 684], None, None), ([127, 1791], None, None),
                ([("o", 8, 846), ("o", 9, 131)], None, None)],
          pool=[997, 1971, 547, 841, 130, 542, 1091, 785, 721, 399, 1376]),
     dict(title="DP I (1D) + Kadane",
@@ -302,9 +359,9 @@ WEEKS = [
                    "LIS in O(n²) and O(n log n) with bisect"],
          visuals=["Fibonacci recursion tree vs memo", "1D table filling for House Robber", "Kadane's running sum"],
          templates=["Memoised recursion", "Bottom-up 1D with rolling variables", "Kadane"],
-         days=[([70], None, None), ([198, 213, 746], None, None), ([322], None, None),
-               ([("o", 10, 721), ("o", 8, 692), ("o", 9, 40)], None, None), ([53], None, None),
-               ([139, 300], None, None), ([], 91, None)],
+         days=[([70, 1025], None, None), ([198, 213, 746], None, None), ([322, 983], None, None),
+               ([("o", 10, 721), ("o", 8, 692), ("o", 9, 40)], None, None), ([53, 674], None, None),
+               ([139, 300], None, None), ([1048, 714], 91, None)],
          pool=[1137, 152, 5, 647, 918, 740, 279, 377, 343, 673]),
     dict(title="DP II (2D) + weighted graphs",
          goal="Solve grid, two-string and knapsack DP; run Dijkstra, Bellman-Ford (k stops) and Prim.",
@@ -313,8 +370,8 @@ WEEKS = [
                    "Bellman-Ford with k-limited relaxations", "Prim's MST"],
          visuals=["LCS / Edit Distance table with arrows", "Dijkstra relaxing edges with a priority queue"],
          templates=["Two-string DP", "Knapsack", "Dijkstra"],
-         days=[([62, 1143], None, None), ([72], None, None), ([518, 494, 416], None, None),
-               ([("o", 11, 152)], None, None), ([743, 1584, 787], None, None), ([329], None, None),
+         days=[([62, 1143], None, None), ([72, 120], None, None), ([518, 494, 416], None, None),
+               ([("o", 11, 152), ("o", 11, 790)], None, None), ([743, 1584, 787], None, None), ([329, 931], None, None),
                ([("o", 11, 5), ("o", 10, 399)], None, None)],
          pool=[63, 64, 221, 97, 309, 1631, 778, 332, 115, 312, 10]),
     dict(title="Bit tricks, practical class design, final mocks",
@@ -323,9 +380,9 @@ WEEKS = [
                    "Designing a class: state, methods, cost of each method"],
          visuals=["XOR cancelling pairs bit by bit"],
          templates=["Bit mask helpers", "Class design checklist"],
-         days=[([136, 268], None, None), ([1472, 1396, 1146], None, "Class design"), ([2034], None, None),
+         days=[([136, 268], None, None), ([1472, 1396, 1146], None, "Class design"), ([2034, 705], None, None),
                ([("o", 9, 1268), ("o", 10, 547), ("o", 7, 297)], None, "Interview simulation: 45 min each, unlabelled"),
-               ([43], None, None),
+               ([43, 622], None, None),
                ([], None, "Wrap-up: redo the 5 lowest-confidence problems in your journal, then write a one-page sheet of every pattern and its trigger")],
          pool=[191, 338, 190, 371, 1603, 2353, 341, 284, 460]),
 ]
@@ -369,13 +426,27 @@ PRACTICAL = [
 ]
 
 
-def mock_for(plan_day: int):
-    if plan_day % 2 == 0:
-        return None
-    n = (plan_day + 1) // 2
-    return {"number": n, "pythonTheme": (n - 1) % 15 + 1, "extra": EXTRAS[(n - 1) % 3],
-            "program2": n % 2 == 0 or n == 45, "diagnostic": n == 1, "final": n == 45,
-            "mcqCount": 20 if n == 45 else 18}
+# ---------- mocks (on demand, not on plan days) ----------
+MOCK_COUNT = 26
+# Mocks 1-15 take Python themes 1-15 in order; 16-26 revisit the trickier ones, spread out (the final takes theme 3).
+REVISIT_THEMES = [6, 10, 11, 7, 12, 9, 13, 8, 4, 2, 3]
+
+
+def build_mocks():
+    out = []
+    for n in range(1, MOCK_COUNT + 1):
+        final = n == MOCK_COUNT
+        out.append({
+            "number": n,
+            "suggestedAfterWeek": min(13, (n + 1) // 2),
+            "pythonTheme": n if n <= 15 else REVISIT_THEMES[n - 16],
+            "extra": EXTRAS[(n - 1) % 3],
+            "program2": n % 2 == 0 or final,
+            "diagnostic": n == 1,
+            "final": final,
+            "mcqCount": 20 if final else 18,
+        })
+    return out
 
 
 def kind_for(week: int, day: int) -> str:
@@ -394,18 +465,8 @@ def kind_for(week: int, day: int) -> str:
     return "topic"
 
 
-def learn_label(kind: str, mock) -> str | None:
-    parts = []
-    if mock:
-        tag = f"Mock {mock['number']}"
-        if mock["diagnostic"]:
-            tag += " (diagnostic)"
-        if mock["final"]:
-            tag += " (final: 20 MCQs + 2 programs)"
-        parts.append(tag)
-    if kind == "new-topic":
-        parts.append(("new" if parts else "New") + " topic: cold try, then concepts and templates")
-    return " + ".join(parts) if parts else None
+def learn_label(kind: str) -> str | None:
+    return "New topic: cold try, then concepts and templates" if kind == "new-topic" else None
 
 
 CODING_NOTES = {
@@ -414,16 +475,35 @@ CODING_NOTES = {
     "redo": "Redos from the queue first; do the fallback only if the queue is empty.",
 }
 
+# ---------- daily time budget ----------
+# Plan 1.5-2.5 h a day. Rough minutes per problem by difficulty (timed days: 45 each), a new-topic day's learn item,
+# and two quick review repeats (Easy/Medium, 15 min each).
+MINUTES = {"Easy": 20, "Medium": 35, "Hard": 50}
+LEARN_MINUTES = 30
+REVIEW_MINUTES = 15
+BUDGET_MINUTES = 150
+REVIEW_SLOTS = 2
+FIRST_REVIEW_PLAN_DAY = 5
+
+# Core problems moved out of a day into that week's pool (keeping their ids) because the day would not fit the budget.
+MOVED_TO_POOL = {"w13-d4-p3"}
+
+
+def day_minutes(d) -> int:
+    per = lambda p: d["timedMinutes"] or MINUTES[p["difficulty"]]
+    total = sum(per(p) for p in d["problems"]) + REVIEW_MINUTES * d["reviewSlots"]
+    return total + (LEARN_MINUTES if d["learn"] else 0)
+
 
 def build():
     weeks_out, used = [], set()
     plan_day = 0
+    moved = {}
     for wi, w in enumerate(WEEKS, start=1):
         days_out = []
         for di, (probs, fb, note) in enumerate(w["days"], start=1):
             plan_day += 1
             kind = kind_for(wi, di)
-            mock = mock_for(plan_day)
             items = []
             src = HR_W1 if probs == "HR" else probs
             for pi, p in enumerate(src, start=1):
@@ -437,7 +517,11 @@ def build():
                 else:
                     prob = dict(P[p], id=pid, role="core")
                     used.add(p)
-                items.append(prob)
+                if pid in MOVED_TO_POOL:
+                    moved.setdefault(wi, []).append({k: v for k, v in prob.items() if k != "fromWeek"} | {"role": "pool"})
+                    prob = None
+                if prob is not None:
+                    items.append(prob)
             fallback = None
             if fb is not None:
                 fallback = dict(P[fb], id=f"w{wi:02d}-d{di}-fb", role="fallback")
@@ -446,28 +530,30 @@ def build():
             if kind == "redo" and wi == 1:
                 day_note = CODING_NOTES["redo"]
             timed = 45 if kind == "timed" or (wi == 13 and di == 4) else None
+            reviews = 0 if kind == "wrap-up" or plan_day < FIRST_REVIEW_PLAN_DAY else REVIEW_SLOTS
             days_out.append({
-                "day": di, "planDay": plan_day, "kind": kind, "mock": mock,
-                "learn": learn_label(kind, mock), "problems": items, "fallback": fallback,
+                "day": di, "planDay": plan_day, "kind": kind,
+                "learn": learn_label(kind), "problems": items, "fallback": fallback,
+                "reviewSlots": reviews,
                 "timedMinutes": timed, "codingNote": day_note,
             })
         weeks_out.append({"week": wi, "title": w["title"], "goal": w["goal"], "concepts": w["concepts"],
                           "visuals": w["visuals"], "templates": w["templates"], "days": days_out,
                           "_pool": w["pool"]})
-    # pools: listed spares minus anything scheduled anywhere
+    # pools: listed spares minus anything scheduled anywhere (listed order = id order of the file before v3, kept stable)
     for w in weeks_out:
         nums = [n for n in w.pop("_pool") if n not in used]
         w["pool"] = [dict(P[n], id=f"w{w['week']:02d}-pool-{i:02d}", role="pool") for i, n in enumerate(nums, 1)]
+        w["pool"] += moved.get(w["week"], [])
         core = [p for d in w["days"] for p in d["problems"] if p["role"] == "core"]
         w["problemCount"] = len(core)
         w["oldTopicCount"] = sum(1 for d in w["days"] for p in d["problems"] if p["role"] == "old-topic")
-        w["mockCount"] = sum(1 for d in w["days"] if d["mock"])
     return {
-        "version": 2,
+        "version": 3,
         "defaultStartDate": "2026-10-26",
         "totalPlanDays": plan_day,
         "mockSpec": {
-            "rule": "A plan day is a mock day when its planDay number is odd. Extension days never have a mock.",
+            "rule": "Mocks are on demand: 26 in a sequence, about two per week. `suggestedAfterWeek` says when a mock fits the plan; any ready mock can be started at any time, in any order. Mocks are not plan-day items and never tick a day.",
             "parts": [
                 {"part": "A", "name": "MCQs", "minutes": 20, "mix": {"python": 7, "currentAndLastWeek": 6, "spacedReview": 5}},
                 {"part": "B", "name": "Program 1", "minutes": 25, "source": "Unlabelled problem from an earlier week's pool not yet attempted (Weeks 1-2: HackerRank Python domain or the Week 1 pool)"},
@@ -476,6 +562,7 @@ def build():
             ],
             "pythonThemes": [{"id": i, "title": t} for i, t in enumerate(PY_THEMES, 1)],
         },
+        "mocks": build_mocks(),
         "practicalTasks": [{"id": f"pt-{i:02d}", "title": t, "levels": lv, "unlockWeek": wk}
                            for i, (t, lv, wk) in enumerate(PRACTICAL, 1)],
         "weeks": weeks_out,
@@ -486,16 +573,24 @@ def validate(c):
     errs = []
     assert c["totalPlanDays"] == 90, c["totalPlanDays"]
     ids, urls = set(), {}
-    mocks = []
     for w in c["weeks"]:
         exp_days = 6 if w["week"] == 13 else 7
         if len(w["days"]) != exp_days:
             errs.append(f"week {w['week']} has {len(w['days'])} days")
         for d in w["days"]:
-            if d["mock"]:
-                mocks.append(d["mock"]["number"])
+            if "mock" in d:
+                errs.append(f"{w['week']}/{d['day']} still has a mock")
             if d["kind"] != "wrap-up" and not d["problems"] and not d["fallback"]:
                 errs.append(f"{w['week']}/{d['day']} has no coding")
+            if d["planDay"] >= FIRST_REVIEW_PLAN_DAY and d["kind"] != "wrap-up":
+                if len(d["problems"]) < 2:
+                    errs.append(f"plan day {d['planDay']} has {len(d['problems'])} counted problems (need 2)")
+                if d["reviewSlots"] != REVIEW_SLOTS:
+                    errs.append(f"plan day {d['planDay']} needs {REVIEW_SLOTS} review slots")
+                if day_minutes(d) > BUDGET_MINUTES:
+                    errs.append(f"plan day {d['planDay']} is about {day_minutes(d)} min (budget {BUDGET_MINUTES})")
+            elif d["reviewSlots"] != 0:
+                errs.append(f"plan day {d['planDay']} must have no review slots")
             for p in d["problems"] + ([d["fallback"]] if d["fallback"] else []):
                 if p["role"] == "old-topic" and p["fromWeek"] >= w["week"]:
                     errs.append(f"old-topic from same/later week: {p['id']}")
@@ -508,8 +603,8 @@ def validate(c):
             urls[p["url"]] = p["id"]
             if not re.fullmatch(r"https://(leetcode\.com/problems|www\.hackerrank\.com/challenges)/[a-z0-9-]+/(problem)?", p["url"]):
                 errs.append("bad url " + p["url"])
-    if mocks != list(range(1, 46)):
-        errs.append(f"mocks wrong: {mocks}")
+    if [m["number"] for m in c["mocks"]] != list(range(1, MOCK_COUNT + 1)):
+        errs.append("mocks must be numbered 1..26")
     return errs, len(urls)
 
 
@@ -521,4 +616,4 @@ if errs:
 OUT.write_text(json.dumps(c, indent=2, ensure_ascii=False) + "\n")
 print("ok", OUT, "unique problems:", n_unique)
 for w in c["weeks"]:
-    print(w["week"], "core", w["problemCount"], "old", w["oldTopicCount"], "mocks", w["mockCount"], "pool", len(w["pool"]))
+    print(w["week"], "core", w["problemCount"], "old", w["oldTopicCount"], "pool", len(w["pool"]))

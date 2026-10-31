@@ -43,7 +43,7 @@ function useToday(override?: string): string {
 }
 
 async function loadSnapshot(db: DsaDB): Promise<Snapshot> {
-  const [settings, completions, extensions, restDays, redos, attempts, customItems, moves, dayLogs, problemEntries] = await Promise.all([
+  const [settings, completions, extensions, restDays, redos, attempts, customItems, moves, dayLogs, problemEntries, draws, mocks, missedReasons] = await Promise.all([
     db.settings.get("settings"),
     db.completions.toArray(),
     db.extensions.toArray(),
@@ -54,6 +54,9 @@ async function loadSnapshot(db: DsaDB): Promise<Snapshot> {
     db.itemMoves.toArray(),
     db.dayLogs.toArray(),
     db.problemEntries.toArray(),
+    db.dayDraws.toArray(),
+    db.mocks.toArray(),
+    db.missedReasons.toArray(),
   ]);
   return {
     // Not written here (live queries are read-only); saved on the first change in Settings.
@@ -67,6 +70,9 @@ async function loadSnapshot(db: DsaDB): Promise<Snapshot> {
     moves,
     dayLogs,
     problemEntries,
+    draws,
+    mocksDone: [...new Set(mocks.map((m) => m.mockNumber))],
+    missedReasons,
   };
 }
 

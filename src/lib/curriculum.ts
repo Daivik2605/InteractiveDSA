@@ -1,5 +1,5 @@
 import raw from "../../content/curriculum.json";
-import type { Curriculum, DayKind, MockSlot, Problem } from "../types/content";
+import type { Curriculum, DayKind, Problem } from "../types/content";
 
 // Validated by `npm run validate`; the JSON's inferred types are wider than ours, hence the cast.
 export const curriculum = raw as unknown as Curriculum;
@@ -18,8 +18,6 @@ export const curriculumDay = (planDayId: string) => {
   const m = /^w(\d{2})-d(\d+)$/.exec(planDayId);
   return m ? weekOf(Number(m[1]))?.days.find((d) => d.day === Number(m[2])) : undefined;
 };
-
-export const mockOfDay = (planDayId: string): MockSlot | null => curriculumDay(planDayId)?.mock ?? null;
 
 /** The week's own-topic problems from weeks 1..`week` (or just `week` when `onlyThisWeek`); never old-topic ones. */
 export function problemsUpTo(week: number, onlyThisWeek = false): Problem[] {

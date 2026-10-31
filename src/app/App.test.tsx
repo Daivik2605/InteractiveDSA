@@ -64,7 +64,7 @@ describe("sidebar", () => {
     const s = sidebar();
     expect(s.getByText("Week 1 · Day 3")).toBeInTheDocument();
     expect(s.getByText("Python toolkit, Big-O, arrays & strings")).toBeInTheDocument();
-    expect(s.getByText("Day 3 of 90")).toBeInTheDocument();
+    expect(s.getByText("0 of 90 days complete")).toBeInTheDocument(); // completed days, not the scheduled day
     expect(s.getByText("Sat 23 Jan")).toBeInTheDocument(); // finish date
     expect(s.getByText("Days missed").previousSibling).toHaveTextContent("2");
   });
@@ -76,20 +76,20 @@ describe("sidebar", () => {
     });
     expect(sidebar().getByText("Days missed").previousSibling).toHaveTextContent("14");
     const queue = within(screen.getByRole("region", { name: "Catch-up queue" }));
-    expect(queue.getAllByRole("checkbox")[0]).toHaveAccessibleName("Mock 1");
+    expect(queue.getAllByRole("checkbox")[0]).toHaveAccessibleName("New topic: cold try, then concepts and templates");
     expect(queue.getAllByText(/from Mon 12 Oct/).length).toBeGreaterThan(0);
   });
 
   it("on the first day it reads Week 1 · Day 1 of 90", async () => {
     await renderApp({ today: "2026-10-26" });
     expect(sidebar().getByText("Week 1 · Day 1")).toBeInTheDocument();
-    expect(sidebar().getByText("Day 1 of 90")).toBeInTheDocument();
+    expect(sidebar().getByText("0 of 90 days complete")).toBeInTheDocument();
   });
 
   it("the last day is Week 13 · Day 6, day 90", async () => {
     await renderApp({ today: "2027-01-23" });
     expect(sidebar().getByText("Week 13 · Day 6")).toBeInTheDocument();
-    expect(sidebar().getByText("Day 90 of 90")).toBeInTheDocument();
+    expect(sidebar().getByText("0 of 90 days complete")).toBeInTheDocument();
   });
 
   it("top bar summary is available below lg", async () => {
@@ -127,16 +127,16 @@ describe("week extension dialog", () => {
 });
 
 describe("Today page", () => {
-  it("lists the day's Mock row and problems with new-tab links, the day type and a platform badge", async () => {
+  it("lists the day's lesson row and problems with new-tab links, the day type and a platform badge; no Mock row", async () => {
     await renderApp({ today: "2026-10-26" });
     expect(screen.getByText(/Week 1 · Day 1 · Mon 26 Oct/)).toBeInTheDocument();
     expect(screen.getByLabelText("Day type")).toHaveTextContent("New topic");
     const link = checklist().getByRole("link", { name: /Plus One/ });
     expect(link).toHaveAttribute("href", "https://leetcode.com/problems/plus-one/");
     expect(link).toHaveAttribute("target", "_blank");
-    expect(checklist().getAllByRole("checkbox")).toHaveLength(2); // Mock 1 + Plus One
-    expect(checklist().getByRole("checkbox", { name: "Mock 1" })).toBeInTheDocument();
-    expect(checklist().getByText(/Diagnostic/)).toBeInTheDocument();
+    expect(checklist().getAllByRole("checkbox")).toHaveLength(2); // the lesson + Plus One (plan days 1-4 have no review slots)
+    expect(checklist().getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" })).toBeInTheDocument();
+    expect(checklist().queryByText(/Mock|Diagnostic/)).not.toBeInTheDocument();
     expect(checklist().getByText("LeetCode")).toBeInTheDocument();
   });
 
@@ -156,10 +156,11 @@ describe("Today page", () => {
   });
 
   it("old-topic problems show no week or topic anywhere on Today", async () => {
-    await renderApp({ today: "2026-11-05" }); // Week 2 Day 4: Mock 6 + one old-topic problem
+    await renderApp({ today: "2026-11-05" }); // Week 2 Day 4: two old-topic problems + two review slots
     expect(screen.getByLabelText("Day type")).toHaveTextContent("Old topics (mixed)");
     expect(checklist().getByRole("checkbox", { name: "Reverse Words in a String" })).toBeInTheDocument();
-    expect(checklist().getByRole("checkbox", { name: "Mock 6" })).toBeInTheDocument();
+    expect(checklist().getByRole("checkbox", { name: "Pascal's Triangle II" })).toBeInTheDocument();
+    await waitFor(() => expect(checklist().getAllByRole("checkbox")).toHaveLength(4));
     expect(checklist().queryByText(/week \d|wk \d|two pointers|arrays/i)).not.toBeInTheDocument();
     const row = checklist().getByRole("checkbox", { name: "Reverse Words in a String" }).closest("li")!;
     expect(row.textContent).not.toMatch(/week/i);
@@ -194,9 +195,9 @@ describe("Today page", () => {
     expect(await db.redos.count()).toBe(0);
   });
 
-  it("ticks the Mock row directly", async () => {
+  it("ticks the lesson row directly", async () => {
     const { db, user } = await renderApp({ today: "2026-10-26" });
-    await user.click(checklist().getByRole("checkbox", { name: "Mock 1" }));
+    await user.click(checklist().getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" }));
     await waitFor(async () => expect(await db.completions.get("w01-d1:learn")).toMatchObject({ completedOn: "2026-10-26" }));
   });
 
@@ -204,13 +205,13 @@ describe("Today page", () => {
     const { db, user } = await renderApp({ today: "2026-10-28" });
     const queue = within(screen.getByRole("region", { name: "Catch-up queue" }));
     expect(queue.getAllByRole("checkbox").map((c) => c.getAttribute("aria-label"))).toEqual([
-      "Mock 1",
+      "New topic: cold try, then concepts and templates",
       "Plus One",
       "Merge Sorted Array",
       "Remove Duplicates from Sorted Array",
       "Longest Common Prefix",
     ]);
-    await user.click(queue.getByRole("checkbox", { name: "Mock 1" }));
+    await user.click(queue.getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" }));
     await waitFor(async () => expect(await db.completions.get("w01-d1:learn")).toMatchObject({ completedOn: "2026-10-28", planDayId: "w01-d1" }));
   });
 
@@ -230,9 +231,12 @@ describe("Today page", () => {
     expect(await db.completions.get("w01-d1-p1")).toBeUndefined();
   });
 
-  it("a plan day 7 has no redo slots: just its Mock row", async () => {
+  it("a plan day 7 has no redo slots: its two problems and two review slots, and no Mock row", async () => {
     await renderApp({ today: "2026-11-01" });
-    expect(checklist().getAllByRole("checkbox").map((c) => c.getAttribute("aria-label"))).toEqual(["Mock 4"]);
+    await waitFor(() => expect(checklist().getAllByRole("checkbox")).toHaveLength(4));
+    const names = checklist().getAllByRole("checkbox").map((c) => c.getAttribute("aria-label"));
+    expect(names.slice(0, 2)).toEqual(["Remove Element", "Spiral Matrix II"]);
+    expect(names.some((n) => /Mock|Redo slot/.test(n ?? ""))).toBe(false);
   });
 
   it("redo due: logging a hint closes the old redo as attempted and starts a single new chain", async () => {
@@ -267,7 +271,7 @@ describe("Today page", () => {
     expect(await db.completions.count()).toBe(0); // a redo is not a day item
     await waitFor(() => expect(screen.queryByRole("region", { name: "Redo due" })).not.toBeInTheDocument());
     expect(within(screen.getByRole("region", { name: "Catch-up queue" })).getAllByRole("checkbox")).toHaveLength(catchUpBefore);
-    expect(checklist().getByRole("checkbox", { name: "Mock 4" })).not.toBeChecked();
+    expect(checklist().getByRole("checkbox", { name: "Remove Element" })).not.toBeChecked();
   });
 
   it("fallback: with no redos due it is offered; logging it saves a normal attempt but never touches the day or catch-up", async () => {
@@ -285,8 +289,8 @@ describe("Today page", () => {
     expect((await db.redos.toArray()).map((r) => r.problemId)).toEqual(["w01-d7-fb"]); // normal redo scheduling still runs
     // the Dexie write finishes before the live query re-renders, so wait for the display
     expect(await within(screen.getByRole("region", { name: "Try this instead" })).findByText(/1 attempt logged/)).toBeInTheDocument();
-    expect(checklist().getAllByRole("checkbox")).toHaveLength(1);
-    expect(checklist().getByRole("checkbox", { name: "Mock 4" })).not.toBeChecked();
+    expect(checklist().getAllByRole("checkbox")).toHaveLength(4);
+    expect(checklist().getByRole("checkbox", { name: "Remove Element" })).not.toBeChecked();
     expect(within(screen.getByRole("region", { name: "Catch-up queue" })).getAllByRole("checkbox")).toHaveLength(catchUpBefore);
   });
 
@@ -332,7 +336,7 @@ describe("Calendar page", () => {
     await user.click(page.getByRole("gridcell", { name: /Mon 26 Oct, Week 1 day 1, Done late/ }));
     const details = within(page.getByLabelText("Day details"));
     expect(details.getAllByText("✓ 27 Oct (late)")).toHaveLength(1); // the problem
-    expect(details.getByText("✓ 26 Oct")).toBeInTheDocument(); // the Mock row, on time
+    expect(details.getByText("✓ 26 Oct")).toBeInTheDocument(); // the lesson row, on time
     expect(page.getByText("Longest streak")).toBeInTheDocument();
   });
 });
@@ -398,8 +402,9 @@ describe("Settings page", () => {
     await user.click(go);
     await waitFor(async () => expect(await db.completions.count()).toBe(0));
     expect(await db.extensions.count()).toBe(0);
+    await user.click(within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Settings" })); // a reset takes you to Today
 
-    await user.upload(screen.getByLabelText(/Import progress/), file);
+    await user.upload(await screen.findByLabelText(/Import progress/), file);
     const confirm = within(await screen.findByRole("dialog", { name: "Replace all progress?" }));
     await user.click(confirm.getByRole("button", { name: "Replace my progress" }));
     await waitFor(async () => expect(await exportAll(db)).toEqual(snapshot));

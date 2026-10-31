@@ -151,12 +151,12 @@ function ProblemsTab({ plan, week }: { plan: Plan; week: number }) {
             <h3 className="font-semibold">
               Day {d.day} <span className="font-normal text-slate-600 dark:text-slate-400">· {DAY_KIND_LABEL[d.kind]}{date ? ` · ${formatShort(date)}` : ""}</span>
             </h3>
-            {d.mock && <p className="text-sm text-slate-600 dark:text-slate-400">Mock {d.mock.number}{d.mock.diagnostic ? " (diagnostic)" : d.mock.final ? " (final)" : ""}</p>}
             {d.codingNote && <p className="text-sm text-slate-600 dark:text-slate-400">{d.codingNote}</p>}
             <ul className="mt-1 divide-y divide-slate-100 dark:divide-slate-900">
               {d.problems.map((p) => line(p))}
               {d.fallback && line(d.fallback, "fallback if no redos are due")}
             </ul>
+            {d.reviewSlots > 0 && <p className="text-sm text-slate-500">+ {d.reviewSlots} review problems, drawn when you open the day.</p>}
             {d.problems.length === 0 && !d.fallback && <p className="text-sm text-slate-500">No problems.</p>}
           </li>
         );

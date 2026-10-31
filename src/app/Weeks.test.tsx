@@ -64,7 +64,8 @@ describe("Weeks page", () => {
     await user.click(screen.getByRole("tab", { name: "Problems" }));
     const days = within(panel().getByRole("list", { name: "Week 1 days" }));
     expect(days.getAllByRole("heading", { level: 3 })).toHaveLength(7);
-    expect(days.getByText(/Day 1/).closest("li")!).toHaveTextContent("Mock 1 (diagnostic)");
+    expect(days.getByText(/Day 1/).closest("li")!).not.toHaveTextContent(/Mock/); // mocks are not on any day
+    expect(days.getByText(/Day 5/).closest("li")!).toHaveTextContent("+ 2 review problems, drawn when you open the day.");
     expect(days.getByRole("link", { name: "Plus One" })).toHaveAttribute("href", "/problems/w01-d1-p1");
     expect(days.getByText("Needed hint")).toBeInTheDocument();
     expect(days.getByRole("link", { name: "Set Matrix Zeroes" }).closest("li")).toHaveTextContent("fallback if no redos are due");

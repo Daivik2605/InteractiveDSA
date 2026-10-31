@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
 import { addMonths, formatShort, monthLabel, parseDate } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
@@ -29,6 +30,7 @@ export function Sidebar() {
   const [finding, setFinding] = useState(false);
   const selectedDay = selected ? plan.byDate.get(selected) : undefined;
   const topic = curriculum.weeks.find((w) => w.week === currentWeek(plan))?.title;
+  const weekNow = plan.weekProgress.find((w) => w.week === currentWeek(plan));
 
   return (
     <div className="space-y-5 text-sm">
@@ -36,7 +38,12 @@ export function Sidebar() {
         <p className="text-xs uppercase tracking-wide text-slate-500">{formatShort(plan.today)}</p>
         <p className="text-lg font-semibold">{dayLabel(plan)}</p>
         <p className="text-slate-600 dark:text-slate-400">{plan.phase === "during" ? topic : plan.phase === "before" ? `Starts ${formatShort(plan.startDate)}` : ""}</p>
-        {plan.dayNumber && <p className="text-xs text-slate-500">Day {plan.dayNumber} of {plan.totalDays}</p>}
+        {plan.phase !== "before" && <p className="text-xs text-slate-500">{plan.completedDays} of {curriculum.totalPlanDays} days complete</p>}
+        {plan.phase === "during" && weekNow && (
+          <p className="text-xs text-slate-500" aria-label="Week progress">
+            {weekNow.complete ? `Week ${weekNow.week} complete ✓` : `Week ${weekNow.week}: ${weekNow.daysDone} of ${weekNow.daysTotal} days${weekNow.mocksTotal ? ` · ${weekNow.mocksDone} of ${weekNow.mocksTotal} mocks` : ""}`}
+          </p>
+        )}
       </section>
 
       <section aria-label="Month calendar">
@@ -46,16 +53,22 @@ export function Sidebar() {
           <button type="button" aria-label="Next month" onClick={() => setMonth((x) => addMonths(x, 1))} className="rounded px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800">›</button>
         </div>
         <MonthGrid plan={plan} y={month.y} m={month.m} selected={selected} onSelect={setSelected} />
-        <p className="mt-1 text-[11px] text-slate-500">✓ done · ✓L late · ◐ partial · ✕ missed · R rest · + extension · ring = today</p>
+        <p className="mt-1 text-[11px] text-slate-500">✓ done · ✓L done late · ◐ incomplete · ✕ missed · R rest · + extension · ring = today</p>
       </section>
 
       {selectedDay && <DayDetails day={selectedDay} />}
 
       <section aria-label="Stats" className="grid grid-cols-2 gap-2">
+        <Link to="/incomplete" className="rounded-lg border border-rose-200 p-2 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40">
+          <div className={`text-xl font-semibold tabular-nums ${plan.stats.missed > 0 ? "text-rose-700 dark:text-rose-300" : ""}`}>{plan.stats.missed}</div>
+          <div className="text-xs text-slate-500">Days missed</div>
+        </Link>
+        <Link to="/incomplete" className="rounded-lg border border-amber-200 p-2 hover:bg-amber-50 dark:border-amber-900 dark:hover:bg-amber-950/40">
+          <div className="text-xl font-semibold tabular-nums">{plan.stats.catchUpCount}</div>
+          <div className="text-xs text-slate-500">Incomplete tasks</div>
+        </Link>
         {[
-          ["Days missed", plan.stats.missed],
-          ["Partial days", plan.stats.partial],
-          ["Catch-up items", plan.stats.catchUpCount],
+          ["Days online", plan.daysOnline],
           ["Current streak", plan.streak.current],
         ].map(([label, value]) => (
           <div key={label} className="rounded-lg border border-slate-200 p-2 dark:border-slate-800">

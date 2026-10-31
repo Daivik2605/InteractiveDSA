@@ -1,9 +1,10 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Modal } from "../../app/Modal";
 import { usePlanContext } from "../../app/PlanContext";
 import { saveExtensions, setStartDate } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
-import { formatDayMonth } from "../../lib/dates";
+import { addDays, formatDayMonth, formatLong, isValidDate } from "../../lib/dates";
 import { exportAll, importAll, resetAll, saveSettings, TABLE_NAMES } from "../../lib/db";
 import { scheduleContext } from "../../lib/plan";
 import { removeExtension, shortenExtension } from "../../lib/schedule";
@@ -31,6 +32,11 @@ export function SettingsPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
   const [typed, setTyped] = useState("");
+  const [resetStart, setResetStart] = useState(plan.today); // Day 1 after a reset
+  const navigate = useNavigate();
+  useEffect(() => setStart(plan.startDate), [plan.startDate]); // the field follows the real start date (e.g. after a reset or import)
+  const resetValid = isValidDate(resetStart);
+  const resetLast = resetValid ? addDays(resetStart, curriculum.totalPlanDays - 1) : null;
   const fileRef = useRef<HTMLInputElement>(null);
 
   const ctx = scheduleContext(plan, curriculum);
@@ -146,8 +152,8 @@ export function SettingsPage() {
       </Card>
 
       <Card title="Reset">
-        <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">Deletes all progress, attempts, extensions and settings on this device. Export first if unsure.</p>
-        <button type="button" className={`${button} border-rose-400 text-rose-700 dark:text-rose-300`} onClick={() => { setTyped(""); setResetting(true); }}>Reset progress…</button>
+        <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">Deletes all progress, attempts, notes, extensions and settings on this device and starts again from a day you choose, as if you had never used the app. Export first if unsure.</p>
+        <button type="button" className={`${button} border-rose-400 text-rose-700 dark:text-rose-300`} onClick={() => { setTyped(""); setResetStart(plan.today); setResetting(true); }}>Reset progress…</button>
       </Card>
 
       {importState && (
@@ -179,17 +185,27 @@ export function SettingsPage() {
 
       {resetting && (
         <Modal title="Reset all progress?" onClose={() => setResetting(false)}>
-          <p className="text-sm">This cannot be undone. Type <strong>RESET</strong> to confirm.</p>
+          <p className="text-sm">This deletes all progress, attempts, minutes, mocks, notes, extensions and settings, and starts over. It cannot be undone.</p>
+          <label className="mt-3 block text-sm">
+            Day 1 will be
+            <input type="date" aria-label="Day 1 after the reset" value={resetStart} onChange={(e) => setResetStart(e.target.value)} className={`${input} mt-1 block`} />
+          </label>
+          <p className="mt-2 text-sm" aria-label="Expected last day">
+            {resetLast ? (<>Expected last day: <strong>{formatLong(resetLast)}</strong> ({curriculum.totalPlanDays} days, with no extensions).</>) : "Choose a valid date for Day 1."}
+          </p>
+          <p className="mt-3 text-sm">Type <strong>RESET</strong> to confirm.</p>
           <input aria-label="Type RESET to confirm" value={typed} onChange={(e) => setTyped(e.target.value)} className={`${input} mt-3 w-full`} />
           <div className="mt-4 flex justify-end gap-2">
             <button type="button" className={button} onClick={() => setResetting(false)}>Cancel</button>
             <button
               type="button"
-              disabled={typed !== "RESET"}
+              disabled={typed !== "RESET" || !resetValid}
               className="rounded-md bg-rose-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40"
               onClick={async () => {
-                await resetAll(db);
+                await resetAll(db, resetStart);
                 setResetting(false);
+                setStart(resetStart);
+                navigate("/"); // leave any page that was showing the old plan
               }}
             >
               Delete everything

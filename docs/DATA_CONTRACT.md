@@ -103,3 +103,8 @@ A fresh install's default settings row therefore never overwrites the cloud sett
 
 ## 6. Changelog
 - v1 — initial contract.
+
+## Local-only tables added by curriculum v3
+
+`missedReasons` (Dexie v6, why a day was missed) and `dayNotes` (Dexie v7, free-text notes per day) are local only in the same way. `dayDraws` (Dexie v5) holds the review problems drawn for each day's review slots. It is **local only**: it is in export/import like every other data table, but sync is paused (Phase 3.5), so it is not pushed and nothing here or in `supabase/dsa_schema.sql` changes yet. When sync resumes it needs a `dsa_day_draws` table with the same `"own rows"` policy; the 45-mock plan, the "Mock N" row and the 91-day assumptions in this contract are also stale and are reworked at the same time.
+

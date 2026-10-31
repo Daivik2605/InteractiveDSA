@@ -238,21 +238,13 @@ export function addTimerMinutes(t: MockTimer, minutes = EXTRA_TIME_STEP): MockTi
 
 export interface MockLocation {
   slot: MockSlot;
+  /** The week the mock is suggested after: "this week and last week" questions and the Program 1 pool come from here. */
   week: number;
-  /** "w03-d1": the curriculum day that owns the mock, and "w03-d1:learn": its "Mock N" item. */
-  homeDayId: string;
-  itemId: string;
 }
 
 export function findMock(curriculum: Curriculum, number: number): MockLocation | undefined {
-  for (const w of curriculum.weeks) {
-    for (const d of w.days) {
-      if (d.mock?.number !== number) continue;
-      const homeDayId = `w${String(w.week).padStart(2, "0")}-d${d.day}`;
-      return { slot: d.mock, week: w.week, homeDayId, itemId: `${homeDayId}:learn` };
-    }
-  }
-  return undefined;
+  const slot = curriculum.mocks.find((m) => m.number === number);
+  return slot ? { slot, week: slot.suggestedAfterWeek } : undefined;
 }
 
 export type MockPhase = MockRun["phase"];
@@ -305,6 +297,11 @@ export function buildMockRun(number: number, inputs: MockInputs): MockRun | unde
     programs: [],
     extraDone: false,
   };
+}
+
+/** The questions an attempt got wrong, in the order asked, each once. */
+export function missedQuestionIds(answers: readonly MockAnswer[] | null): string[] {
+  return [...new Set((answers ?? []).filter((a) => !a.correct).map((a) => a.questionId))];
 }
 
 // ── results: breakdown and answer key ────────────────────────────────────────
@@ -373,16 +370,11 @@ export function filterKey<T extends { correct: boolean }>(items: readonly T[], f
 export const MOCK_MIN_WEEK_QUESTIONS = 6;
 
 export type MockStatus = "not-taken" | "in-progress" | "done";
-/** "taken" once done; otherwise how the scheduled date compares with today. */
-export type MockDateTag = "taken" | "today" | "overdue" | "upcoming";
 
 export interface MockListRow {
   number: number;
-  week: number;
-  planDay: number; // 1–90
-  planDayId: string; // where the Mock row is now (after moves and extension days)
-  date: string | null;
-  dateTag: MockDateTag;
+  /** The week the mock is suggested after (a hint only: any ready mock can be started at any time). */
+  suggestedAfterWeek: number;
   themeId: number;
   themeTitle: string;
   extra: MockExtra;
@@ -408,34 +400,20 @@ export function mockContentStatus(slot: Pick<MockSlot, "pythonTheme">, week: num
 
 export function buildMockRows(args: {
   curriculum: Curriculum;
-  days: readonly { day: { planDayId: string; date: string }; items: readonly { itemId: string }[] }[];
-  today: string;
   sessions: readonly MockSession[];
   runs: readonly Pick<MockRun, "mockNumber">[];
   retakes: readonly Pick<MockRetake, "mockNumber">[];
   questions: readonly Question[];
 }): MockListRow[] {
-  const { curriculum, days, today, sessions, runs, retakes, questions } = args;
-  const rows: MockListRow[] = [];
-  for (const w of curriculum.weeks) {
-    for (const d of w.days) {
-      const slot = d.mock;
-      if (!slot) continue;
-      const homeDayId = `w${String(w.week).padStart(2, "0")}-d${d.day}`;
-      const itemId = `${homeDayId}:learn`;
-      const scheduled = days.find((x) => x.items.some((i) => i.itemId === itemId));
+  const { curriculum, sessions, runs, retakes, questions } = args;
+  return curriculum.mocks
+    .map((slot): MockListRow => {
       const session = [...sessions].reverse().find((s) => s.mockNumber === slot.number);
       const status: MockStatus = session ? "done" : runs.some((r) => r.mockNumber === slot.number) ? "in-progress" : "not-taken";
-      const date = scheduled?.day.date ?? null;
-      const dateTag: MockDateTag = session ? "taken" : date === today ? "today" : date !== null && date < today ? "overdue" : "upcoming";
-      const content = mockContentStatus(slot, w.week, questions);
-      rows.push({
+      const content = mockContentStatus(slot, slot.suggestedAfterWeek, questions);
+      return {
         number: slot.number,
-        week: w.week,
-        planDay: d.planDay,
-        planDayId: scheduled?.day.planDayId ?? homeDayId,
-        date,
-        dateTag,
+        suggestedAfterWeek: slot.suggestedAfterWeek,
         themeId: slot.pythonTheme,
         themeTitle: curriculum.mockSpec.pythonThemes.find((t) => t.id === slot.pythonTheme)?.title ?? `Theme ${slot.pythonTheme}`,
         extra: slot.extra,
@@ -447,8 +425,7 @@ export function buildMockRows(args: {
         retakes: retakes.filter((r) => r.mockNumber === slot.number).length,
         ready: content.ready,
         notReadyReason: content.reason,
-      });
-    }
-  }
-  return rows.sort((a, b) => a.number - b.number);
+      };
+    })
+    .sort((a, b) => a.number - b.number);
 }

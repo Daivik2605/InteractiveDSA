@@ -18,6 +18,7 @@ export function itemLabel(plan: Plan, item: DayItem): string {
     if (item.itemId.endsWith(":wrapup")) return home?.codingNote ?? "Wrap-up";
     return home?.learn ?? "Learn";
   }
+  if (item.kind === "review") return item.problem?.title ?? `Review problem ${item.reviewSlot}`;
   const slotNo = item.itemId.endsWith(":s1") ? 1 : 2;
   const c = plan.completions.get(item.itemId);
   const attempt = c?.attemptId !== undefined ? plan.attemptsById.get(c.attemptId) : undefined;

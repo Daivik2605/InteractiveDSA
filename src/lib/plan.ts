@@ -18,8 +18,10 @@ import {
 import type {
   Curriculum,
   CustomItem,
+  DayDraw,
   DayLog,
   ItemCompletion,
+  MissedReason,
   ItemMove,
   Problem,
   ProblemAttempt,
@@ -42,6 +44,20 @@ export interface Snapshot {
   moves: ItemMove[];
   dayLogs: DayLog[];
   problemEntries: ProblemEntry[];
+  draws: DayDraw[];
+  /** Numbers of mocks with a saved session. */
+  mocksDone: number[];
+  missedReasons: MissedReason[];
+}
+
+export interface WeekProgress {
+  week: number;
+  daysDone: number; // plan days with every item ticked (on time or late)
+  daysTotal: number;
+  mocksDone: number; // of the mocks suggested after this week
+  mocksTotal: number;
+  complete: boolean; // every day done and every mock for the week taken
+  ended: boolean; // the week's last plan day is before today
 }
 
 export interface Plan {
@@ -60,6 +76,14 @@ export interface Plan {
   redoDue: RedoTask[];
   streak: { current: number; longest: number };
   stats: { missed: number; partial: number; catchUpCount: number };
+  /** Plan days where every checklist item is ticked. This, not the scheduled day, is "Day N of 90". */
+  completedDays: number;
+  /** Calendar dates on which at least one item was ticked. */
+  daysOnline: number;
+  weekProgress: WeekProgress[];
+  /** Past days with nothing ticked, oldest first. */
+  missedDays: EvaluatedDay[];
+  missedReasons: ReadonlyMap<string, MissedReason>;
   phase: "before" | "during" | "after";
   todayDay: EvaluatedDay | null;
   dayNumber: number | null; // 1-based position of today in the schedule
@@ -80,7 +104,7 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
   const completions = indexCompletions(snapshot.completions);
   const restDates = new Set(snapshot.restDays.map((r) => r.date));
   const schedule = buildSchedule(curriculum, settings.startDate, snapshot.extensions);
-  const edits = { customItems: snapshot.customItems, moves: snapshot.moves };
+  const edits = { customItems: snapshot.customItems, moves: snapshot.moves, draws: snapshot.draws };
   const days = evaluateDays({ curriculum, schedule, completions, restDates, today, edits });
   const customById = new Map(snapshot.customItems.map((c) => [c.id, c]));
   const catchUp = catchUpQueue(days, completions, today);
@@ -88,6 +112,17 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
   const planOnly = schedule.filter((d) => d.kind === "plan").length;
   const originalFinish = planOnly > 0 ? addDays(settings.startDate, planOnly - 1) : null;
   const todayIndex = days.findIndex((d) => d.day.date === today);
+
+  const planDays = days.filter((d) => d.day.kind === "plan");
+  const mocksDone = new Set(snapshot.mocksDone);
+  const weekProgress = curriculum.weeks.map((w): WeekProgress => {
+    const mine = planDays.filter((d) => d.day.week === w.week);
+    const mocks = curriculum.mocks.filter((m) => m.suggestedAfterWeek === w.week);
+    const daysDone = mine.filter((d) => d.status === "done" || d.status === "done-late").length;
+    const taken = mocks.filter((m) => mocksDone.has(m.number)).length;
+    const last = mine.at(-1)?.day.date;
+    return { week: w.week, daysDone, daysTotal: mine.length, mocksDone: taken, mocksTotal: mocks.length, complete: daysDone === mine.length && taken === mocks.length, ended: !!last && last < today };
+  });
 
   return {
     today,
@@ -102,6 +137,11 @@ export function derivePlan(curriculum: Curriculum, snapshot: Snapshot, today: st
     dayAttempts: snapshot.attempts.filter((a) => a.source !== "mock"),
     catchUp,
     redoDue: redosDue(snapshot.redos, today),
+    completedDays: planDays.filter((d) => d.status === "done" || d.status === "done-late").length,
+    daysOnline: new Set(snapshot.completions.map((c) => c.completedOn)).size,
+    weekProgress,
+    missedDays: days.filter((d) => d.status === "missed"),
+    missedReasons: new Map(snapshot.missedReasons.map((r) => [r.planDayId, r])),
     streak: streaks(days, today),
     stats: {
       missed: days.filter((d) => d.status === "missed").length,
@@ -140,6 +180,6 @@ export function scheduleContext(plan: Plan, curriculum_: Curriculum): ScheduleCo
     extensions: plan.snapshot.extensions,
     completions: plan.completions,
     today: plan.today,
-    edits: { customItems: plan.snapshot.customItems, moves: plan.snapshot.moves },
+    edits: { customItems: plan.snapshot.customItems, moves: plan.snapshot.moves, draws: plan.snapshot.draws },
   };
 }

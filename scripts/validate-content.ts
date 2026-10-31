@@ -40,7 +40,7 @@ const curriculum = check("content/curriculum.json", join(contentDir, "curriculum
 if (curriculum) {
   const core = curriculum.weeks.reduce((n, w) => n + w.problemCount, 0);
   const old = curriculum.weeks.reduce((n, w) => n + w.oldTopicCount, 0);
-  const mocks = curriculum.weeks.reduce((n, w) => n + w.mockCount, 0);
+  const mocks = curriculum.mocks.length;
   console.log(`  ${curriculum.weeks.length} weeks, ${curriculum.totalPlanDays} plan days, ${core} core + ${old} old-topic problems, ${mocks} mocks`);
 }
 

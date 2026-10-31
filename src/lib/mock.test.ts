@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { saveMockRetake, saveMockSession } from "./actions";
 import { DsaDB } from "./db";
 import { curriculum } from "./curriculum";
-import { derivePlan, type Snapshot } from "./plan";
 import { bank } from "./questions";
 import { mulberry32 } from "./quiz";
 import {
@@ -15,6 +14,7 @@ import {
   findMock,
   freshTimer,
   mcqOfAnswers,
+  missedQuestionIds,
   mockContentStatus,
   nextPhase,
   pauseTimer,
@@ -105,7 +105,7 @@ describe("retakes leave the official result alone", () => {
   };
 
   it("writes only to mockRetakes, numbering retakes from 1", async () => {
-    await saveMockSession(db, session, { itemId: "w01-d1:learn", planDayId: "w01-d1" });
+    await saveMockSession(db, session);
     await db.cards.put({ questionId: "a", box: 2, dueOn: "2026-10-29" });
     const before = { mocks: await db.mocks.toArray(), completions: await db.completions.toArray(), cards: await db.cards.toArray(), answers: await db.quizAnswers.toArray(), attempts: await db.attempts.toArray(), redos: await db.redos.toArray() };
 
@@ -289,7 +289,7 @@ describe("Program 2 picker", () => {
 describe("building a mock", () => {
   const inputs = (over = {}) => ({ curriculum, questions: bank.questions, debugSnippets: [], cards: [], answers: [], attempts: [], sessions: [], today: "2026-10-26", rng: mulberry32(2), ...over });
 
-  it("Mock 1 is odd-numbered with no Program 2 and the debug extra; Mock 2 has Program 2 but no task yet in Week 1", () => {
+  it("Mock 1 has no Program 2 and the debug extra; Mock 2 has Program 2 but no task yet in Week 1", () => {
     const m1 = buildMockRun(1, inputs())!;
     expect(m1).toMatchObject({ phase: "A", program2: null, extra: { kind: "debug" } });
     expect(m1.questionIds).toHaveLength(18);
@@ -304,11 +304,12 @@ describe("building a mock", () => {
     }
   });
 
-  it("builds from the mock's own week, not from today", () => {
-    const early = buildMockRun(3, inputs({ today: "2026-10-20" }))!; // a week before the plan starts
+  it("builds from the week the mock is suggested after, not from today", () => {
+    const early = buildMockRun(3, inputs({ today: "2026-10-20" }))!; // a week before the plan starts; Mock 3 is good after Week 2
     const weekIds = early.questionIds.filter((id) => !id.startsWith("t"));
     expect(weekIds.length).toBeGreaterThan(0);
-    expect(weekIds.every((id) => id.startsWith("w01-"))).toBe(true);
+    expect(weekIds.every((id) => id.startsWith("w02-") || id.startsWith("w01-"))).toBe(true); // this week and last week
+    expect(weekIds.some((id) => id.startsWith("w02-"))).toBe(true);
     expect(early.questionIds.slice(0, 7).every((id) => id.startsWith("t03-"))).toBe(true);
   });
 
@@ -329,63 +330,46 @@ describe("building a mock", () => {
 // ── the Mocks list ───────────────────────────────────────────────────────────
 
 describe("buildMockRows", () => {
-  const snap = (over: Partial<Snapshot> = {}): Snapshot => ({
-    settings: { id: "settings", startDate: "2026-10-26", theme: "system" },
-    completions: [], extensions: [], restDays: [], redos: [], attempts: [], customItems: [], moves: [], dayLogs: [], problemEntries: [], ...over,
-  });
-  const rowsFor = (today: string, snapshot: Snapshot, extra: Partial<Parameters<typeof buildMockRows>[0]> = {}) => {
-    const plan = derivePlan(curriculum, snapshot, today);
-    return buildMockRows({ curriculum, days: plan.days, today, sessions: [], runs: [], retakes: [], questions: bank.questions, ...extra });
-  };
+  const rowsFor = (extra: Partial<Parameters<typeof buildMockRows>[0]> = {}) =>
+    buildMockRows({ curriculum, sessions: [], runs: [], retakes: [], questions: bank.questions, ...extra });
   const sessionOf = (mockNumber: number, correct: number): MockSession => ({
     mockNumber, date: "2026-10-26", diagnostic: mockNumber === 1, mcq: { total: 18, correct, byType: {} }, questionIds: [], programs: [], extra: { kind: "debug", done: true }, rating: 3,
   });
 
-  it("lists all 45 mocks with their plan day, week, theme and extra", () => {
-    const rows = rowsFor("2026-10-26", snap());
-    expect(rows).toHaveLength(45);
-    expect(rows.map((r) => r.number)).toEqual(Array.from({ length: 45 }, (_, i) => i + 1));
-    expect(rows[0]).toMatchObject({ number: 1, week: 1, planDay: 1, diagnostic: true, program2: false, extra: "debug", themeId: 1 });
-    expect(rows[1]).toMatchObject({ number: 2, planDay: 3, program2: true });
-    expect(rows[44]).toMatchObject({ number: 45, final: true, week: 13, planDay: 89 });
+  it("lists the 26 mocks as a sequence with a suggested week, theme and extra, and no dates", () => {
+    const rows = rowsFor();
+    expect(rows).toHaveLength(26);
+    expect(rows.map((r) => r.number)).toEqual(Array.from({ length: 26 }, (_, i) => i + 1));
+    expect(rows[0]).toMatchObject({ number: 1, suggestedAfterWeek: 1, diagnostic: true, program2: false, extra: "debug", themeId: 1 });
+    expect(rows[1]).toMatchObject({ number: 2, suggestedAfterWeek: 1, program2: true, extra: "explain-aloud", themeId: 2 });
+    expect(rows[25]).toMatchObject({ number: 26, suggestedAfterWeek: 13, final: true, program2: true });
     expect(rows[0]!.themeTitle).toMatch(/Types, mutability/);
+    expect(Object.keys(rows[0]!)).not.toContain("date");
   });
 
-  it("dates come from the real schedule; a 2-day extension shifts every later mock", () => {
-    const base = rowsFor("2026-10-26", snap());
-    expect(base[0]!.date).toBe("2026-10-26"); // Mock 1: Week 1 Day 1
-    expect(base[4]!.date).toBe("2026-11-03"); // Mock 5: Week 2 Day 2
-    expect(base[44]!.date).toBe("2027-01-22");
-    const ext = rowsFor("2026-10-26", snap({ extensions: [{ id: 1, week: 1, extraDays: 2, createdOn: "2026-10-26" }] }));
-    expect(ext[0]!.date).toBe("2026-10-26"); // Week 1 itself does not move
-    expect(ext[3]!.date).toBe("2026-11-01"); // Mock 4: Week 1 Day 7
-    expect(ext[4]!.date).toBe("2026-11-05"); // Mock 5: two days later
-    expect(ext[44]!.date).toBe("2027-01-24");
-    expect(ext[4]!.planDay).toBe(base[4]!.planDay); // the plan day number does not change
-    expect(ext[4]!.planDayId).toBe("w02-d2");
-  });
-
-  it("tags dates as Today, Overdue or Upcoming, and taken once done", () => {
-    const rows = rowsFor("2026-10-28", snap(), { sessions: [sessionOf(1, 13)] });
-    expect(rows[0]!.dateTag).toBe("taken"); // Mock 1, done
-    expect(rows[1]!.dateTag).toBe("today"); // Mock 2 is on 2026-10-28
-    expect(rows[2]!.dateTag).toBe("upcoming");
-    const late = rowsFor("2026-10-29", snap());
-    expect(late[0]!.dateTag).toBe("overdue");
-    expect(late[1]!.dateTag).toBe("overdue");
+  it("findMock reads the list, and 'this week and last week' means the week the mock is suggested after", () => {
+    expect(findMock(curriculum, 7)).toMatchObject({ week: 4, slot: { number: 7 } });
+    expect(findMock(curriculum, 26)).toMatchObject({ week: 13, slot: { final: true, mcqCount: 20 } });
+    expect(findMock(curriculum, 27)).toBeUndefined();
+    const run = buildMockRun(7, { curriculum, questions: bank.questions, debugSnippets: [], cards: [], answers: [], attempts: [], sessions: [], today: "2026-10-26", rng: mulberry32(1) })!;
+    expect(run.groups.current).toBeGreaterThan(0);
+    const weeksUsed = new Set(run.questionIds.map((id) => bank.byId.get(id)!).filter((q) => q.theme === undefined).map((q) => q.week));
+    expect([...weeksUsed].every((w) => w <= 4)).toBe(true);
   });
 
   it("shows status, first-attempt score and retake count", () => {
-    const rows = rowsFor("2026-10-28", snap(), { sessions: [sessionOf(1, 13)], runs: [{ mockNumber: 2 }], retakes: [{ mockNumber: 1 }, { mockNumber: 1 }] });
+    const rows = rowsFor({ sessions: [sessionOf(1, 13)], runs: [{ mockNumber: 2 }], retakes: [{ mockNumber: 1 }, { mockNumber: 1 }] });
     expect(rows[0]).toMatchObject({ status: "done", score: { correct: 13, total: 18 }, retakes: 2 });
     expect(rows[1]).toMatchObject({ status: "in-progress", score: null });
     expect(rows[2]).toMatchObject({ status: "not-taken", score: null, retakes: 0 });
   });
 
   it("marks a mock Content not ready until its theme and week questions exist", () => {
-    const rows = rowsFor("2026-10-26", snap());
+    const rows = rowsFor();
     expect(rows[0]).toMatchObject({ ready: true, notReadyReason: null }); // theme 1 and Week 1 are written
-    expect(rows[44]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/Python theme 15|Week 13/) }); // the last mock needs the last content
+    expect(rows[7]).toMatchObject({ ready: true }); // Mock 8: suggested after Week 4, whose questions exist
+    expect(rows.filter((r) => r.ready).map((r) => r.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]); // Weeks 1-4 are written
+    expect(rows[25]).toMatchObject({ ready: false, notReadyReason: expect.stringMatching(/Python theme 3|Week 13/) }); // the final needs Week 13
     // the rule itself, on a small bank so it does not depend on how much content exists yet
     const themeQs = Array.from({ length: 7 }, (_, i) => mk(`t5-${i}`, 2, 5));
     const weekQs = Array.from({ length: 6 }, (_, i) => mk(`w2-${i}`, 2));
@@ -414,5 +398,15 @@ describe("advisory timer", () => {
     const t = addTimerMinutes(addTimerMinutes(freshTimer("B", 0)));
     expect(t.addedMinutes).toBe(20);
     expect(timerElapsed(t, 0)).toBe(0);
+  });
+});
+
+describe("missedQuestionIds", () => {
+  it("lists the wrong answers in the order asked, once each, and nothing when there are none or no answers", () => {
+    const a = (id: string, correct: boolean): MockAnswer => ({ questionId: id, picked: 0, correct });
+    expect(missedQuestionIds([a("q1", true), a("q2", false), a("q3", true), a("q4", false), a("q2", false)])).toEqual(["q2", "q4"]);
+    expect(missedQuestionIds([a("q1", true)])).toEqual([]);
+    expect(missedQuestionIds([])).toEqual([]);
+    expect(missedQuestionIds(null)).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
-// Zod schema + cross-checks for content/curriculum.json (version 2). Used by validate-content.ts and its test.
-// The types it mirrors are in src/types/content.ts (docs/curriculum-v2.types.ts).
+// Zod schema + cross-checks for content/curriculum.json (version 3). Used by validate-content.ts and its test.
+// The types it mirrors are in src/types/content.ts.
 
 import { z } from "zod";
 
@@ -8,7 +8,11 @@ const nonEmpty = z.string().min(1);
 const mockExtra = z.enum(["debug", "explain-aloud", "complexity-check"]);
 
 export const TOTAL_PLAN_DAYS = 90;
-export const MOCK_COUNT = 45;
+export const MOCK_COUNT = 26;
+export const REVIEW_SLOTS = 2;
+/** Plan days before this one have no review slots (plan days 1–4 were studied before review slots existed). */
+export const FIRST_REVIEW_PLAN_DAY = 5;
+export const MIN_PROBLEMS_FROM_REVIEW_DAY = 2;
 export const PYTHON_THEMES = 15;
 
 const Problem = z
@@ -31,6 +35,7 @@ const Problem = z
 
 const MockSlot = z.strictObject({
   number: z.number().int().min(1).max(MOCK_COUNT),
+  suggestedAfterWeek: z.number().int().min(1).max(13),
   pythonTheme: z.number().int().min(1).max(PYTHON_THEMES),
   extra: mockExtra,
   program2: z.boolean(),
@@ -43,10 +48,10 @@ const PlanDay = z.strictObject({
   day: z.number().int().min(1).max(7),
   planDay: z.number().int().min(1).max(TOTAL_PLAN_DAYS),
   kind: z.enum(["new-topic", "topic", "python-fluency", "old-topics", "timed", "redo", "wrap-up"]),
-  mock: MockSlot.nullable(),
   learn: nonEmpty.nullable(),
   problems: z.array(Problem),
   fallback: Problem.nullable(),
+  reviewSlots: z.number().int().min(0).max(REVIEW_SLOTS),
   timedMinutes: z.number().int().positive().nullable(),
   codingNote: z.string().nullable(),
 });
@@ -62,7 +67,6 @@ const Week = z.strictObject({
   pool: z.array(Problem),
   problemCount: z.number().int().nonnegative(),
   oldTopicCount: z.number().int().nonnegative(),
-  mockCount: z.number().int().nonnegative(),
 });
 
 const MockPart = z.strictObject({
@@ -84,7 +88,7 @@ const PracticalTask = z.strictObject({
 
 export const Curriculum = z
   .strictObject({
-    version: z.literal(2),
+    version: z.literal(3),
     defaultStartDate: dateString,
     totalPlanDays: z.literal(TOTAL_PLAN_DAYS),
     mockSpec: z.strictObject({
@@ -92,6 +96,7 @@ export const Curriculum = z
       parts: z.array(MockPart).length(4),
       pythonThemes: z.array(z.strictObject({ id: z.number().int(), title: nonEmpty })).length(PYTHON_THEMES),
     }),
+    mocks: z.array(MockSlot).length(MOCK_COUNT),
     practicalTasks: z.array(PracticalTask).length(16),
     weeks: z.array(Week).length(13),
   })
@@ -113,8 +118,18 @@ export const Curriculum = z
       if (t.id !== `pt-${String(i + 1).padStart(2, "0")}`) issue(["practicalTasks", i, "id"], `expected pt-${String(i + 1).padStart(2, "0")}`);
     });
 
+    c.mocks.forEach((m, i) => {
+      const mp = ["mocks", i];
+      if (m.number !== i + 1) issue([...mp, "number"], `expected Mock ${i + 1}, got ${m.number}`);
+      if (m.suggestedAfterWeek !== Math.min(13, Math.ceil(m.number / 2))) issue([...mp, "suggestedAfterWeek"], `Mock ${m.number} is suggested after Week ${Math.min(13, Math.ceil(m.number / 2))}`);
+      if (m.number <= PYTHON_THEMES && m.pythonTheme !== m.number) issue([...mp, "pythonTheme"], `Mock ${m.number} must lead with theme ${m.number} (themes 1–${PYTHON_THEMES} are used in order first)`);
+      if (m.program2 !== (m.number % 2 === 0)) issue([...mp, "program2"], "program2 must be true for even-numbered mocks (the final included) and no others");
+      if (m.diagnostic !== (m.number === 1)) issue([...mp, "diagnostic"], "only Mock 1 is the diagnostic");
+      if (m.final !== (m.number === MOCK_COUNT)) issue([...mp, "final"], `only Mock ${MOCK_COUNT} is final`);
+      if (m.mcqCount !== (m.final ? 20 : 18)) issue([...mp, "mcqCount"], `expected ${m.final ? 20 : 18} MCQs`);
+    });
+
     let planDay = 0;
-    let mockNo = 0;
     c.weeks.forEach((w, wi) => {
       const nn = String(w.week).padStart(2, "0");
       const wp = ["weeks", wi];
@@ -124,27 +139,16 @@ export const Curriculum = z
 
       let core = 0;
       let old = 0;
-      let mocks = 0;
       w.days.forEach((d, di) => {
         const dp = [...wp, "days", di];
         planDay++;
         if (d.day !== di + 1) issue([...dp, "day"], `expected day ${di + 1}`);
         if (d.planDay !== planDay) issue([...dp, "planDay"], `expected planDay ${planDay}, got ${d.planDay}`);
 
-        const odd = d.planDay % 2 === 1;
-        if (odd !== (d.mock !== null)) issue([...dp, "mock"], odd ? "odd plan days must have a mock" : "even plan days must not have a mock");
-        if (d.mock) {
-          mocks++;
-          mockNo++;
-          const m = d.mock;
-          if (m.number !== mockNo) issue([...dp, "mock", "number"], `expected Mock ${mockNo}, got ${m.number}`);
-          if (m.pythonTheme !== ((m.number - 1) % PYTHON_THEMES) + 1) issue([...dp, "mock", "pythonTheme"], `Mock ${m.number} must lead with theme ${((m.number - 1) % PYTHON_THEMES) + 1}`);
-          if (m.program2 !== (m.number % 2 === 0 || m.number === MOCK_COUNT)) issue([...dp, "mock", "program2"], "program2 must be true for even-numbered mocks and Mock 45 only");
-          if (m.diagnostic !== (m.number === 1)) issue([...dp, "mock", "diagnostic"], "only Mock 1 is the diagnostic");
-          if (m.final !== (m.number === MOCK_COUNT)) issue([...dp, "mock", "final"], "only Mock 45 is final");
-          if (m.mcqCount !== (m.final ? 20 : 18)) issue([...dp, "mock", "mcqCount"], `expected ${m.final ? 20 : 18} MCQs`);
-        }
-        if ((d.mock || d.kind === "new-topic") && d.learn === null) issue([...dp, "learn"], "mock and new-topic days need a learn item");
+        if (d.kind === "new-topic" && d.learn === null) issue([...dp, "learn"], "new-topic days need a learn item");
+        const reviewDay = d.planDay >= FIRST_REVIEW_PLAN_DAY && d.kind !== "wrap-up";
+        if (d.reviewSlots !== (reviewDay ? REVIEW_SLOTS : 0)) issue([...dp, "reviewSlots"], `plan day ${d.planDay} must have ${reviewDay ? REVIEW_SLOTS : 0} review slots`);
+        if (reviewDay && d.problems.length < MIN_PROBLEMS_FROM_REVIEW_DAY) issue([...dp, "problems"], `plan day ${d.planDay} needs at least ${MIN_PROBLEMS_FROM_REVIEW_DAY} counted problems, has ${d.problems.length}`);
         if (d.kind === "redo" && !d.fallback) issue([...dp, "fallback"], "a redo day needs a fallback problem");
         if (d.kind !== "wrap-up" && d.learn === null && d.problems.length === 0) issue(dp, "a day needs a learn item or at least one problem");
         if (d.kind === "wrap-up" && (d.learn !== null || d.problems.length > 0)) issue(dp, "the wrap-up day has no learn item or problems (it gets one manual item)");
@@ -169,15 +173,14 @@ export const Curriculum = z
       w.pool.forEach((p, pi) => {
         const pp = [...wp, "pool", pi];
         seen(pp, p);
-        if (p.role !== "pool" || !p.id.startsWith(`w${nn}-pool-`)) issue([...pp, "id"], `pool problems need role "pool" and an id like w${nn}-pool-NN`);
+        const movedDayProblem = new RegExp(`^w${nn}-d[1-7]-p\\d+$`).test(p.id); // an over-long day's problem moved here keeps its id
+        if (p.role !== "pool" || !(p.id.startsWith(`w${nn}-pool-`) || movedDayProblem)) issue([...pp, "id"], `pool problems need role "pool" and an id like w${nn}-pool-NN (or the day id of a problem moved out of its day)`);
       });
       if (core !== w.problemCount) issue([...wp, "problemCount"], `problemCount is ${w.problemCount} but the week has ${core} core problems`);
       if (old !== w.oldTopicCount) issue([...wp, "oldTopicCount"], `oldTopicCount is ${w.oldTopicCount} but the week has ${old} old-topic problems`);
-      if (mocks !== w.mockCount) issue([...wp, "mockCount"], `mockCount is ${w.mockCount} but the week has ${mocks} mocks`);
     });
 
     if (planDay !== TOTAL_PLAN_DAYS) issue(["weeks"], `expected ${TOTAL_PLAN_DAYS} plan days, found ${planDay}`);
-    if (mockNo !== MOCK_COUNT) issue(["weeks"], `expected ${MOCK_COUNT} mocks, found ${mockNo}`);
   });
 
 export type CurriculumFile = z.infer<typeof Curriculum>;

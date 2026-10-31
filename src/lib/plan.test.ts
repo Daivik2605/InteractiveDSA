@@ -13,6 +13,9 @@ const snap = (over: Partial<Snapshot> = {}): Snapshot => ({
   moves: [],
   dayLogs: [],
   problemEntries: [],
+  draws: [],
+  mocksDone: [],
+  missedReasons: [],
   ...over,
 });
 

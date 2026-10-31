@@ -1,13 +1,13 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlanContext } from "../../app/PlanContext";
-import { logAttempt, setRestDay, tickItem, undoAttempt, untickItem, type LogInput } from "../../lib/actions";
-import { curriculumDay, DAY_KIND_LABEL, problemsUpTo } from "../../lib/curriculum";
+import { ensureDayDraws, logAttempt, rerollDraw, setRestDay, tickItem, undoAttempt, untickItem, type LogInput } from "../../lib/actions";
+import { curriculum, curriculumDay, DAY_KIND_LABEL, problemsUpTo } from "../../lib/curriculum";
 import { diffDays, formatDayMonth, formatShort } from "../../lib/dates";
 import { itemLabel, platformOf } from "../../lib/labels";
 import type { Plan } from "../../lib/plan";
-import { learnKind } from "../../lib/learn";
+import { parseReviewSlotId } from "../../lib/review";
 import { canAddRestDay, fillSlots, type DayItem } from "../../lib/schedule";
 import type { Problem } from "../../types/content";
 import { STATUS_META } from "../calendar/status";
@@ -34,26 +34,45 @@ export function TodayPage() {
   );
 }
 
-/** A mock day's learn item is its "Mock N" row; the plan's own text (if more than "Mock N") becomes the subtitle. */
+/** A learn item (a new-topic day's lesson, or the wrap-up): its text, with where it was moved from. */
 function learnRow(plan: Plan, item: DayItem): { label: string; meta: string } {
   const text = itemLabel(plan, item);
   const moved = item.movedFrom ? ` · moved from ${movedLabel(plan, item.movedFrom)}` : "";
-  if (learnKind(item) !== "mock") return { label: text, meta: `${item.dayKind === "wrap-up" ? "Wrap-up" : "Learn"}${moved}` };
-  const m = item.mock!;
-  const badge = m.diagnostic ? "Diagnostic: your score is the baseline" : m.final ? "Final mock" : "";
-  const extra = text === `Mock ${m.number}` ? "" : text;
-  return { label: `Mock ${m.number}`, meta: [badge, extra].filter(Boolean).join(" · ") + (moved && ` ${moved}`) };
+  return { label: text, meta: `${item.dayKind === "wrap-up" ? "Wrap-up" : "Learn"}${moved}` };
 }
 
-/** "Start mock" / "Resume mock" / "View result" for a mock day's Mock N row. */
-function MockAction({ number }: { number: number }) {
+/** Mocks are on demand: the next one to take, and a Resume link for any that is open. */
+function MocksPrompt() {
   const { db } = usePlanContext();
-  const state = useLiveQuery(async () => ((await db.mockRuns.get(number)) ? "run" : (await db.mocks.where("mockNumber").equals(number).count()) > 0 ? "saved" : "new"), [db, number]);
-  const label = state === "run" ? "Resume mock" : state === "saved" ? "View result" : "Start mock";
+  const sessions = useLiveQuery(() => db.mocks.toArray(), [db]);
+  const runs = useLiveQuery(() => db.mockRuns.toArray(), [db]);
+  if (!sessions || !runs) return null;
+  const done = new Set(sessions.map((m) => m.mockNumber));
+  const open = [...runs].sort((a, b) => a.mockNumber - b.mockNumber);
+  const next = curriculum.mocks.find((m) => !done.has(m.number) && !open.some((r) => r.mockNumber === m.number));
+  const link = "rounded-md border border-indigo-600 px-2 py-0.5 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-indigo-950";
   return (
-    <Link to={`/mock/${number}`} className="rounded-md border border-indigo-600 px-2 py-0.5 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-indigo-950">
-      {label}
-    </Link>
+    <Section title="Mocks" hint="Take a mock whenever you like, in any order.">
+      {open.map((r) => (
+        <li key={r.mockNumber} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
+          <span>Mock {r.mockNumber} is in progress.</span>
+          <Link to={`/mock/${r.mockNumber}`} className={link}>Resume mock {r.mockNumber}</Link>
+        </li>
+      ))}
+      <li className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
+        {next ? (
+          <>
+            <span>Mock {next.number} is suggested after Week {next.suggestedAfterWeek}.</span>
+            <Link to={`/mock/${next.number}`} className={link}>Mock {next.number}</Link>
+          </>
+        ) : (
+          <>
+            <span>{open.length > 0 ? "Every other mock is done." : "All 26 mocks are done."}</span>
+            <Link to="/mocks" className={link}>All mocks</Link>
+          </>
+        )}
+      </li>
+    </Section>
   );
 }
 
@@ -101,6 +120,17 @@ function TodayBody() {
 
   const done = (item: DayItem) => plan.completions.get(item.itemId);
   const meta = STATUS_META[day.status];
+
+  // The first time a day is opened its review problems are drawn and saved; catch-up days with an undrawn review slot too.
+  const needDraw = [...new Set([planDayId, ...plan.catchUp.filter((c) => c.item.kind === "review" && !c.item.problem).map((c) => c.planDayId)])];
+  const needDrawKey = needDraw.join(",");
+  useEffect(() => {
+    // A failed draw (e.g. the database closing) is harmless: the next render of the day tries again.
+    for (const id of needDraw) void ensureDayDraws(db, curriculum, id, today).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db, today, needDrawKey]);
+  const drawOf = (slotId: string) => plan.snapshot.draws.find((d) => d.slotId === slotId);
+  const canReroll = (item: DayItem) => !done(item) && !!item.problem && drawOf(item.itemId)?.attemptId === undefined;
 
   const toggleSimple = (item: DayItem, target = { itemId: item.itemId, planDayId: item.planDayId }) =>
     done(item) ? untickItem(db, item.itemId) : tickItem(db, target, today);
@@ -174,6 +204,12 @@ function TodayBody() {
     (a) => a.date === today && a.isRedo && a.id !== undefined && ![...plan.completions.values()].some((c) => c.attemptId === a.id),
   );
 
+  const reviewTitle = (itemId: string) => {
+    const slot = parseReviewSlotId(itemId);
+    const drawn = slot ? drawOf(itemId) : undefined;
+    return slot ? `Review: ${(drawn && plan.problemOf(drawn.problemId)?.title) ?? `problem ${slot.n}`}` : undefined;
+  };
+
   const redoProblems = [...new Map(plan.redoDue.map((r) => [r.problemId, r])).values()];
   const curDay = kind === "plan" ? curriculumDay(planDayId) : undefined;
   const fallback = curDay?.fallback && plan.redoDue.length === 0 ? curDay.fallback : null;
@@ -187,6 +223,7 @@ function TodayBody() {
         {kind === "extension" ? `Week ${week} · Extension day ${n}` : `Week ${week} · Day ${n}`} · {formatShort(today)}
         <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">{meta.glyph} {meta.label}</span>
       </p>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400" aria-label="Days complete">{plan.completedDays} of {curriculum.totalPlanDays} days complete</p>
       {(curDay || kind === "extension") && (
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400" aria-label="Day type">
           {curDay ? DAY_KIND_LABEL[curDay.kind] : "Extension day"}
@@ -199,9 +236,27 @@ function TodayBody() {
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} actions={item.mock ? <MockAction number={item.mock.number} /> : undefined} />
+            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} />
           ) : item.kind === "task" ? (
             <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
+          ) : item.kind === "review" ? (
+            <Row
+              key={item.itemId}
+              checked={!!done(item)}
+              onToggle={() => (item.problem ? askProblem(item, "Log review problem") : undefined)}
+              disabled={!item.problem && !done(item)}
+              label={itemLabel(plan, item)}
+              problem={item.problem}
+              platform={item.problem ? platformOf(plan, item.problem) : undefined}
+              meta={item.problem ? "Review: a quick repeat" : "Review: drawing a problem…"}
+              actions={
+                canReroll(item) ? (
+                  <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={async () => { const r = await rerollDraw(db, curriculum, item.itemId); setError(r.ok ? null : r.reason); }}>
+                    Re-roll
+                  </button>
+                ) : undefined
+              }
+            />
           ) : item.kind === "problem" ? (
             <Row
               key={item.itemId}
@@ -224,6 +279,8 @@ function TodayBody() {
           ),
         )}
       </Section>
+
+      <MocksPrompt />
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link to={`/day/${planDayId}`} className="text-sm text-indigo-700 underline dark:text-indigo-300">Edit day</Link>
@@ -295,7 +352,8 @@ function TodayBody() {
             <Row
               key={c.item.itemId}
               checked={false}
-              onToggle={() => (c.item.kind === "problem" ? askProblem(c.item, "Log catch-up problem") : tickItem(db, { itemId: c.item.itemId, planDayId: c.planDayId }, today))}
+              disabled={c.item.kind === "review" && !c.item.problem}
+              onToggle={() => (c.item.kind === "problem" || c.item.kind === "review" ? (c.item.problem ? askProblem(c.item, "Log catch-up problem") : undefined) : tickItem(db, { itemId: c.item.itemId, planDayId: c.planDayId }, today))}
               label={c.item.kind === "learn" ? learnRow(plan, c.item).label : itemLabel(plan, c.item)}
               problem={c.item.problem}
               platform={c.item.problem ? platformOf(plan, c.item.problem) : undefined}
@@ -309,7 +367,7 @@ function TodayBody() {
         <Section title="Also done today" hint="Catch-up and redo work. Undo removes the log entry and any redos it created.">
           {doneElsewhere.map((c) => (
             <li key={c.itemId} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
-              <span>{plan.problemOf(c.itemId)?.title ?? plan.customById.get(c.itemId)?.title ?? c.itemId.replace(":learn", " — learn item")}</span>
+              <span>{plan.problemOf(c.itemId)?.title ?? plan.customById.get(c.itemId)?.title ?? reviewTitle(c.itemId) ?? c.itemId.replace(":learn", " — learn item")}</span>
               <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => untickItem(db, c.itemId)}>Undo</button>
             </li>
           ))}

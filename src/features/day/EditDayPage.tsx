@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Modal } from "../../app/Modal";
 import { Markdown } from "../../components/Markdown";
@@ -7,12 +7,14 @@ import {
   addCustomItem,
   deleteCustomItem,
   editCustomItem,
+  ensureDayDraws,
   logAttempt,
   moveItem,
   saveDayLog,
   tickItemOn,
   untickItem,
 } from "../../lib/actions";
+import { curriculum } from "../../lib/curriculum";
 import { formatShort } from "../../lib/dates";
 import { itemLabel, platformOf } from "../../lib/labels";
 import { canMoveItem, parsePlanDayId, type DayItem, type EvaluatedDay } from "../../lib/schedule";
@@ -59,6 +61,9 @@ function EditDay({ day }: { day: EvaluatedDay }) {
   const [deleting, setDeleting] = useState<DayItem | null>(null);
   const [finding, setFinding] = useState(false);
 
+  // Opening a day draws its review problems (once; a reload never reshuffles them).
+  useEffect(() => void ensureDayDraws(db, curriculum, planDayId, today).catch(() => undefined), [db, planDayId, today]);
+
   const weekDays = plan.schedule.filter((d) => d.week === week);
   const target = (item: DayItem) => ({ itemId: item.itemId, planDayId });
   const slots = day.items.filter((i) => i.kind === "slot");
@@ -87,14 +92,14 @@ function EditDay({ day }: { day: EvaluatedDay }) {
               onToggle={() => {
                 setError(null);
                 if (c) return void untickItem(db, item.itemId);
-                if (item.kind === "problem") setTickingLog(item);
+                if (item.kind === "problem" || (item.kind === "review" && item.problem)) setTickingLog(item);
                 else setTickingDate(item);
               }}
               label={itemLabel(plan, item)}
               problem={item.problem}
               platform={item.problem ? platformOf(plan, item.problem) : undefined}
               meta={[
-                item.kind === "learn" ? "Learn" : item.kind === "task" ? "Task" : item.custom ? "Added by you" : undefined,
+                item.kind === "learn" ? "Learn" : item.kind === "task" ? "Task" : item.kind === "review" ? "Review: drawn by the app" : item.custom ? "Added by you" : undefined,
                 item.movedFrom ? `moved from ${formatShort(plan.schedule.find((d) => d.planDayId === item.movedFrom)?.date ?? item.movedFrom)}` : undefined,
                 c ? `done ${formatShort(c.completedOn)}${c.completedOn > date ? " (late)" : ""}` : undefined,
               ].filter(Boolean).join(" · ")}
@@ -132,7 +137,7 @@ function EditDay({ day }: { day: EvaluatedDay }) {
           dateRange={{ value: date, min: date, max: today }}
           onCancel={() => setTickingLog(null)}
           onSubmit={async (v) => {
-            await logAttempt(db, { problemId: tickingLog.itemId, date: v.date, outcome: v.outcome, minutes: v.minutes, note: v.note, isRedo: false, completes: [target(tickingLog)] });
+            await logAttempt(db, { problemId: tickingLog.problem!.id, date: v.date, outcome: v.outcome, minutes: v.minutes, note: v.note, isRedo: false, completes: [target(tickingLog)] });
             setTickingLog(null);
           }}
         />

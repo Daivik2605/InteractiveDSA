@@ -55,7 +55,7 @@ describe("itemsForDay with custom items and moves", () => {
     const items = itemsForDay(curriculum, "w01-x1", { customItems: [custom({ planDayId: "w01-x1" })] });
     expect(items.map((i) => i.kind)).toEqual(["task", "slot", "slot"]);
     // plan days have no slots: the custom item simply follows the day's own items
-    expect(itemsForDay(curriculum, day(7), { customItems: [custom({ planDayId: day(7) })] }).map((i) => i.kind)).toEqual(["learn", "task"]);
+    expect(itemsForDay(curriculum, day(7), { customItems: [custom({ planDayId: day(7) })] }).map((i) => i.kind)).toEqual(["problem", "problem", "review", "review", "task"]);
   });
 
   it("builds a custom problem as a problem item", () => {
@@ -254,6 +254,9 @@ async function planAt(today: string) {
     moves: await db.itemMoves.toArray(),
     dayLogs: await db.dayLogs.toArray(),
     problemEntries: await db.problemEntries.toArray(),
+    draws: await db.dayDraws.toArray(),
+    mocksDone: [],
+    missedReasons: await db.missedReasons.toArray(),
   };
   return derivePlan(curriculum, snap, today);
 }
@@ -400,8 +403,8 @@ describe("problems list", () => {
     await addCustomItem(db, { planDayId: day(1), week: 1, kind: "task", title: "A task" }, "2026-10-27");
     await saveProblemEntry(db, { problemId: "w01-d1-p1", code: "seen = set()  # my Solution", comments: "Tricky TLE", confidence: 2, tags: ["Hash Set"] }, "2026-10-27");
     const rows = buildProblemRows(await planAt("2026-10-28"));
-    expect(rows.filter((r) => r.source === "plan")).toHaveLength(118 + 36 + 6); // core + old-topic + fallbacks; pool is hidden
-    expect(rows.filter((r) => r.source === "plan" && r.week === undefined)).toHaveLength(36); // old-topic: no week label
+    expect(rows.filter((r) => r.source === "plan")).toHaveLength(160 + 41 + 6); // core + old-topic + fallbacks; pool is hidden
+    expect(rows.filter((r) => r.source === "plan" && r.week === undefined)).toHaveLength(41); // old-topic: no week label
     expect(rows.find((r) => r.id === "w01-d7-fb")).toMatchObject({ week: 1, platform: "LeetCode" });
     expect(rows.filter((r) => r.source === "found")).toHaveLength(1);
     expect(rows.filter((r) => r.source === "custom")).toHaveLength(1); // the task is not a problem

@@ -39,13 +39,11 @@ async function setup(today: string, path = "/") {
 }
 
 describe("Mock 1 end to end", () => {
-  it("runs the MCQs, Program 1 and the extra, saves the session, ticks the Mock row and reloads as saved", async () => {
-    const { db, user, view } = await setup("2026-10-26");
+  it("runs the MCQs, Program 1 and the extra, saves the session, ticks nothing and reloads as saved", async () => {
+    const { db, user, view } = await setup("2026-10-26", "/mocks");
 
-    // Today's Mock row offers a start link
-    const row = within(screen.getByRole("region", { name: "Today's checklist" }));
-    expect(row.getByText(/Diagnostic: your score is the baseline/)).toBeInTheDocument();
-    await user.click(row.getByRole("link", { name: "Start mock" }));
+    // Mocks are on demand: the Mocks page offers a Start link; Today's checklist has no Mock row
+    await user.click(within(await screen.findByRole("listitem", { name: "Mock 1" })).getByRole("link", { name: "Start" }));
     expect(await screen.findByRole("heading", { level: 1, name: /Mock 1/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Start mock" }));
 
@@ -98,10 +96,9 @@ describe("Mock 1 end to end", () => {
     expect(sessions[0]).toMatchObject({ mockNumber: 1, diagnostic: true, rating: 4, date: "2026-10-26", extra: { kind: "debug", done: true } });
     expect(sessions[0]!.mcq.total).toBe(18);
     expect(await db.mockRuns.count()).toBe(0);
-    expect(await db.completions.get("w01-d1:learn")).toMatchObject({ planDayId: "w01-d1", completedOn: "2026-10-26" });
-    expect((await db.completions.get("w01-d1:learn"))!.attemptId).toBeUndefined();
+    expect(await db.completions.count()).toBe(0); // a mock is not a plan item: nothing is ticked
 
-    // a fresh mount (a reload) shows the saved mock and a ticked row
+    // a fresh mount (a reload) shows the saved mock
     view.unmount();
     mount(db, "2026-10-26", "/mock/1");
     expect(await screen.findByRole("region", { name: "Saved mock" })).toBeInTheDocument();
@@ -137,7 +134,7 @@ describe("saved mock: result, answer key and retakes", () => {
       extra: { kind: "debug", done: true },
       rating: 4,
     };
-    await saveMockSession(db, session, { itemId: "w01-d1:learn", planDayId: "w01-d1" });
+    await saveMockSession(db, session);
     await db.cards.put({ questionId: run.questionIds[0]!, box: 1, dueOn: "2026-10-27" });
     return session;
   }
@@ -207,6 +204,110 @@ describe("saved mock: result, answer key and retakes", () => {
     expect(screen.getByLabelText("Score")).toHaveTextContent("MCQs: 13 / 18");
     expect(within(screen.getByRole("region", { name: "Answer key" })).getAllByText("✗ Wrong")).toHaveLength(WRONG);
   }, 60_000);
+
+  describe("Retake missed only", () => {
+    const snapshotOf = async (db: DsaDB) => ({ mocks: await db.mocks.toArray(), completions: await db.completions.toArray(), cards: await db.cards.toArray(), answers: await db.quizAnswers.toArray(), redos: await db.redos.toArray(), attempts: await db.attempts.toArray() });
+
+    it("repeats only the questions got wrong in the first attempt, saves them as a retake, and changes nothing official", async () => {
+      const db = new DsaDB(`mock-${n++}`);
+      dbs.push(db);
+      const session = await seedSaved(db);
+      const missed = session.answers!.filter((a) => !a.correct).map((a) => a.questionId);
+      expect(missed).toHaveLength(WRONG);
+      const before = await snapshotOf(db);
+      const user = userEvent.setup();
+      mount(db, "2026-10-27", "/mock/1");
+      expect(await screen.findByRole("button", { name: "Retake MCQs" })).toBeEnabled(); // the full retake is still there
+      await user.click(screen.getByRole("button", { name: `Retake missed only (${WRONG})` }));
+      expect(await screen.findByText(new RegExp(`Question 1 of ${WRONG}`))).toBeInTheDocument();
+      expect(screen.getByText(/Retake of the 5 missed questions only/)).toBeInTheDocument();
+      for (let i = 0; i < WRONG; i++) {
+        await screen.findByRole("region", { name: "Question" });
+        await user.keyboard("1");
+        await user.keyboard("{Enter}");
+      }
+      expect(await screen.findByRole("note")).toHaveTextContent("First attempt 13/18, this retake");
+      expect(screen.getByRole("note")).toHaveTextContent("(only the questions missed)");
+      const attempts = within(screen.getByRole("list", { name: "Attempts" }));
+      expect(attempts.getByRole("button", { name: /Retake 1 \(missed only\) · \d\/5/ })).toBeInTheDocument();
+      expect(attempts.getByRole("button", { name: /First attempt · 13\/18/ })).toBeInTheDocument();
+      expect(within(screen.getByRole("region", { name: "Answer key" })).getAllByRole("listitem", { name: /^Question \d+$/ })).toHaveLength(WRONG);
+
+      const retakes = await db.mockRetakes.toArray();
+      expect(retakes).toHaveLength(1);
+      expect(retakes[0]).toMatchObject({ mockNumber: 1, retakeNumber: 1, missedOnly: true });
+      expect(retakes[0]!.basedOn).toBeUndefined();
+      expect(retakes[0]!.mcq.total).toBe(WRONG);
+      expect(new Set(retakes[0]!.answers.map((a) => a.questionId))).toEqual(new Set(missed));
+      expect(await snapshotOf(db)).toEqual(before); // score, tick, Leitner, answers, redos, attempts: all as they were
+      await user.click(attempts.getByRole("button", { name: /First attempt/ }));
+      expect(screen.getByLabelText("Score")).toHaveTextContent("MCQs: 13 / 18");
+    }, 60_000);
+
+    it("from a retake it repeats that retake's wrong answers, and records which retake it came from", async () => {
+      const db = new DsaDB(`mock-${n++}`);
+      dbs.push(db);
+      const session = await seedSaved(db);
+      const ids = session.answers!.slice(0, WRONG).map((a) => a.questionId);
+      const answers: MockAnswer[] = ids.map((id, i) => ({ questionId: id, picked: 0, correct: i >= 2, section: "current" as const })); // 2 wrong of 5
+      const firstRetake = await db.mockRetakes.add({ mockNumber: 1, retakeNumber: 1, date: "2026-10-27", mcq: mcqOfAnswers(answers, (id) => bank.byId.get(id)?.type), answers, missedOnly: true });
+      const user = userEvent.setup();
+      mount(db, "2026-10-28", "/mock/1");
+      await user.click(await within(await screen.findByRole("list", { name: "Attempts" })).findByRole("button", { name: /Retake 1/ }));
+      await user.click(screen.getByRole("button", { name: "Retake missed only (2)" }));
+      expect(await screen.findByText(/Question 1 of 2/)).toBeInTheDocument();
+      for (let i = 0; i < 2; i++) {
+        await screen.findByRole("region", { name: "Question" });
+        await user.keyboard("1");
+        await user.keyboard("{Enter}");
+      }
+      await waitFor(async () => expect(await db.mockRetakes.count()).toBe(2));
+      const second = (await db.mockRetakes.toArray()).find((r) => r.retakeNumber === 2)!;
+      expect(second).toMatchObject({ missedOnly: true, basedOn: firstRetake, mcq: { total: 2 } });
+      expect(new Set(second.answers.map((a) => a.questionId))).toEqual(new Set(ids.slice(0, 2)));
+      expect(await screen.findByRole("button", { name: /Retake 2 \(missed only\)/ })).toBeInTheDocument();
+    }, 60_000);
+
+    it("is disabled when nothing was answered wrongly, and for a mock saved before answers were recorded", async () => {
+      const db = new DsaDB(`mock-${n++}`);
+      dbs.push(db);
+      const session = await seedSaved(db);
+      const perfect = session.answers!.map((a) => ({ ...a, correct: true }));
+      await db.mocks.clear();
+      await db.mocks.add({ ...session, answers: perfect, mcq: mcqOfAnswers(perfect, (id) => bank.byId.get(id)?.type) });
+      mount(db, "2026-10-27", "/mock/1");
+      const button = await screen.findByRole("button", { name: "Retake missed only" });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute("title", "Nothing was answered wrongly in this attempt");
+      expect(screen.getByRole("button", { name: "Retake MCQs" })).toBeEnabled();
+    });
+
+    it("is disabled for an old session without recorded answers", async () => {
+      const db = new DsaDB(`mock-${n++}`);
+      dbs.push(db);
+      const session = await seedSaved(db);
+      const { answers: _drop, ...old } = session;
+      await db.mocks.clear();
+      await db.mocks.add(old);
+      mount(db, "2026-10-27", "/mock/1");
+      const button = await screen.findByRole("button", { name: "Retake missed only" });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute("title", "This mock was saved before answers were recorded");
+    });
+
+    it("Cancel leaves no retake behind", async () => {
+      const db = new DsaDB(`mock-${n++}`);
+      dbs.push(db);
+      await seedSaved(db);
+      const user = userEvent.setup();
+      mount(db, "2026-10-27", "/mock/1");
+      await user.click(await screen.findByRole("button", { name: `Retake missed only (${WRONG})` }));
+      await screen.findByRole("region", { name: "Retake" });
+      await user.click(screen.getByRole("button", { name: "Cancel retake" }));
+      await screen.findByRole("region", { name: "Saved mock" });
+      expect(await db.mockRetakes.count()).toBe(0);
+    });
+  });
 });
 
 const runInputs = (today: string) => ({ curriculum, questions: bank.questions, debugSnippets, cards: [], answers: [], attempts: [], sessions: [], practicalIds: new Set(practicalTasks.keys()), today, rng: mulberry32(11) });
@@ -218,47 +319,52 @@ async function seedRun(db: DsaDB, n: number, today: string, patch: Partial<NonNu
 }
 
 describe("Mocks page", () => {
-  it("is in the nav under Problems and lists all 45 mocks grouped by week", async () => {
+  it("is in the nav under Problems and lists the 26 mocks as a sequence with a suggested week and no dates", async () => {
     const { user } = await setup("2026-10-26");
     const nav = within(screen.getByRole("navigation", { name: "Main" }));
     const labels = nav.getAllByRole("link").map((a) => a.textContent);
     expect(labels.indexOf("Mocks")).toBe(labels.indexOf("Problems") + 1);
     await user.click(nav.getByRole("link", { name: "Mocks" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Mocks" })).toBeInTheDocument();
-    expect(await screen.findAllByRole("listitem", { name: /^Mock \d+$/ })).toHaveLength(45);
-    expect(screen.getByRole("region", { name: "Week 13" })).toBeInTheDocument();
+    expect(await screen.findAllByRole("listitem", { name: /^Mock \d+$/ })).toHaveLength(26);
+    expect(screen.queryByRole("region", { name: /^Week \d+$/ })).not.toBeInTheDocument(); // a sequence, not a calendar
     const m1 = within(screen.getByRole("listitem", { name: "Mock 1" }));
     expect(m1.getByText("Diagnostic")).toBeInTheDocument();
-    expect(m1.getByText("Today")).toBeInTheDocument();
+    expect(m1.getByText("Good after Week 1")).toBeInTheDocument();
+    expect(m1.queryByText(/Today|Upcoming|Overdue/)).not.toBeInTheDocument();
     expect(m1.getByLabelText("Status")).toHaveTextContent("Not taken");
     expect(m1.getByRole("link", { name: "Start" })).toHaveAttribute("href", "/mock/1");
     const m2 = within(screen.getByRole("listitem", { name: "Mock 2" }));
     expect(m2.getByText(/\+ Program 2/)).toBeInTheDocument();
-    expect(m2.getByText("Upcoming")).toBeInTheDocument();
-    expect(m2.getByRole("link", { name: "Do it earlier" })).toBeInTheDocument();
-    expect(within(screen.getByRole("listitem", { name: "Mock 45" })).getByText("Final")).toBeInTheDocument();
+    expect(m2.getByText("Good after Week 1")).toBeInTheDocument();
+    expect(m2.getByRole("link", { name: "Start" })).toBeInTheDocument(); // any ready mock can start at any time
+    const m26 = within(screen.getByRole("listitem", { name: "Mock 26" }));
+    expect(m26.getByText("Final")).toBeInTheDocument();
+    expect(m26.getByText("Good after Week 13")).toBeInTheDocument();
   });
 
-  it("shows dates from the schedule, shifted by an extension", async () => {
+  it("is not changed by extension days: there are no dates to move", async () => {
     const db = new DsaDB(`mock-${n++}`);
     dbs.push(db);
     await db.extensions.add({ week: 1, extraDays: 2, createdOn: "2026-10-26" });
     mount(db, "2026-10-26", "/mocks");
-    const m5 = await screen.findByRole("listitem", { name: "Mock 5" });
-    expect(m5).toHaveTextContent("Thu 5 Nov"); // Week 2 Day 2 moved from Tue 3 Nov to Thu 5 Nov
-    expect(m5).toHaveTextContent("Week 2 · Day 9 of 90");
+    const m3 = await screen.findByRole("listitem", { name: "Mock 3" });
+    expect(m3).toHaveTextContent("Good after Week 2");
+    expect(m3).not.toHaveTextContent(/\d{1,2} (Oct|Nov|Dec|Jan)/);
   });
 
   it("disables Start with 'Content not ready' when the theme or week questions are not written", async () => {
     await setup("2026-10-26", "/mocks");
-    const m45 = within(await screen.findByRole("listitem", { name: "Mock 45" })); // the final mock needs Week 13 content
-    expect(m45.getByRole("button", { name: "Start" })).toBeDisabled();
-    expect(m45.getByText(/Content not ready: (Python theme 15|Week 13) questions are not written yet/)).toBeInTheDocument();
-    expect(m45.queryByRole("link")).not.toBeInTheDocument();
+    const m26 = within(await screen.findByRole("listitem", { name: "Mock 26" })); // the final mock needs Week 13 content
+    expect(m26.getByRole("button", { name: "Start" })).toBeDisabled();
+    expect(m26.getByText(/Content not ready: (Python theme 3|Week 13) questions are not written yet/)).toBeInTheDocument();
+    expect(m26.queryByRole("link")).not.toBeInTheDocument();
+    const ready = (await screen.findAllByRole("link", { name: "Start" })).map((a) => a.getAttribute("href"));
+    expect(ready).toEqual(["/mock/1", "/mock/2", "/mock/3", "/mock/4", "/mock/5", "/mock/6", "/mock/7", "/mock/8"]); // Weeks 1-4 are written
   });
 
   it("opening a not-ready mock directly cannot start it either", async () => {
-    await setup("2026-10-26", "/mock/45");
+    await setup("2026-10-26", "/mock/26");
     expect(await screen.findByText(/Content not ready: /)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start mock" })).toBeDisabled();
   });
@@ -274,24 +380,25 @@ describe("Mocks page", () => {
     const m1 = within(await screen.findByRole("listitem", { name: "Mock 1" }));
     expect(m1.getByLabelText("Status")).toHaveTextContent("Done 13/18 · 1 retake");
     expect(m1.getByRole("link", { name: "View result" })).toHaveAttribute("href", "/mock/1");
-    expect(m1.queryByText("Overdue")).not.toBeInTheDocument(); // taken, so no date tag
     const m3 = within(screen.getByRole("listitem", { name: "Mock 3" }));
     expect(m3.getByLabelText("Status")).toHaveTextContent("In progress");
     expect(m3.getByRole("link", { name: "Resume" })).toBeInTheDocument();
-    expect(within(screen.getByRole("listitem", { name: "Mock 2" })).getByText("Today")).toBeInTheDocument();
+    expect(within(screen.getByRole("listitem", { name: "Mock 2" })).getByLabelText("Status")).toHaveTextContent("Not taken");
   });
 });
 
-describe("doing a mock early", () => {
-  it("builds from the mock's own week, ticks that plan day's Mock row, and the row shows done when the day arrives", async () => {
+describe("doing a mock out of order", () => {
+  it("builds from the week it is suggested after, ticks nothing, and the Mocks list shows it done", async () => {
     const db = new DsaDB(`mock-${n++}`);
     dbs.push(db);
     const user = userEvent.setup();
     const view = mount(db, "2026-10-26", "/mocks");
-    await user.click(await within(await screen.findByRole("listitem", { name: "Mock 3" })).findByRole("link", { name: "Do it earlier" }));
+    await user.click(await within(await screen.findByRole("listitem", { name: "Mock 3" })).findByRole("link", { name: "Start" }));
     await user.click(await screen.findByRole("button", { name: "Start mock" }));
     const run = await waitFor(async () => (await db.mockRuns.get(3))!);
     expect(run.questionIds.slice(0, 7).every((id) => id.startsWith("t03-"))).toBe(true);
+    const weekQs = run.questionIds.filter((id) => !id.startsWith("t"));
+    expect(weekQs.every((id) => id.startsWith("w02-") || id.startsWith("w01-"))).toBe(true); // Mock 3 is good after Week 2
     for (let i = 0; i < 18; i++) {
       await screen.findByRole("region", { name: "Question" });
       await user.keyboard("1");
@@ -303,14 +410,13 @@ describe("doing a mock early", () => {
     await user.click(screen.getByRole("button", { name: /Save mock/ }));
     await screen.findByRole("region", { name: "Saved mock" });
 
-    // Mock 3 is Week 1 Day 5: that day's row is ticked, no other
-    expect(await db.completions.toArray()).toMatchObject([{ itemId: "w01-d5:learn", planDayId: "w01-d5", completedOn: "2026-10-26" }]);
+    expect(await db.completions.count()).toBe(0); // no plan item is ticked
     expect((await db.mocks.toArray())[0]).toMatchObject({ mockNumber: 3, diagnostic: false });
     view.unmount();
-    mount(db, "2026-10-30"); // Day 5 arrives
-    const row = within(await screen.findByRole("region", { name: "Today's checklist" }));
-    expect(row.getByRole("checkbox", { name: "Mock 3" })).toBeChecked();
-    expect(await row.findByRole("link", { name: "View result" })).toBeInTheDocument();
+    mount(db, "2026-10-30", "/mocks");
+    const m3 = within(await screen.findByRole("listitem", { name: "Mock 3" }));
+    expect(m3.getByLabelText("Status")).toHaveTextContent(/^Done \d+\/18/);
+    expect(m3.getByRole("link", { name: "View result" })).toHaveAttribute("href", "/mock/3");
   }, 60_000);
 
   it("a later mock started early does not block an earlier one", async () => {
@@ -413,6 +519,17 @@ describe("mock timer", () => {
     expect((await db.mockRuns.get(1))?.timer?.runningSince).not.toBeNull();
     // advisory: the part still has its Done button
     expect(screen.getByRole("button", { name: "Done" })).toBeEnabled();
+  });
+
+  it("two rapid presses of +10 min both count", async () => {
+    const db = new DsaDB(`mock-${n++}`);
+    dbs.push(db);
+    await seedRun(db, 1, "2026-10-26", { phase: "D" });
+    mount(db, "2026-10-26", "/mock/1");
+    await screen.findByRole("region", { name: "Part D" });
+    const button = await screen.findByRole("button", { name: "+10 min" });
+    for (let i = 0; i < 5; i++) button.click(); // faster than the page can re-render
+    await waitFor(async () => expect((await db.mockRuns.get(1))?.timer?.addedMinutes).toBe(50));
   });
 
   it("stays paused with its added time after leaving and coming back, and does not restart", async () => {

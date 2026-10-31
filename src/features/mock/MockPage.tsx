@@ -1,8 +1,9 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useFocusMode, useIsFocus } from "../../app/Layout";
 import { usePlanContext } from "../../app/PlanContext";
-import { appendMockAnswer, discardMockRun, logMockProgram, recordAnswer, saveMockRetake, saveMockSession, startMockRun, updateMockRun } from "../../lib/actions";
+import { appendMockAnswer, changeMockTimer, discardMockRun, logMockProgram, recordAnswer, saveMockRetake, saveMockSession, startMockRun, updateMockRun } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
 import {
   addTimerMinutes,
@@ -18,6 +19,7 @@ import {
   filterKey,
   findMock,
   mcqOfAnswers,
+  missedQuestionIds,
   nextPhase,
   PART_MINUTES,
   phasesOf,
@@ -34,7 +36,7 @@ import { OUTCOME_LABEL } from "../../lib/problems";
 import { shuffle } from "../../lib/quiz";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Markdown } from "../../components/Markdown";
-import type { MockAnswer, MockProgram, MockRun, MockSection, MockSession, MockTimer, ProblemAttempt, Problem, Question } from "../../types/content";
+import type { MockAnswer, MockDrafts, MockProgram, MockRun, MockSection, MockSession, MockTimer, ProblemAttempt, Problem, Question } from "../../types/content";
 import { DIFF_STYLE } from "../today/Row";
 import { QuizRunner, TYPE_LABEL } from "../quiz/QuizRunner";
 
@@ -45,12 +47,53 @@ const secondary = "rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:
 /** Program 2 id used when no practical task is unlocked and you do an Interview Preparation Kit problem instead. */
 export const FREE_PROGRAM2_ID = "ipk-free";
 
+/**
+ * Form state that survives leaving: initial value from the run's saved draft, written back (debounced) as you type and
+ * at once on blur, when the tab is hidden or closed (pagehide, visibilitychange), on unmount (a phase change) and when
+ * `now` is passed for a discrete change.
+ */
+function useDraft<K extends keyof MockDrafts>(run: MockRun, key: K, initial: NonNullable<MockDrafts[K]>) {
+  const { db } = usePlanContext();
+  type V = NonNullable<MockDrafts[K]>;
+  const [value, setValue] = useState<V>(() => (run.drafts?.[key] as V | undefined) ?? initial);
+  const latest = useRef(value);
+  const dirty = useRef(false);
+  const timer = useRef<number | undefined>(undefined);
+  const flush = useCallback(() => {
+    window.clearTimeout(timer.current);
+    if (!dirty.current) return;
+    dirty.current = false;
+    const v = latest.current;
+    void db.mockRuns.where("mockNumber").equals(run.mockNumber).modify((r) => { r.drafts = { ...r.drafts, [key]: v }; }).catch(() => undefined);
+  }, [db, run.mockNumber, key]);
+  const set = useCallback((next: V, now = false) => {
+    latest.current = next;
+    dirty.current = true;
+    setValue(next);
+    window.clearTimeout(timer.current);
+    if (now) flush();
+    else timer.current = window.setTimeout(flush, 300);
+  }, [flush]);
+  useEffect(() => {
+    const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+      flush();
+    };
+  }, [flush]);
+  return [value, set, flush] as const;
+}
+
 const PART_NAME: Record<Exclude<MockPhase, "end">, string> = { A: "MCQs", B: "Program 1", C: "Program 2", D: "Extra" };
 
 export function MockPage() {
   const number = Number(useParams().number);
   const { db } = usePlanContext();
   const loc = useMemo(() => findMock(curriculum, number), [number]);
+  const focus = useIsFocus();
   const run = useLiveQuery(() => db.mockRuns.get(number).then((r) => r ?? null), [db, number]);
   const saved = useLiveQuery(() => db.mocks.where("mockNumber").equals(number).last().then((r) => r ?? null), [db, number]);
 
@@ -58,14 +101,14 @@ export function MockPage() {
     return (
       <div>
         <h1 className="text-2xl font-semibold">Mock {Number.isFinite(number) ? number : ""}</h1>
-        <p className="mt-4 text-slate-500">There is no such mock. The plan has Mocks 1 to 45.</p>
+        <p className="mt-4 text-slate-500">There is no such mock. The plan has Mocks 1 to 26.</p>
         <Link to="/" className="mt-2 inline-block text-indigo-700 underline dark:text-indigo-300">Back to Today</Link>
       </div>
     );
   }
   if (run === undefined || saved === undefined) return <p className="mt-4 text-slate-500">Loading…</p>;
   return (
-    <div className="max-w-2xl">
+    <div className={focus ? "w-full" : "max-w-2xl"}>
       <h1 className="text-2xl font-semibold">
         Mock {number}
         {loc.slot.diagnostic ? <span className="ml-2 rounded bg-sky-100 px-2 py-0.5 text-xs font-normal text-sky-800 dark:bg-sky-900/50 dark:text-sky-200">Diagnostic</span> : null}
@@ -144,7 +187,7 @@ function AdvisoryTimer({ run, phase, minutes }: { run: MockRun; phase: MockTimer
     return () => window.clearInterval(id);
   }, [paused]);
 
-  const change = (next: MockTimer) => void updateMockRun(db, run.mockNumber, { timer: next });
+  const change = (fn: (t: MockTimer) => MockTimer) => void changeMockTimer(db, run.mockNumber, phase, fn, Date.now());
   const seconds = timerElapsed(timer, now);
   const total = minutes + timer.addedMinutes;
   const over = seconds > total * 60;
@@ -154,8 +197,8 @@ function AdvisoryTimer({ run, phase, minutes }: { run: MockRun; phase: MockTimer
         {mmss(seconds)} of {total}:00 <span className="text-xs">({timer.addedMinutes > 0 ? `${minutes} + ${timer.addedMinutes} added, ` : ""}a guide only)</span>
         {paused && <strong className="ml-1 text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">Paused</strong>}
       </span>
-      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change(paused ? resumeTimer(timer, Date.now()) : pauseTimer(timer, Date.now()))}>{paused ? "Resume" : "Pause"}</button>
-      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change(addTimerMinutes(timer))}>+{EXTRA_TIME_STEP} min</button>
+      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change((t) => (t.runningSince === null ? resumeTimer(t, Date.now()) : pauseTimer(t, Date.now())))}>{paused ? "Resume" : "Pause"}</button>
+      <button type="button" className="text-indigo-700 underline dark:text-indigo-300" onClick={() => change((t) => addTimerMinutes(t))}>+{EXTRA_TIME_STEP} min</button>
     </span>
   );
 }
@@ -182,6 +225,7 @@ function PartShell({ run, phase, minutes, onSkip, children }: { run: MockRun; ph
 
 function Running({ run, loc }: { run: MockRun; loc: MockLocation }) {
   const { db } = usePlanContext();
+  useFocusMode(true); // taking a mock: no calendar, the whole width
   const hasP2 = run.program2 !== null;
   const advance = (from: MockPhase, patch: Partial<Omit<MockRun, "mockNumber">> = {}) => updateMockRun(db, run.mockNumber, { ...patch, phase: nextPhase(hasP2, from) });
 
@@ -272,10 +316,8 @@ function ProblemCard({ problem, platform }: { problem: Problem; platform: string
 function PartB({ run, advance }: { run: MockRun; advance: (programs: MockProgram[]) => void }) {
   const { db, plan } = usePlanContext();
   const problem = run.program1.problemId ? plan.problemOf(run.program1.problemId) : undefined;
-  const [outcome, setOutcome] = useState<ProblemAttempt["outcome"]>("alone");
-  const [minutes, setMinutes] = useState("25");
-  const [approach, setApproach] = useState("");
-  const [code, setCode] = useState("");
+  const [f, setF, flush] = useDraft(run, "b", { outcome: "alone" as ProblemAttempt["outcome"], minutes: "25", approach: "", code: "" });
+  const { outcome, minutes, approach, code } = f;
   const [busy, setBusy] = useState(false);
   const skip = () => advance([{ part: 1, problemId: run.program1.problemId ?? "", outcome: "failed", minutes: 0, skipped: true }]);
 
@@ -296,20 +338,20 @@ function PartB({ run, advance }: { run: MockRun; advance: (programs: MockProgram
         <>
           <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Solve this on its own site, with no hints. Then log how it went.</p>
           <div className="mt-2"><ProblemCard problem={problem} platform={problem.platform} /></div>
-          <form className="mt-4 space-y-3" onSubmit={(e) => { e.preventDefault(); void save(); }}>
+          <form className="mt-4 space-y-3" onBlur={flush} onSubmit={(e) => { e.preventDefault(); void save(); }}>
             <label className="block text-sm">Outcome
-              <select className={`${field} ml-2`} value={outcome} onChange={(e) => setOutcome(e.target.value as ProblemAttempt["outcome"])}>
+              <select className={`${field} ml-2`} value={outcome} onChange={(e) => setF({ ...f, outcome: e.target.value as ProblemAttempt["outcome"] }, true)}>
                 {(["alone", "hint", "solution", "failed"] as const).map((o) => <option key={o} value={o}>{OUTCOME_LABEL[o]}</option>)}
               </select>
             </label>
             <label className="block text-sm">Minutes
-              <input className={`${field} ml-2 w-20`} type="number" min={0} value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+              <input className={`${field} ml-2 w-20`} type="number" min={0} value={minutes} onChange={(e) => setF({ ...f, minutes: e.target.value })} />
             </label>
             <label className="block text-sm">Approach (a few lines)
-              <textarea className={`${field} mt-1 block w-full`} rows={3} value={approach} onChange={(e) => setApproach(e.target.value)} />
+              <textarea className={`${field} mt-1 block w-full`} rows={3} value={approach} onChange={(e) => setF({ ...f, approach: e.target.value })} />
             </label>
             <label className="block text-sm">Code (optional)
-              <textarea className={`${field} mt-1 block w-full font-mono text-xs`} rows={5} value={code} onChange={(e) => setCode(e.target.value)} />
+              <textarea className={`${field} mt-1 block w-full font-mono text-xs`} rows={5} value={code} onChange={(e) => setF({ ...f, code: e.target.value })} />
             </label>
             <button type="submit" className={primary} disabled={busy}>Save and continue</button>
           </form>
@@ -324,30 +366,28 @@ function PartB({ run, advance }: { run: MockRun; advance: (programs: MockProgram
 
 export const IPK_URL = "https://www.hackerrank.com/interview/interview-preparation-kit";
 
-function Program2Form({ levelsDone, withLevels, onSave, busy }: { levelsDone: number; withLevels: boolean; onSave: (v: { outcome: ProblemAttempt["outcome"]; minutes: number; levels: number; notes: string }) => void; busy: boolean }) {
-  const [outcome, setOutcome] = useState<ProblemAttempt["outcome"]>(levelsDone >= 3 ? "alone" : "hint");
-  const [minutes, setMinutes] = useState("30");
-  const [levels, setLevels] = useState(String(levelsDone));
-  const [notes, setNotes] = useState("");
+function Program2Form({ run, levelsDone, withLevels, onSave, busy }: { run: MockRun; levelsDone: number; withLevels: boolean; onSave: (v: { outcome: ProblemAttempt["outcome"]; minutes: number; levels: number; notes: string }) => void; busy: boolean }) {
+  const [f, setF, flush] = useDraft(run, "c", { outcome: (levelsDone >= 3 ? "alone" : "hint") as ProblemAttempt["outcome"], minutes: "30", levels: String(levelsDone), notes: "" });
+  const { outcome, minutes, levels, notes } = f;
   return (
-    <form className="mt-4 space-y-3" aria-label="Log Program 2" onSubmit={(e) => { e.preventDefault(); onSave({ outcome, minutes: Math.max(0, Math.round(Number(minutes) || 0)), levels: Number(levels), notes: notes.trim() }); }}>
+    <form className="mt-4 space-y-3" aria-label="Log Program 2" onBlur={flush} onSubmit={(e) => { e.preventDefault(); onSave({ outcome, minutes: Math.max(0, Math.round(Number(minutes) || 0)), levels: Number(levels), notes: notes.trim() }); }}>
       <label className="block text-sm">Outcome
-        <select className={`${field} ml-2`} value={outcome} onChange={(e) => setOutcome(e.target.value as ProblemAttempt["outcome"])}>
+        <select className={`${field} ml-2`} value={outcome} onChange={(e) => setF({ ...f, outcome: e.target.value as ProblemAttempt["outcome"] }, true)}>
           {(["alone", "hint", "solution", "failed"] as const).map((o) => <option key={o} value={o}>{OUTCOME_LABEL[o]}</option>)}
         </select>
       </label>
       <label className="block text-sm">Minutes
-        <input className={`${field} ml-2 w-20`} type="number" min={0} value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+        <input className={`${field} ml-2 w-20`} type="number" min={0} value={minutes} onChange={(e) => setF({ ...f, minutes: e.target.value })} />
       </label>
       {withLevels && (
         <label className="block text-sm">Levels completed
-          <select className={`${field} ml-2`} value={levels} onChange={(e) => setLevels(e.target.value)}>
+          <select className={`${field} ml-2`} value={levels} onChange={(e) => setF({ ...f, levels: e.target.value }, true)}>
             {[0, 1, 2, 3].map((n) => <option key={n} value={n}>{n} of 3</option>)}
           </select>
         </label>
       )}
       <label className="block text-sm">How far did you get? (optional)
-        <textarea className={`${field} mt-1 block w-full`} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <textarea className={`${field} mt-1 block w-full`} rows={2} value={notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
       </label>
       <button type="submit" className={primary} disabled={busy}>Save and continue</button>
     </form>
@@ -359,7 +399,7 @@ function PartC({ run, advance }: { run: MockRun; advance: (programs: MockProgram
   const taskId = run.program2?.taskId ?? null;
   const task = taskId ? practicalTasks.get(taskId) : undefined;
   const levelsDone = run.program2?.levelsDone ?? 0;
-  const [stopped, setStopped] = useState(false); // "I am out of time": go to the form with the levels so far
+  const [stopped, setStopped] = useDraft(run, "cStopped", false); // "I am out of time": go to the form with the levels so far
   const [busy, setBusy] = useState(false);
   const skip = () => advance([{ part: 2, problemId: taskId ?? FREE_PROGRAM2_ID, outcome: "failed", minutes: 0, skipped: true }]);
 
@@ -368,7 +408,7 @@ function PartC({ run, advance }: { run: MockRun; advance: (programs: MockProgram
       <PartShell run={run} phase="C" minutes={PART_MINUTES.C} onSkip={skip}>
         <p className="mt-3 text-sm">No practical task is unlocked for this week yet (they start in Week 2). Do one implementation problem from the{" "}
           <a href={IPK_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-700 underline dark:text-indigo-300">HackerRank Interview Preparation Kit<span className="sr-only"> (opens in a new tab)</span></a>, then log it.</p>
-        <Program2Form levelsDone={0} withLevels={false} busy={busy} onSave={(v) => { setBusy(true); advance([{ part: 2, problemId: FREE_PROGRAM2_ID, outcome: v.outcome, minutes: v.minutes, ...(v.notes ? { notes: v.notes } : {}) }]); }} />
+        <Program2Form run={run} levelsDone={0} withLevels={false} busy={busy} onSave={(v) => { setBusy(true); advance([{ part: 2, problemId: FREE_PROGRAM2_ID, outcome: v.outcome, minutes: v.minutes, ...(v.notes ? { notes: v.notes } : {}) }]); }} />
       </PartShell>
     );
   }
@@ -395,6 +435,7 @@ function PartC({ run, advance }: { run: MockRun; advance: (programs: MockProgram
         <>
           <p className="mt-3 text-sm">{levelsDone >= 3 ? "All three levels done." : `You finished ${levelsDone} of 3 levels.`} Log how it went.</p>
           <Program2Form
+            run={run}
             levelsDone={levelsDone}
             withLevels
             busy={busy}
@@ -422,7 +463,7 @@ function PartC({ run, advance }: { run: MockRun; advance: (programs: MockProgram
           )}
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" className={primary} onClick={() => void finishLevel()}>{current.level < 3 ? `Level ${current.level} done, next level` : "Level 3 done"}</button>
-            <button type="button" className={secondary} onClick={() => setStopped(true)}>Stop here and log it</button>
+            <button type="button" className={secondary} onClick={() => setStopped(true, true)}>Stop here and log it</button>
           </div>
         </section>
       )}
@@ -434,13 +475,13 @@ function PartC({ run, advance }: { run: MockRun; advance: (programs: MockProgram
 
 function DebugExtra({ run }: { run: MockRun }) {
   const snippet = debugSnippets.find((s) => s.id === run.extra.snippetId);
-  const [guess, setGuess] = useState("");
-  const [revealed, setRevealed] = useState(false);
+  const [d, setD, flush] = useDraft(run, "d", { guess: "", revealed: false });
+  const { guess, revealed } = d;
   if (!snippet) return <p className="mt-4 text-slate-500">There is no debug snippet to show.</p>;
   const lines = snippet.code.split("\n");
   const g = Number(guess);
   return (
-    <div className="mt-3">
+    <div className="mt-3" onBlur={flush}>
       <p className="text-sm text-slate-600 dark:text-slate-400">This function has one bug. Find the line, say what is wrong and how to fix it.</p>
       <pre role="region" aria-label="Buggy code" className="mt-2 overflow-x-auto rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed dark:border-slate-800 dark:bg-slate-900">
         {lines.map((l, i) => (
@@ -452,8 +493,8 @@ function DebugExtra({ run }: { run: MockRun }) {
       </pre>
       {!revealed ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <label>Buggy line <input className={`${field} w-16`} type="number" min={1} max={lines.length} value={guess} onChange={(e) => setGuess(e.target.value)} /></label>
-          <button type="button" className={secondary} onClick={() => setRevealed(true)}>Show the answer</button>
+          <label>Buggy line <input className={`${field} w-16`} type="number" min={1} max={lines.length} value={guess} onChange={(e) => setD({ ...d, guess: e.target.value })} /></label>
+          <button type="button" className={secondary} onClick={() => setD({ ...d, revealed: true }, true)}>Show the answer</button>
         </div>
       ) : (
         <div role="status" className="mt-3 rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
@@ -632,8 +673,8 @@ function AnswerKey({ questionIds, answers }: { questionIds: string[]; answers: M
 function EndScreen({ run, loc }: { run: MockRun; loc: MockLocation }) {
   const { db, plan } = usePlanContext();
   const titles = useTitles();
-  const [rating, setRating] = useState<MockSession["rating"] | null>(null);
-  const [notes, setNotes] = useState("");
+  const [e, setE, flush] = useDraft(run, "end", { rating: null as MockSession["rating"] | null, notes: "" });
+  const { rating, notes } = e;
   const [busy, setBusy] = useState(false);
 
   const answers: MockAnswer[] = run.answers.flatMap((correct, i) => {
@@ -646,7 +687,6 @@ function EndScreen({ run, loc }: { run: MockRun; loc: MockLocation }) {
   async function save() {
     if (!rating) return;
     setBusy(true);
-    const item = plan.days.flatMap((d) => d.items).find((i) => i.itemId === loc.itemId);
     const session: MockSession = {
       mockNumber: run.mockNumber,
       date: plan.today,
@@ -660,11 +700,11 @@ function EndScreen({ run, loc }: { run: MockRun; loc: MockLocation }) {
       rating,
       ...(notes.trim() ? { notes: notes.trim() } : {}),
     };
-    await saveMockSession(db, session, { itemId: loc.itemId, planDayId: item?.planDayId ?? loc.homeDayId });
+    await saveMockSession(db, session);
   }
 
   return (
-    <section aria-label="Mock results" className="mt-4">
+    <section aria-label="Mock results" className="mt-4" onBlur={flush}>
       <ScoreBreakdown mcq={mcq} answers={answers} baseline={loc.slot.diagnostic} />
       <ProgramsSummary programs={run.programs} extra={extra} titles={titles} />
       <fieldset className="mt-4">
@@ -672,13 +712,13 @@ function EndScreen({ run, loc }: { run: MockRun; loc: MockLocation }) {
         <div className="mt-1 flex gap-3">
           {([1, 2, 3, 4, 5] as const).map((n) => (
             <label key={n} className="flex items-center gap-1 text-sm">
-              <input type="radio" name="rating" checked={rating === n} onChange={() => setRating(n)} /> {n}
+              <input type="radio" name="rating" checked={rating === n} onChange={() => setE({ ...e, rating: n }, true)} /> {n}
             </label>
           ))}
         </div>
       </fieldset>
       <label className="mt-3 block text-sm">Notes (optional)
-        <textarea className={`${field} mt-1 block w-full`} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <textarea className={`${field} mt-1 block w-full`} rows={2} value={notes} onChange={(ev) => setE({ ...e, notes: ev.target.value })} />
       </label>
       <button type="button" className={`${primary} mt-4`} disabled={!rating || busy} onClick={save}>Save mock and tick it off</button>
     </section>
@@ -692,22 +732,28 @@ function SavedMock({ session, loc }: { session: MockSession; loc: MockLocation }
   const titles = useTitles();
   const retakes = useLiveQuery(() => db.mockRetakes.where("mockNumber").equals(session.mockNumber).sortBy("retakeNumber"), [db, session.mockNumber]) ?? [];
   const [viewing, setViewing] = useState<number | "first">("first"); // a retake's id, or the first attempt
-  const [retaking, setRetaking] = useState(false);
+  // What a retake in progress repeats: every question, or only those missed in the attempt on screen.
+  const [retaking, setRetaking] = useState<{ ids: string[]; missedOnly: boolean; basedOn?: number } | null>(null);
+  useFocusMode(retaking !== null);
 
   const retake = viewing === "first" ? undefined : retakes.find((r) => r.id === viewing);
   const answers = retake ? retake.answers : (session.answers ?? null);
   const mcq = retake ? retake.mcq : session.mcq;
   const sectionOf = new Map((session.answers ?? []).map((a) => [a.questionId, a.section]));
+  const missedIds = missedQuestionIds(answers).filter((id) => bank.byId.has(id)); // of the attempt on screen
 
   if (retaking) {
     return (
       <RetakeRunner
         session={session}
+        questionIds={retaking.ids}
+        missedOnly={retaking.missedOnly}
+        basedOn={retaking.basedOn}
         sectionOf={sectionOf}
-        onCancel={() => setRetaking(false)}
+        onCancel={() => setRetaking(null)}
         onSaved={(id) => {
           setViewing(id);
-          setRetaking(false);
+          setRetaking(null);
         }}
       />
     );
@@ -716,13 +762,13 @@ function SavedMock({ session, loc }: { session: MockSession; loc: MockLocation }
   const questionIds = retake ? retake.answers.map((a) => a.questionId) : session.questionIds;
   const attemptRows = [
     { key: "first" as const, label: "First attempt", date: session.date, mcq: session.mcq },
-    ...retakes.map((r) => ({ key: r.id!, label: `Retake ${r.retakeNumber}`, date: r.date, mcq: r.mcq })),
+    ...retakes.map((r) => ({ key: r.id!, label: `Retake ${r.retakeNumber}${r.missedOnly ? " (missed only)" : ""}`, date: r.date, mcq: r.mcq })),
   ];
 
   return (
     <section aria-label="Saved mock" className="mt-4">
       <p className="text-sm text-slate-500">
-        Saved on {session.date} · self-rating {session.rating} of 5 · Mock row ticked{loc.slot.diagnostic ? " · this is your baseline" : ""}
+        Saved on {session.date} · self-rating {session.rating} of 5{loc.slot.diagnostic ? " · this is your baseline" : ""}
       </p>
 
       <ul aria-label="Attempts" className="mt-3 flex flex-wrap gap-2">
@@ -738,7 +784,7 @@ function SavedMock({ session, loc }: { session: MockSession; loc: MockLocation }
       <div className="mt-4">
         {retake && (
           <p role="note" className="mb-2 rounded-lg bg-slate-50 p-2 text-sm dark:bg-slate-900">
-            First attempt {session.mcq.correct}/{session.mcq.total}, this retake {retake.mcq.correct}/{retake.mcq.total}. The official score above stays the first attempt.
+            First attempt {session.mcq.correct}/{session.mcq.total}, this retake {retake.mcq.correct}/{retake.mcq.total}{retake.missedOnly ? " (only the questions missed)" : ""}. The official score above stays the first attempt.
           </p>
         )}
         <ScoreBreakdown mcq={mcq} answers={answers} baseline={!retake && loc.slot.diagnostic} />
@@ -748,34 +794,43 @@ function SavedMock({ session, loc }: { session: MockSession; loc: MockLocation }
       {!retake && session.notes && <p className="mt-3 text-sm"><strong>Notes:</strong> {session.notes}</p>}
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" className={primary} onClick={() => setRetaking(true)} disabled={session.questionIds.length === 0}>Retake MCQs</button>
+        <button type="button" className={primary} onClick={() => setRetaking({ ids: session.questionIds, missedOnly: false })} disabled={session.questionIds.length === 0}>Retake MCQs</button>
+        <button
+          type="button"
+          className={secondary}
+          disabled={missedIds.length === 0}
+          title={answers === null ? "This mock was saved before answers were recorded" : missedIds.length === 0 ? "Nothing was answered wrongly in this attempt" : undefined}
+          onClick={() => setRetaking({ ids: missedIds, missedOnly: true, ...(retake?.id !== undefined ? { basedOn: retake.id } : {}) })}
+        >
+          Retake missed only{missedIds.length > 0 ? ` (${missedIds.length})` : ""}
+        </button>
         <Link to="/" className={secondary}>Back to Today</Link>
       </div>
-      <p className="mt-1 text-xs text-slate-500">A retake repeats only the MCQs, in a new order. It never changes your score, the tick or your review schedule.</p>
+      <p className="mt-1 text-xs text-slate-500">A retake repeats only the MCQs, in a new order; "missed only" repeats just the questions you got wrong in the attempt shown above. Neither changes your score or your review schedule.</p>
 
       <AnswerKey key={String(viewing)} questionIds={questionIds} answers={answers} />
     </section>
   );
 }
 
-function RetakeRunner({ session, sectionOf, onCancel, onSaved }: { session: MockSession; sectionOf: Map<string, MockSection | undefined>; onCancel: () => void; onSaved: (id: number) => void }) {
+function RetakeRunner({ session, questionIds, missedOnly, basedOn, sectionOf, onCancel, onSaved }: { session: MockSession; questionIds: string[]; missedOnly: boolean; basedOn?: number; sectionOf: Map<string, MockSection | undefined>; onCancel: () => void; onSaved: (id: number) => void }) {
   const { db, plan } = usePlanContext();
   const questions = useMemo(
-    () => shuffle(session.questionIds, Math.random).map((id) => bank.byId.get(id)).filter((q): q is Question => !!q),
-    [session.questionIds],
+    () => shuffle(questionIds, Math.random).map((id) => bank.byId.get(id)).filter((q): q is Question => !!q),
+    [questionIds],
   );
   const collected = useRef<MockAnswer[]>([]);
 
   async function finish() {
     const answers = collected.current;
-    const id = await saveMockRetake(db, { mockNumber: session.mockNumber, date: plan.today, mcq: mcqOfAnswers(answers, typeOf), answers });
+    const id = await saveMockRetake(db, { mockNumber: session.mockNumber, date: plan.today, mcq: mcqOfAnswers(answers, typeOf), answers, ...(missedOnly ? { missedOnly: true, ...(basedOn !== undefined ? { basedOn } : {}) } : {}) });
     onSaved(id);
   }
 
   return (
     <section aria-label="Retake" className="mt-4">
       <div className="flex items-center gap-3 text-sm">
-        <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">Retake: does not change your score or review schedule</span>
+        <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">{missedOnly ? `Retake of the ${questionIds.length} missed question${questionIds.length === 1 ? "" : "s"} only: ` : "Retake: "}does not change your score or review schedule</span>
         <button type="button" className="ml-auto text-indigo-700 underline dark:text-indigo-300" onClick={onCancel}>Cancel retake</button>
       </div>
       <QuizRunner

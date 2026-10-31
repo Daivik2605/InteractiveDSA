@@ -122,7 +122,7 @@ export function weakestSpots(args: { accuracy: MockAccuracy; themeTitle: (theme:
 
 /**
  * Where "Start targeted mock" goes. A weak theme goes to the first untaken, ready mock that leads with that theme
- * (the theme cycles three times through the 45 mocks); anything else, or no such mock, goes to the next untaken,
+ * (themes 1-15 lead Mocks 1-15 in order and Mocks 16-26 revisit eleven of them); anything else, or no such mock, goes to the next untaken,
  * ready mock, and then to the Mocks page.
  */
 export function targetMockPath(spot: Pick<WeakSpot, "kind" | "key">, rows: readonly MockListRow[]): string {

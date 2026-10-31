@@ -85,6 +85,7 @@ export function QuizRunner({
     if (done || !current) return;
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (document.querySelector('[role="dialog"]')) return; // a drawer or dialog (e.g. Notes) is open: its keys are not answers
       if (picked === null && /^[1-4]$/.test(e.key)) choose(Number(e.key) - 1);
       else if (picked !== null && e.key === "Enter") {
         e.preventDefault();

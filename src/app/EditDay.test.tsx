@@ -232,7 +232,7 @@ describe("Problem journal", () => {
       },
     });
     const list = () => within(screen.getByRole("list", { name: "Problems" }));
-    expect(main().getByRole("status")).toHaveTextContent("161 of 161 problems");
+    expect(main().getByRole("status")).toHaveTextContent("208 of 208 problems");
     await user.selectOptions(main().getByLabelText("Source"), "found");
     expect(list().getAllByRole("listitem")).toHaveLength(1);
     await user.selectOptions(main().getByLabelText("Source"), "");

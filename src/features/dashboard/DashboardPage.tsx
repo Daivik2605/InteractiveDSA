@@ -141,7 +141,7 @@ export function DashboardPage() {
     const accuracy = mockAccuracy(counted, (id) => bank.byId.get(id));
     const themeTitle = (t: number) => curriculum.mockSpec.pythonThemes.find((x) => x.id === t)?.title.split(":")[0] ?? `Theme ${t}`;
     const weak = weakestSpots({ accuracy, themeTitle, typeLabel: (t) => TYPE_LABEL[t] });
-    const rows = buildMockRows({ curriculum, days: plan.days, today: plan.today, sessions, runs, retakes: [], questions: bank.questions });
+    const rows = buildMockRows({ curriculum, sessions, runs, retakes: [], questions: bank.questions });
     return {
       trend: scoreTrend(sessions),
       counted: counted.length,

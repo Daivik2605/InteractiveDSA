@@ -73,6 +73,11 @@ export function formatShort(s: string): string {
   return `${WEEKDAY_NAMES[weekdayIndex(s)]} ${d} ${MONTH_NAMES[m - 1]!.slice(0, 3)}`;
 }
 
+/** "Sat 23 Jan 2027" */
+export function formatLong(s: string): string {
+  return `${formatShort(s)} ${parseDate(s).y}`;
+}
+
 /** "3 Nov" */
 export function formatDayMonth(s: string): string {
   const { m, d } = parseDate(s);

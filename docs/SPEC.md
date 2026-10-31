@@ -1,24 +1,25 @@
 # InteractiveDSA — Feature Spec
 
 ## 1. Purpose
-One learner, 90 days, Python. Every day has coding. The app tells the learner exactly what to do today, records what was done or missed, teaches each week's topic visually, and tests understanding with a mock test every other day. Solving happens on LeetCode and HackerRank; the app only records time, approach, code and outcome. The plan itself is `docs/PLAN_90_DAY.md`; the data is `content/curriculum.json` (version 2).
+One learner, 90 days, Python. Every day has coding. The app tells the learner exactly what to do today, records what was done or missed, teaches each week's topic visually, and tests understanding with 26 on-demand mock tests. Solving happens on LeetCode and HackerRank; the app only records time, approach, code and outcome. The plan itself is `docs/PLAN_90_DAY.md`; the data is `content/curriculum.json` (version 3).
 
 ## 2. Plan structure
 - **90 plan days** over 13 weeks: Weeks 1–12 have 7 days, **Week 13 has 6**. Start date is set in Settings (default `2026-10-26`, a Monday; the plan then finishes `2027-01-23`).
 - A week can be **extended** (section 3.12). Plan days are therefore *not* fixed dates: each plan day's date is computed from the start date + all extensions before it.
 - `content/curriculum.json` defines every day: a `kind`, an optional **learn item**, 0–3 problems, an optional **mock**, an optional **fallback** problem, a timed-minutes hint and a coding note. Each week also has a `pool` of spare problems (feeds mock Program 1 and free practice; never counts toward day status).
-- **Mocks:** a plan day is a mock day exactly when its plan-day number is odd (45 mocks). A mock day's learn item is its "Mock N" row. Extension days never have a mock. The mock engine itself arrives in Phase B of the migration; until then the Mock row is ticked by hand.
+- **Mocks:** 26 mocks in a sequence (`curriculum.mocks`), about two per week; each has a suggested week and can be started at any time, in any order. They are not plan days or checklist rows. **Review slots:** every day from plan day 5 (except the wrap-up) has two review problems drawn by the app (see the migration notes).
 - **Old-topic problems** (Day 4 / Day 7 from Week 2 on) come from earlier weeks and are shown **without any week or topic label**, so the learner practises spotting the pattern. Their origin week is revealed only on the problem's own page after it has been attempted.
 - Day kinds: `new-topic` (cold try first), `topic`, `python-fluency` (HackerRank, Week 1), `old-topics`, `timed` (45 min per problem), `redo`, `wrap-up` (Week 13 Day 6).
-- Weekly rhythm differs between odd and even weeks (mocks alternate days); see `docs/PLAN_90_DAY.md`.
+- Weekly rhythm: see `docs/PLAN_90_DAY.md`.
 
 ## 3. Features
 
 ### 3.1 Today (home screen)
-- Shows "Week N · Day D · date", the day's kind in plain words (New topic, Topic practice, Python fluency, Old topics (mixed), Timed practice · 45 min per problem, Redo day, Wrap-up), the coding note, and today's checklist: the learn item (a **"Mock N"** row on mock days) + problems (title, difficulty, platform badge, link opening in a new tab).
+- Shows "Week N · Day D · date", the day's kind in plain words (New topic, Topic practice, Python fluency, Old topics (mixed), Timed practice · 45 min per problem, Redo day, Wrap-up), the coding note, and today's checklist: the learn item (new-topic days) + problems + two review problems (from plan day 5; with a Re-roll button until logged) (title, difficulty, platform badge, link opening in a new tab).
 - On a `redo` day, due redos appear in the "Redo due" section; when none are due the day's **fallback** problem is offered under "Try this instead". The fallback is logged as a normal attempt (Problems page, journal, redo rules) but is never a checklist item, so it never changes day status or the catch-up queue.
 - Each item has a checkbox. Ticking a problem opens a quick log: **Solved alone / Needed hint / Needed solution**, minutes taken, optional note.
-- Learn items (the Mock row, concept notes, the Week 13 wrap-up item) are ticked manually; the mock engine will tick the Mock row when a session is saved (Phase B).
+- The sidebar and Today show "N of 90 days complete" (days with every item ticked), week progress including the week's mocks, Days missed (red), Incomplete tasks, Days online and the streak; a past day with some items ticked is "Incomplete" (yellow), with none it is "Missed". `#/incomplete` lists everything still owed and lets you write a reason for a missed day.
+- Learn items (a new-topic lesson, the Week 13 wrap-up item) are ticked manually.
 - Plan days have no redo slots. Redo slots (filled from this week's catch-up, then due redos, then "any problem from this week") exist on **extension days only**.
 - Before the start date: countdown + link to Week 1 lesson. After day 90: "Plan complete" + free practice mode.
 
@@ -78,7 +79,7 @@ Per week page with tabs:
 - "Weakest 5 patterns" with a button to start a targeted quiz.
 
 ### 3.10 Mock tests — *engine not built yet (Phase B); see docs/MIGRATION_V2.md and docs/PLAN_90_DAY.md*
-A mock every other day (45 in total): A. MCQs, B. Program 1, C. Program 2 (even mocks and Mock 45), D. Extra. Mock 1 is a diagnostic. The old mock-interview description below is superseded.
+26 on-demand mocks: A. MCQs, B. Program 1, C. Program 2 (even-numbered mocks, the final included), D. Extra. Mock 1 is a diagnostic. The old mock-interview description below is superseded.
 
 (Superseded) Mock interview:
 - Picks 2 Mediums + 1 Hard from completed weeks; 45-minute timer per problem.

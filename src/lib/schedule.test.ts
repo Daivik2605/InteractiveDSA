@@ -6,6 +6,7 @@ import {
   addExtension,
   buildSchedule,
   canAddRestDay,
+  canMoveItem,
   catchUpQueue,
   dayStatus,
   evaluateDays,
@@ -24,17 +25,18 @@ import {
 
 // ── fixtures ─────────────────────────────────────────────────────────────────
 // 3 weeks from Mon 2026-10-26. Week 1 = 10-26..11-01, week 2 = 11-02..11-08, week 3 = 11-09..11-15.
-// Days 1–6: learn + one problem (odd plan days also have a mock). Day 7: learn + a fallback, no problems and no
+// Days 1–6: learn + one problem. Day 7: learn + a fallback, no problems and no
 // slots. Extension days have two redo slots.
 
 const START = "2026-10-26";
 
 function makeCurriculum(weeks = 3): Curriculum {
   return {
-    version: 2,
+    version: 3,
     defaultStartDate: START,
     totalPlanDays: weeks * 7,
     mockSpec: { rule: "", parts: [], pythonThemes: [] },
+    mocks: [],
     practicalTasks: [],
     weeks: Array.from({ length: weeks }, (_, i) => {
       const w = i + 1;
@@ -53,18 +55,15 @@ function makeCurriculum(weeks = 3): Curriculum {
           day: day as PlanDay["day"],
           planDay,
           kind: day === 7 ? "redo" : "topic",
-          mock:
-            planDay % 2 === 1
-              ? { number: (planDay + 1) / 2, pythonTheme: 1, extra: "debug", program2: false, diagnostic: false, final: false, mcqCount: 18 }
-              : null,
           learn: `learn ${w}.${day}`,
           codingNote: day === 7 ? "redo" : null,
           timedMinutes: null,
+          reviewSlots: 0,
           problems: day === 7 ? [] : [problem(`w${nn}-d${day}-p1`, "core")],
           fallback: day === 7 ? problem(`w${nn}-d7-fb`, "fallback") : null,
         };
       });
-      return { week: w, title: `Week ${w}`, goal: "", concepts: [], visuals: [], templates: [], days, pool: [], problemCount: 6, oldTopicCount: 0, mockCount: 0 };
+      return { week: w, title: `Week ${w}`, goal: "", concepts: [], visuals: [], templates: [], days, pool: [], problemCount: 6, oldTopicCount: 0 };
     }),
   };
 }
@@ -151,23 +150,48 @@ describe("buildSchedule", () => {
     expect(s.filter((d) => d.week < 13).every((d, _, all) => all.filter((x) => x.week === d.week).length === 7)).toBe(true);
     expect(s.at(-1)).toMatchObject({ planDayId: "w13-d6", date: "2027-01-23" });
     const items = s.flatMap((d) => itemsForDay(real, d.planDayId));
-    expect(items.filter((i) => i.kind === "problem")).toHaveLength(118 + 36); // core + old-topic; no fallbacks
-    expect(items.filter((i) => i.kind === "learn" && i.mock)).toHaveLength(45);
+    expect(items.filter((i) => i.kind === "problem")).toHaveLength(160 + 41); // core + old-topic; no fallbacks
+    expect(items.filter((i) => i.kind === "review")).toHaveLength(170); // 2 a day from plan day 5, none on the wrap-up
+    expect(items.filter((i) => i.kind === "learn")).toHaveLength(13 + 1); // one new-topic lesson a week, plus the wrap-up
     expect(items.filter((i) => i.kind === "slot")).toHaveLength(0); // no slots on plan days
     expect(items.some((i) => i.itemId.endsWith("-fb"))).toBe(false); // a fallback is never an item
     expect(new Set(items.map((i) => i.itemId)).size).toBe(items.length);
   });
 
-  it("flags a mock on odd plan days only; extension days never have one", () => {
+  it("has no mock row on any day, plan or extension; days 1–4 have no review slots", () => {
     const real = realCurriculum as unknown as Curriculum;
     const withExt = buildSchedule(real, real.defaultStartDate, [ext(1, 12, 2)]);
-    const mockDays = withExt.filter((d) => itemsForDay(real, d.planDayId).some((i) => i.mock));
-    expect(mockDays).toHaveLength(45);
-    expect(mockDays.every((d) => d.kind === "plan")).toBe(true);
+    const all = withExt.flatMap((d) => itemsForDay(real, d.planDayId));
+    expect(all.some((i) => "mock" in i)).toBe(false);
+    expect(all.filter((i) => i.kind === "learn" && i.itemId.endsWith(":learn")).every((i) => i.dayKind === "new-topic")).toBe(true);
     const [x1] = itemsForDay(real, "w12-x1");
     expect(x1?.kind).toBe("slot");
-    const odd = real.weeks.flatMap((w) => w.days).filter((d) => d.mock);
-    expect(odd.every((d) => d.planDay % 2 === 1)).toBe(true);
+    for (const id of ["w01-d1", "w01-d2", "w01-d3", "w01-d4"]) expect(itemsForDay(real, id).some((i) => i.kind === "review")).toBe(false);
+    expect(itemsForDay(real, "w01-d3").map((i) => i.itemId)).toEqual(["w01-d3-p1"]); // Mock 2's row is gone
+  });
+
+  it("gives every day from plan day 5 two review slots whose problems come from the draws", () => {
+    const real = realCurriculum as unknown as Curriculum;
+    const day5 = itemsForDay(real, "w01-d5");
+    expect(day5.map((i) => i.itemId)).toEqual(["w01-d5-p1", "w01-d5-p2", "w01-d5:review-1", "w01-d5:review-2"]);
+    expect(day5[2]).toMatchObject({ kind: "review", reviewSlot: 1 });
+    expect(day5[2]!.problem).toBeUndefined(); // not drawn yet
+    const drawn = itemsForDay(real, "w01-d5", { draws: [{ slotId: "w01-d5:review-2", planDayId: "w01-d5", problemId: "w01-d1-p1", drawnOn: "2026-10-30" }] });
+    expect(drawn[3]!.problem).toMatchObject({ id: "w01-d1-p1", title: "Plus One" });
+    expect(drawn[2]!.problem).toBeUndefined();
+    expect(itemsForDay(real, "w13-d6").some((i) => i.kind === "review")).toBe(false);
+  });
+
+  it("a review slot counts towards day status and cannot be moved", () => {
+    const real = realCurriculum as unknown as Curriculum;
+    const day = buildSchedule(real, "2026-10-26")[4]!; // w01-d5
+    const items = itemsForDay(real, day.planDayId);
+    const done = new Map(items.filter((i) => i.kind !== "review").map((i) => [i.itemId, tick(i.itemId, day.date)]));
+    expect(dayStatus({ day, items, completions: done, restDates: new Set(), today: "2026-11-30" })).toBe("partial");
+    const all = new Map(items.map((i) => [i.itemId, tick(i.itemId, day.date)]));
+    expect(dayStatus({ day, items, completions: all, restDates: new Set(), today: "2026-11-30" })).toBe("done");
+    const review = items.find((i) => i.kind === "review")!;
+    expect(canMoveItem({ schedule: buildSchedule(real, "2026-10-26"), item: review, toPlanDayId: "w01-d6", completions: new Map() })).toMatchObject({ ok: false });
   });
 
   it("extending Week 12 by 2 days moves Week 13 by 2 days", () => {
@@ -191,11 +215,6 @@ describe("itemsForDay", () => {
   it("gives learn + problems; day 7 has no slots and its fallback is not an item", () => {
     expect(itemsForDay(curriculum, "w01-d1").map((i) => i.itemId)).toEqual(["w01-d1:learn", "w01-d1-p1"]);
     expect(itemsForDay(curriculum, "w01-d7").map((i) => i.itemId)).toEqual(["w01-d7:learn"]);
-  });
-
-  it("marks a mock day's learn item with its mock and day kind", () => {
-    expect(itemsForDay(curriculum, "w01-d1")[0]).toMatchObject({ dayKind: "topic", mock: { number: 1 } });
-    expect(itemsForDay(curriculum, "w01-d2")[0]!.mock).toBeUndefined();
   });
 
   it("gives extension days two slots", () => {

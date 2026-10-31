@@ -102,9 +102,9 @@ describe("question bank (real content)", () => {
 describe("learnKind", () => {
   it("is read from the curriculum day, never from label text", () => {
     const kinds = new Set(curriculum.weeks.flatMap((w) => w.days.flatMap((d) => itemsForDay(curriculum, `w${String(w.week).padStart(2, "0")}-d${d.day}`).filter((i) => i.kind === "learn").map((i) => learnKind(i)))));
-    expect(kinds).toEqual(new Set(["mock", "new-topic", "other"]));
-    expect(learnKind(itemsForDay(curriculum, "w01-d1")[0]!)).toBe("mock"); // a mock beats the new-topic kind
-    expect(learnKind(itemsForDay(curriculum, "w02-d1")[0]!)).toBe("new-topic"); // no mock on Week 2 Day 1
+    expect(kinds).toEqual(new Set(["new-topic", "other"])); // no learn item is a mock any more
+    expect(learnKind(itemsForDay(curriculum, "w01-d1")[0]!)).toBe("new-topic");
+    expect(learnKind(itemsForDay(curriculum, "w02-d1")[0]!)).toBe("new-topic");
     expect(learnKind(itemsForDay(curriculum, "w13-d6")[0]!)).toBe("other"); // wrap-up
     expect(learnKind({ kind: "problem" })).toBe("other");
   });
@@ -130,6 +130,9 @@ async function planAt(today: string) {
     moves: await db.itemMoves.toArray(),
     dayLogs: await db.dayLogs.toArray(),
     problemEntries: await db.problemEntries.toArray(),
+    draws: await db.dayDraws.toArray(),
+    mocksDone: [],
+    missedReasons: await db.missedReasons.toArray(),
   };
   return derivePlan(curriculum, snap, today);
 }

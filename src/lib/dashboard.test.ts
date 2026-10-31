@@ -92,7 +92,7 @@ describe("accuracy and weakest spots", () => {
 
 describe("targetMockPath", () => {
   const row = (number: number, themeId: number, status: MockListRow["status"], ready: boolean): MockListRow => ({
-    number, week: 1, planDay: number, planDayId: "w01-d1", date: null, dateTag: "upcoming", themeId, themeTitle: "t", extra: "debug",
+    number, suggestedAfterWeek: 1, themeId, themeTitle: "t", extra: "debug",
     program2: false, diagnostic: false, final: false, status, score: null, retakes: 0, ready, notReadyReason: null,
   });
   const rows = [row(1, 1, "done", true), row(2, 2, "not-taken", true), row(3, 3, "not-taken", true), row(4, 4, "not-taken", false), row(16, 1, "not-taken", true)];

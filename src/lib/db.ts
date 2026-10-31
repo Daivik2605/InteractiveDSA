@@ -2,9 +2,12 @@ import Dexie, { type EntityTable } from "dexie";
 import type {
   CardState,
   CustomItem,
+  DayDraw,
   DayLog,
+  DayNote,
   ItemCompletion,
   ItemMove,
+  MissedReason,
   MockRetake,
   MockRun,
   MockSession,
@@ -20,10 +23,13 @@ import type {
 // Schema versions: NEVER drop or clear user tables in an upgrade. To change the schema, add a
 // new `db.version(n+1).stores({...}).upgrade(...)` that migrates rows, and bump EXPORT_SCHEMA_VERSION
 // if the exported JSON shape changes.
+// v7 added dayNotes (free-text notes per day); v1–v6 exports still import.
+// v6 added missedReasons (why a day was missed); v1–v5 exports still import.
+// v5 added dayDraws (the review problems drawn for each day's review slots); v1–v4 exports still import.
 // v4 added mockRetakes (MCQ-only repeats of a mock); v1–v3 exports still import.
 // v3 added the mockNumber index on mocks and the mockRuns table (Phase B); v1 and v2 exports still import.
 // v2 added customItems, itemMoves, dayLogs and problemEntries (SPEC 3.13, 3.14); v1 exports still import.
-export const EXPORT_SCHEMA_VERSION = 4;
+export const EXPORT_SCHEMA_VERSION = 7;
 
 export class DsaDB extends Dexie {
   completions!: EntityTable<ItemCompletion, "itemId">;
@@ -41,6 +47,9 @@ export class DsaDB extends Dexie {
   itemMoves!: EntityTable<ItemMove, "itemId">;
   dayLogs!: EntityTable<DayLog, "planDayId">;
   problemEntries!: EntityTable<ProblemEntry, "problemId">;
+  dayDraws!: EntityTable<DayDraw, "slotId">;
+  missedReasons!: EntityTable<MissedReason, "planDayId">;
+  dayNotes!: EntityTable<DayNote, "id">;
 
   constructor(name = "InteractiveDSA") {
     super(name);
@@ -71,6 +80,18 @@ export class DsaDB extends Dexie {
     this.version(4).stores({
       mockRetakes: "++id, mockNumber, date",
     });
+    // v5 adds a table; existing rows are untouched.
+    this.version(5).stores({
+      dayDraws: "slotId, planDayId",
+    });
+    // v6 adds a table; existing rows are untouched.
+    this.version(6).stores({
+      missedReasons: "planDayId",
+    });
+    // v7 adds a table; existing rows are untouched.
+    this.version(7).stores({
+      dayNotes: "++id, date, mockNumber",
+    });
   }
 }
 
@@ -92,10 +113,16 @@ export const TABLE_NAMES = [
   "problemEntries",
   "mockRuns",
   "mockRetakes",
+  "dayDraws",
+  "missedReasons",
+  "dayNotes",
 ] as const;
 const V1_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 9);
 const V2_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 13);
 const V3_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 14);
+const V4_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 15);
+const V5_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 16);
+const V6_TABLES: readonly TableName[] = TABLE_NAMES.slice(0, 17);
 export type TableName = (typeof TABLE_NAMES)[number];
 
 export type ExportData = { schemaVersion: number } & { [K in TableName]: unknown[] };
@@ -127,10 +154,10 @@ export async function importAll(database: DsaDB, data: unknown): Promise<void> {
   if (typeof data !== "object" || data === null) throw new Error("Import file is not a JSON object.");
   const obj = data as Record<string, unknown>;
   const version = obj.schemaVersion;
-  if (version !== 1 && version !== 2 && version !== 3 && version !== EXPORT_SCHEMA_VERSION) {
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4 && version !== 5 && version !== 6 && version !== EXPORT_SCHEMA_VERSION) {
     throw new Error(`Unsupported schemaVersion ${String(version)} (expected 1 to ${EXPORT_SCHEMA_VERSION}).`);
   }
-  const required = version === 1 ? V1_TABLES : version === 2 ? V2_TABLES : version === 3 ? V3_TABLES : TABLE_NAMES;
+  const required = version === 1 ? V1_TABLES : version === 2 ? V2_TABLES : version === 3 ? V3_TABLES : version === 4 ? V4_TABLES : version === 5 ? V5_TABLES : version === 6 ? V6_TABLES : TABLE_NAMES;
   for (const name of required) {
     if (!Array.isArray(obj[name])) throw new Error(`Import file is missing the "${name}" table.`);
   }
@@ -144,8 +171,13 @@ export async function importAll(database: DsaDB, data: unknown): Promise<void> {
   });
 }
 
-export async function resetAll(database: DsaDB): Promise<void> {
+/**
+ * Deletes everything, so the app is as if it had never been used. With `startDate`, the fresh settings are written in
+ * the same transaction: that date becomes Day 1 and the theme goes back to the default.
+ */
+export async function resetAll(database: DsaDB, startDate?: string): Promise<void> {
   await database.transaction("rw", database.tables, async () => {
     for (const name of TABLE_NAMES) await database.table(name).clear();
+    if (startDate) await database.settings.put({ id: "settings", startDate, theme: DEFAULT_THEME });
   });
 }

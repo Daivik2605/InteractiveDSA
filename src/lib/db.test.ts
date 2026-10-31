@@ -1,4 +1,5 @@
 import "fake-indexeddb/auto";
+import Dexie from "dexie";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DsaDB, exportAll, getSettings, importAll, resetAll, saveSettings } from "./db";
 
@@ -33,7 +34,7 @@ describe("db", () => {
     await seed(db);
     await saveSettings(db, { theme: "dark" }, "2026-10-26");
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(4);
+    expect(snapshot.schemaVersion).toBe(7);
 
     await resetAll(db);
     expect(await db.completions.count()).toBe(0);
@@ -153,5 +154,91 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
     await importAll(db, { ...v3, schemaVersion: 3 });
     expect(await db.mockRetakes.count()).toBe(0); // comes in empty
     await expect(importAll(db, { ...v3, schemaVersion: 4 })).rejects.toThrow(/mockRetakes/);
+  });
+
+  it("exports and re-imports the review draws", async () => {
+    await db.dayDraws.bulkAdd([
+      { slotId: "w01-d5:review-1", planDayId: "w01-d5", problemId: "w01-d1-p1", drawnOn: "2026-10-30" },
+      { slotId: "w01-d5:review-2", planDayId: "w01-d5", problemId: "w01-d2-p1", drawnOn: "2026-10-30", attemptId: 7 },
+    ]);
+    const snapshot = await exportAll(db);
+    expect(snapshot.schemaVersion).toBe(7);
+    expect(snapshot.dayDraws).toHaveLength(2);
+    await resetAll(db);
+    expect(await db.dayDraws.count()).toBe(0);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect(await db.dayDraws.get("w01-d5:review-2")).toMatchObject({ problemId: "w01-d2-p1", attemptId: 7 });
+    expect(await exportAll(db)).toEqual(snapshot);
+  });
+
+  it("still imports a v4 export that has no dayDraws table, and rejects a v5 file without it", async () => {
+    await db.dayDraws.add({ slotId: "w01-d5:review-1", planDayId: "w01-d5", problemId: "w01-d1-p1", drawnOn: "2026-10-30" });
+    const { dayDraws: _omit, ...v4 } = await exportAll(db);
+    await importAll(db, { ...v4, schemaVersion: 4 });
+    expect(await db.dayDraws.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v4, schemaVersion: 5 })).rejects.toThrow(/dayDraws/);
+  });
+
+  it("upgrades a v4 database without touching its rows (a saved Mock 1 and 2, ticks, a mock run)", async () => {
+    const name = `upgrade-${n++}`;
+    const old = new Dexie(name);
+    old.version(1).stores({ completions: "itemId, planDayId, completedOn", extensions: "++id, week", attempts: "++id, problemId, date", redos: "++id, problemId, dueOn", quizAnswers: "++id, questionId, answeredAt, mode", cards: "questionId, dueOn", restDays: "date", mocks: "++id, date", settings: "id" });
+    old.version(2).stores({ customItems: "id, planDayId, week", itemMoves: "itemId, toPlanDayId", dayLogs: "planDayId", problemEntries: "problemId" });
+    old.version(3).stores({ mocks: "++id, date, mockNumber", mockRuns: "mockNumber" });
+    old.version(4).stores({ mockRetakes: "++id, mockNumber, date" });
+    const mcq = { total: 18, correct: 13, byType: {} };
+    await old.table("mocks").bulkAdd([
+      { mockNumber: 1, date: "2026-10-26", diagnostic: true, mcq, questionIds: [], programs: [], extra: { kind: "debug", done: true }, rating: 4 },
+      { mockNumber: 2, date: "2026-10-28", diagnostic: false, mcq, questionIds: [], programs: [], extra: { kind: "explain-aloud", done: true }, rating: 3 },
+    ]);
+    await old.table("completions").bulkAdd([
+      { itemId: "w01-d1:learn", planDayId: "w01-d1", completedOn: "2026-10-26" }, // Mock 1's old row: stays, harmless
+      { itemId: "w01-d3:learn", planDayId: "w01-d3", completedOn: "2026-10-28" }, // Mock 2's old row
+      { itemId: "w01-d1-p1", planDayId: "w01-d1", completedOn: "2026-10-26" },
+    ]);
+    await old.table("mockRuns").add({ mockNumber: 3, startedOn: "2026-10-29", questionIds: [], groups: { theme: 7, current: 6, review: 5 }, program1: { problemId: null }, program2: null, extra: { kind: "complexity-check" }, answers: [true], phase: "A", programs: [], extraDone: false });
+    old.close();
+
+    const upgraded = new DsaDB(name);
+    try {
+      expect(await upgraded.mocks.count()).toBe(2);
+      expect((await upgraded.mocks.where("mockNumber").equals(2).first())!.mcq.correct).toBe(13);
+      expect((await upgraded.completions.toArray()).map((c) => c.itemId).sort()).toEqual(["w01-d1-p1", "w01-d1:learn", "w01-d3:learn"]);
+      expect(await upgraded.mockRuns.get(3)).toMatchObject({ phase: "A", answers: [true] });
+      expect(await upgraded.dayDraws.count()).toBe(0);
+    } finally {
+      await upgraded.delete();
+    }
+  });
+
+  it("exports and re-imports missed-day reasons, and a v5 export without them still imports", async () => {
+    await db.missedReasons.add({ planDayId: "w01-d6", reason: "Travel", loggedOn: "2026-11-01" });
+    const snapshot = await exportAll(db);
+    expect(snapshot.missedReasons).toHaveLength(1);
+    await resetAll(db);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect(await db.missedReasons.get("w01-d6")).toMatchObject({ reason: "Travel" });
+    const { missedReasons: _omit, ...v5 } = snapshot;
+    await importAll(db, { ...v5, schemaVersion: 5 });
+    expect(await db.missedReasons.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v5, schemaVersion: 6 })).rejects.toThrow(/missedReasons/);
+  });
+
+  it("exports and re-imports day notes, and a v6 export without them still imports", async () => {
+    await db.dayNotes.bulkAdd([
+      { date: "2026-10-30", text: "line one\nline two", createdAt: "2026-10-30T10:00:00.000Z", updatedAt: "2026-10-30T10:05:00.000Z" },
+      { date: "2026-10-30", text: "during a mock", createdAt: "2026-10-30T11:00:00.000Z", updatedAt: "2026-10-30T11:00:00.000Z", mockNumber: 3 },
+    ]);
+    const snapshot = await exportAll(db);
+    expect(snapshot.schemaVersion).toBe(7);
+    expect(snapshot.dayNotes).toHaveLength(2);
+    await resetAll(db);
+    expect(await db.dayNotes.count()).toBe(0);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect((await db.dayNotes.toArray()).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((n) => [n.text, n.mockNumber])).toEqual([["line one\nline two", undefined], ["during a mock", 3]]);
+    const { dayNotes: _omit, ...v6 } = snapshot;
+    await importAll(db, { ...v6, schemaVersion: 6 });
+    expect(await db.dayNotes.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v6, schemaVersion: 7 })).rejects.toThrow(/dayNotes/);
   });
 });

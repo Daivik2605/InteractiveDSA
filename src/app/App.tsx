@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { CalendarPage } from "../features/calendar/CalendarPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { EditDayPage } from "../features/day/EditDayPage";
+import { IncompletePage } from "../features/incomplete/IncompletePage";
 import { MockPage } from "../features/mock/MockPage";
 import { MocksPage } from "../features/mock/MocksPage";
 import { ProblemDetailPage } from "../features/problems/ProblemDetailPage";
@@ -23,6 +24,7 @@ export function App() {
 
 
 
+        <Route path="incomplete" element={<IncompletePage />} />
         <Route path="mocks" element={<MocksPage />} />
         <Route path="mock/:number" element={<MockPage />} />
         <Route path="problems" element={<ProblemsPage />} />

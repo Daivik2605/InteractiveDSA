@@ -2,8 +2,10 @@
 
 import type { DsaDB } from "./db";
 import { saveSettings } from "./db";
-import { nextCard } from "./quiz";
+import { nextCard, type Rng } from "./quiz";
 import { isValidDate } from "./dates";
+import { freshTimer } from "./mock";
+import { drawReview, reviewPool } from "./review";
 import {
   addExtension,
   canAddRestDay,
@@ -16,6 +18,7 @@ import {
   type ScheduleContext,
 } from "./schedule";
 import type {
+  Curriculum,
   CustomItem,
   Difficulty,
   ItemCompletion,
@@ -24,6 +27,7 @@ import type {
   MockRetake,
   MockRun,
   MockSession,
+  MockTimer,
   QuizAnswer,
   ScheduledDay,
   WeekExtension,
@@ -53,7 +57,7 @@ export interface LogInput {
  * attempted (a new chain replaced them). Returns the attempt id.
  */
 export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
-  return db.transaction("rw", [db.attempts, db.completions, db.redos], async () => {
+  return db.transaction("rw", [db.attempts, db.completions, db.redos, db.dayDraws], async () => {
     const attempt: ProblemAttempt = {
       problemId: input.problemId,
       date: input.date,
@@ -68,6 +72,7 @@ export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
     for (const t of input.source === "mock" ? [] : input.completes) {
       if (await db.completions.get(t.itemId)) continue; // never overwrite an earlier completion
       await db.completions.put({ itemId: t.itemId, planDayId: t.planDayId, completedOn: input.date, attemptId });
+      if (await db.dayDraws.get(t.itemId)) await db.dayDraws.update(t.itemId, { attemptId }); // a logged review slot can't be re-rolled
     }
 
     const pending = await db.redos.where("problemId").equals(input.problemId).toArray();
@@ -88,9 +93,10 @@ export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
  * aren't done yet; reopen redo tasks it closed. Earlier attempts stay in history.
  */
 export async function undoAttempt(db: DsaDB, attemptId: number): Promise<void> {
-  await db.transaction("rw", [db.attempts, db.completions, db.redos], async () => {
+  await db.transaction("rw", [db.attempts, db.completions, db.redos, db.dayDraws], async () => {
     const completions = await db.completions.toArray();
     await db.completions.bulkDelete(completions.filter((c) => c.attemptId === attemptId).map((c) => c.itemId));
+    for (const d of (await db.dayDraws.toArray()).filter((x) => x.attemptId === attemptId)) await db.dayDraws.update(d.slotId, { attemptId: undefined });
 
     const redos = await db.redos.toArray();
     const created = redos.filter((r) => r.createdByAttemptId === attemptId && !r.doneOn && !r.attemptedOn);
@@ -192,7 +198,7 @@ export async function editCustomItem(
 
 /** Removes the item, its completion, its pending redos and its journal entry. Attempt history stays. */
 export async function deleteCustomItem(db: DsaDB, id: string): Promise<void> {
-  await db.transaction("rw", [db.customItems, db.completions, db.redos, db.problemEntries], async () => {
+  await db.transaction("rw", [db.customItems, db.completions, db.redos, db.problemEntries, db.attempts, db.dayDraws], async () => {
     await db.completions.delete(id);
     const pending = (await db.redos.where("problemId").equals(id).toArray()).filter((r) => !r.doneOn && !r.attemptedOn);
     await db.redos.bulkDelete(pending.map((r) => r.id!));
@@ -283,7 +289,7 @@ export async function logFoundProblem(db: DsaDB, input: FoundProblemInput, today
   const { description, tags, firstAttempt, ...item } = input;
   return db.transaction(
     "rw",
-    [db.customItems, db.problemEntries, db.attempts, db.completions, db.redos],
+    [db.customItems, db.problemEntries, db.attempts, db.completions, db.redos, db.dayDraws],
     async () => {
       const id = await addCustomItem(db, { ...item, kind: "problem" }, today);
       await saveProblemEntry(db, { problemId: id, tags, ...(description ? { description } : {}) }, today);
@@ -356,6 +362,16 @@ export async function startMockRun(db: DsaDB, run: MockRun): Promise<void> {
   await db.mockRuns.put(run);
 }
 
+/**
+ * Changes a run's timer inside one database write, from the stored value, so two quick presses (e.g. "+10 min" twice)
+ * both count. A missing timer, or one left over from another part, starts fresh first.
+ */
+export async function changeMockTimer(db: DsaDB, mockNumber: number, phase: MockTimer["phase"], change: (t: MockTimer) => MockTimer, now: number): Promise<void> {
+  await db.mockRuns.where("mockNumber").equals(mockNumber).modify((r) => {
+    r.timer = change(r.timer?.phase === phase ? r.timer : freshTimer(phase, now));
+  });
+}
+
 export async function updateMockRun(db: DsaDB, mockNumber: number, patch: Partial<Omit<MockRun, "mockNumber">>): Promise<void> {
   await db.mockRuns.update(mockNumber, patch);
 }
@@ -392,17 +408,11 @@ export async function logMockProgram(
   return attemptId;
 }
 
-/**
- * Saves a finished mock and, in the same transaction, ticks its "Mock N" row (when given) and drops the run.
- * The tick carries no attemptId, so unticking the row never undoes a program attempt.
- */
-export async function saveMockSession(db: DsaDB, session: MockSession, tick: CompletionTarget | null): Promise<number> {
-  return db.transaction("rw", [db.mocks, db.mockRuns, db.completions], async () => {
+/** Saves a finished mock and drops its run, in one transaction. Mocks are not plan items, so nothing is ticked. */
+export async function saveMockSession(db: DsaDB, session: MockSession): Promise<number> {
+  return db.transaction("rw", [db.mocks, db.mockRuns], async () => {
     const id = (await db.mocks.add(session)) as number;
     await db.mockRuns.delete(session.mockNumber);
-    if (tick && !(await db.completions.get(tick.itemId))) {
-      await db.completions.put({ itemId: tick.itemId, planDayId: tick.planDayId, completedOn: session.date });
-    }
     return id;
   });
 }
@@ -429,4 +439,76 @@ export async function saveMockRetake(db: DsaDB, retake: Omit<MockRetake, "id" | 
 /** Throws away an unfinished mock attempt. Answers and the Program 1 attempt already logged stay in your history. */
 export async function discardMockRun(db: DsaDB, mockNumber: number): Promise<void> {
   await db.mockRuns.delete(mockNumber);
+}
+
+// ── day notes ────────────────────────────────────────────────────────────────
+
+/** Adds a note to a day (blank, when the learner presses "Add note"); `mockNumber` tags one written during a mock. */
+export async function addDayNote(db: DsaDB, date: string, text: string, now: string, mockNumber?: number): Promise<number> {
+  return (await db.dayNotes.add({ date, text, createdAt: now, updatedAt: now, ...(mockNumber !== undefined ? { mockNumber } : {}) })) as number;
+}
+
+/** Saves a note's text. Does nothing if the note was deleted meanwhile. */
+export async function updateDayNote(db: DsaDB, id: number, text: string, now: string): Promise<void> {
+  await db.dayNotes.where("id").equals(id).modify({ text, updatedAt: now });
+}
+
+export async function deleteDayNote(db: DsaDB, id: number): Promise<void> {
+  await db.dayNotes.delete(id);
+}
+
+/** Removes the blank notes of a day (an "Add note" that was never typed into). */
+export async function deleteBlankNotes(db: DsaDB, date: string): Promise<void> {
+  const blank = (await db.dayNotes.where("date").equals(date).toArray()).filter((n) => n.text.trim() === "");
+  await db.dayNotes.bulkDelete(blank.map((n) => n.id!));
+}
+
+// ── missed days ──────────────────────────────────────────────────────────────
+
+/** Saves (or, when empty, removes) the reason a day was missed. */
+export async function saveMissedReason(db: DsaDB, planDayId: string, reason: string, today: string): Promise<void> {
+  const text = reason.trim();
+  if (!text) await db.missedReasons.delete(planDayId);
+  else await db.missedReasons.put({ planDayId, reason: text, loggedOn: today });
+}
+
+// ── review slots ─────────────────────────────────────────────────────────────
+
+/**
+ * Draws the review problems for a plan day the first time it is opened and saves them. Safe to call on every render:
+ * a slot that already has a draw is left alone, so a reload never reshuffles. Returns the slots it drew.
+ */
+export async function ensureDayDraws(db: DsaDB, curriculum: Curriculum, planDayId: string, today: string, rng: Rng = Math.random): Promise<string[]> {
+  const day = curriculumDayOf(curriculum, planDayId);
+  if (!day || day.reviewSlots === 0) return [];
+  return db.transaction("rw", db.dayDraws, async () => {
+    const slotIds = Array.from({ length: day.reviewSlots }, (_, i) => `${planDayId}:review-${i + 1}`);
+    const have = new Set((await db.dayDraws.bulkGet(slotIds)).filter(Boolean).map((d) => d!.slotId));
+    const missing = slotIds.filter((id) => !have.has(id));
+    if (missing.length === 0) return [];
+    const taken = new Set((await db.dayDraws.bulkGet(slotIds)).filter(Boolean).map((d) => d!.problemId));
+    const picks = drawReview(reviewPool(curriculum, planDayId), missing.length, rng, taken);
+    const rows = missing.flatMap((slotId, i) => (picks[i] ? [{ slotId, planDayId, problemId: picks[i]!.id, drawnOn: today }] : []));
+    await db.dayDraws.bulkAdd(rows);
+    return rows.map((r) => r.slotId);
+  });
+}
+
+/** Re-rolls one review slot. Only while nothing is logged for it and it is not ticked. */
+export async function rerollDraw(db: DsaDB, curriculum: Curriculum, slotId: string, rng: Rng = Math.random): Promise<Result<object>> {
+  return db.transaction("rw", [db.dayDraws, db.completions], async () => {
+    const draw = await db.dayDraws.get(slotId);
+    if (!draw) return { ok: false, reason: "Nothing has been drawn for this slot yet." } as const;
+    if (draw.attemptId !== undefined || (await db.completions.get(slotId))) return { ok: false, reason: "You already logged this one, so it can't be re-rolled." } as const;
+    const sibling = (await db.dayDraws.where("planDayId").equals(draw.planDayId).toArray()).filter((d) => d.slotId !== slotId).map((d) => d.problemId);
+    const [pick] = drawReview(reviewPool(curriculum, draw.planDayId), 1, rng, new Set([draw.problemId, ...sibling]));
+    if (!pick) return { ok: false, reason: "There is nothing else to draw from." } as const;
+    await db.dayDraws.update(slotId, { problemId: pick.id });
+    return { ok: true } as const;
+  });
+}
+
+function curriculumDayOf(curriculum: Curriculum, planDayId: string) {
+  const m = /^w(\d{2})-d(\d)$/.exec(planDayId);
+  return m ? curriculum.weeks.find((w) => w.week === Number(m[1]))?.days.find((d) => d.day === Number(m[2])) : undefined;
 }
