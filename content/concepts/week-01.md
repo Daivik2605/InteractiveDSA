@@ -1,4 +1,4 @@
-## Big-O, Big-Θ, Big-Ω; dropping constants
+## How cost grows
 
 Big-O is an **upper bound** on how the work grows with the input size n, Big-Ω a **lower bound**, and Big-Θ means both bounds match. In interviews "O(n)" almost always means the tight, worst-case bound. Drop constants and lower-order terms: `3n + 10` and `n + n/2` are both O(n); `n² + n` is O(n²). Sequential loops add, nested loops multiply, and a loop that halves its range each step is O(log n). Say space the same way: the extra memory you allocate, not counting the input.
 
@@ -14,7 +14,7 @@ print(has_pair_sum([2, 7, 11], 9))  # True
 # n + (n-1) + ... + 1 = n(n+1)/2 comparisons -> O(n^2) time, O(1) space.
 ```
 
-## Cost of list, str, dict and set operations in CPython
+## What every operation costs
 
 Know these before you pick a data structure: most "too slow" answers use an O(n) operation inside a loop.
 
@@ -45,7 +45,7 @@ print(contains_duplicate([1, 2, 3, 1]))  # True
 # O(n) time and O(n) space, instead of O(n^2) with a list.
 ```
 
-## list as a dynamic array; amortized append
+## Why append is cheap
 
 A Python list is an array of references with spare capacity. `append` is a plain write while there is room; when the array is full CPython allocates a bigger one (growing by a constant factor) and copies everything over. That copy is O(n), but it happens so rarely that the average cost per append is O(1): **amortized O(1)**. Inserting or deleting at the front shifts every element, so it stays O(n). For a queue use `collections.deque`.
 
@@ -64,7 +64,7 @@ print(copies_when_appending(1000))  # 1023
 # Fewer than 2n copies in total, so O(1) per append on average.
 ```
 
-## str is immutable; join vs +=
+## Why building strings is expensive
 
 A `str` cannot be changed after it is created. `s += "x"` builds a brand new string and copies the old one, so doing it in a loop costs O(n²) in the worst case. Collect the pieces in a list and join once: O(total length). To "edit" a string, work on `list(s)` and join at the end.
 
@@ -84,7 +84,7 @@ def shout(words: list[str]) -> str:
 print(shout(["big", "o"]))  # BIG O
 ```
 
-## In-place edits and read/write pointers
+## Editing a list in place
 
 An in-place algorithm changes the input with O(1) extra space. The workhorse is two indices that both move forward: `read` looks at every element, `write` marks where the next kept element goes. Because `write <= read`, you never overwrite something you still need. Return `write` as the new length, or fill the rest afterwards.
 
@@ -103,7 +103,7 @@ print(k, nums[:k])  # 3 [2, 2, 4]
 # O(n) time, O(1) space.
 ```
 
-## Matrix traversal: rows, columns, layers
+## Walking a matrix
 
 A matrix is a list of rows, so `m[r][c]` is row r, column c. Rows are easy (`for row in m`). Columns need an index loop or `zip(*m)`. Layers (rings) are walked with four shrinking boundaries: top, bottom, left, right. Before writing code, say the sizes: m rows and n columns means m·n cells to visit. Never build a grid with `[[0] * n] * m`: that repeats one row m times.
 

@@ -1,4 +1,5 @@
 import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { CodeBlock } from "./CodeBlock";
 
 const components: Components = {
@@ -28,13 +29,23 @@ const components: Components = {
   h2: ({ children }) => <h3 className="mt-3 text-base font-semibold">{children}</h3>,
   h3: ({ children }) => <h4 className="mt-3 font-semibold">{children}</h4>,
   blockquote: ({ children }) => <blockquote className="my-2 border-l-4 border-slate-300 pl-3 text-slate-600 dark:border-slate-700 dark:text-slate-400">{children}</blockquote>,
+  table: ({ children }) => (
+    <div className="my-2 overflow-x-auto">
+      <table className="w-full border-collapse text-xs">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-slate-50 dark:bg-slate-900">{children}</thead>,
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tr: ({ children }) => <tr>{children}</tr>,
+  th: ({ children }) => <th className="border border-slate-200 px-2 py-1 text-left font-semibold dark:border-slate-800">{children}</th>,
+  td: ({ children }) => <td className="border border-slate-200 px-2 py-1 align-top dark:border-slate-800">{children}</td>,
 };
 
 /** Renders user/content markdown. Raw HTML is not allowed (react-markdown's default). */
 export function Markdown({ children, className = "" }: { children: string; className?: string }) {
   return (
     <div className={`break-words text-sm ${className}`}>
-      <ReactMarkdown components={components}>{children}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{children}</ReactMarkdown>
     </div>
   );
 }
