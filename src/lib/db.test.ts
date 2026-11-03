@@ -34,7 +34,7 @@ describe("db", () => {
     await seed(db);
     await saveSettings(db, { theme: "dark" }, "2026-10-26");
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(8);
+    expect(snapshot.schemaVersion).toBe(9);
 
     await resetAll(db);
     expect(await db.completions.count()).toBe(0);
@@ -162,7 +162,7 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
       { slotId: "w01-d5:review-2", planDayId: "w01-d5", problemId: "w01-d2-p1", drawnOn: "2026-10-30", attemptId: 7 },
     ]);
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(8);
+    expect(snapshot.schemaVersion).toBe(9);
     expect(snapshot.dayDraws).toHaveLength(2);
     await resetAll(db);
     expect(await db.dayDraws.count()).toBe(0);
@@ -230,7 +230,7 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
       { date: "2026-10-30", text: "during a mock", createdAt: "2026-10-30T11:00:00.000Z", updatedAt: "2026-10-30T11:00:00.000Z", mockNumber: 3 },
     ]);
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(8);
+    expect(snapshot.schemaVersion).toBe(9);
     expect(snapshot.dayNotes).toHaveLength(2);
     await resetAll(db);
     expect(await db.dayNotes.count()).toBe(0);
@@ -256,5 +256,26 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
     await importAll(db, { ...v7, schemaVersion: 7 });
     expect(await db.topicChecks.count()).toBe(0); // comes in empty
     await expect(importAll(db, { ...v7, schemaVersion: 8 })).rejects.toThrow(/topicChecks/);
+  });
+
+  it("exports and re-imports concept ticks, and a v8 export without them still imports", async () => {
+    await db.conceptChecks.bulkAdd([{ conceptId: "w03-c2", checkedOn: "2026-10-30" }, { conceptId: "w01-c1", checkedOn: "2026-10-31" }]);
+    const snapshot = await exportAll(db);
+    expect(snapshot.schemaVersion).toBe(9);
+    expect(snapshot.conceptChecks).toHaveLength(2);
+    await resetAll(db);
+    expect(await db.conceptChecks.count()).toBe(0);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect((await db.conceptChecks.toArray()).map((c) => c.conceptId).sort()).toEqual(["w01-c1", "w03-c2"]);
+    const { conceptChecks: _omit, ...v8 } = snapshot;
+    await importAll(db, { ...v8, schemaVersion: 8 });
+    expect(await db.conceptChecks.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v8, schemaVersion: 9 })).rejects.toThrow(/conceptChecks/);
+  });
+
+  it("a concept is ticked once per id (put, not add)", async () => {
+    await db.conceptChecks.put({ conceptId: "w03-c2", checkedOn: "2026-10-30" });
+    await db.conceptChecks.put({ conceptId: "w03-c2", checkedOn: "2026-10-31" });
+    expect(await db.conceptChecks.count()).toBe(1);
   });
 });

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { usePlanContext } from "../../app/PlanContext";
 import { countedMockAnswers, formatMinutes, mockAccuracy, OUTCOMES, problemStats, scoreTrend, studySummary, targetMockPath, WEAK_MIN_ATTEMPTS, weakestSpots, type Accuracy, type TrendPoint } from "../../lib/dashboard";
+import { curriculumConcepts } from "../../lib/conceptIds";
 import { curriculum } from "../../lib/curriculum";
 import { buildMockRows } from "../../lib/mock";
 import { OUTCOME_LABEL } from "../../lib/problems";
@@ -134,6 +135,9 @@ export function DashboardPage() {
   const answers = useLiveQuery(() => db.quizAnswers.where("mode").equals("mock").toArray(), [db]);
   const sessions = useLiveQuery(() => db.mocks.toArray(), [db]);
   const runs = useLiveQuery(() => db.mockRuns.toArray(), [db]);
+  const conceptTicks = useLiveQuery(() => db.conceptChecks.toArray(), [db]);
+  const conceptIds = useMemo(() => new Set(curriculumConcepts(curriculum.weeks).map((c) => c.id)), []);
+  const conceptsRead = (conceptTicks ?? []).filter((c) => conceptIds.has(c.conceptId)).length; // numbered curriculum concepts only
 
   const view = useMemo(() => {
     if (!answers || !sessions || !runs) return null;
@@ -162,12 +166,13 @@ export function DashboardPage() {
         <>
           <section aria-label="Study summary" className="mt-4">
             <h2 className="sr-only">Study summary</h2>
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
               {[
                 { label: "Days done", value: String(view.summary.daysDone), note: view.summary.daysDone !== view.summary.daysDoneOnTime ? `${view.summary.daysDoneOnTime} on time` : "of 90" },
                 { label: "Current streak", value: `${view.summary.streak} day${view.summary.streak === 1 ? "" : "s"}`, note: "days done in a row" },
                 { label: "Solved alone", value: String(view.summary.solvedAlone), note: "problems" },
                 { label: "Study time", value: formatMinutes(view.summary.studyMinutes), note: "logged minutes" },
+                { label: "Concepts", value: String(conceptsRead), note: `of ${conceptIds.size} read` },
               ].map((c) => (
                 <div key={c.label} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
                   <dt className="text-xs uppercase tracking-wide text-slate-500">{c.label}</dt>

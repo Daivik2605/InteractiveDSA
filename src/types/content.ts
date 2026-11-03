@@ -458,3 +458,32 @@ export interface TopicCheck {
   topicId: string; // primary key
   checkedOn: string; // local calendar date
 }
+
+// ── data-structures.json, concept-links.json, concept ticks (Dexie v9) ───────
+
+export interface StructureInfo {
+  name: string; // matches the "structure" field in resources.json
+  hackerrankSubdomain: string | null; // the sub-domain to open on the HackerRank page; null = none
+  inPlan: boolean; // false = "Beyond the plan"
+  hackerrankUrl: string; // https
+}
+
+export interface DataStructuresFile {
+  version: number;
+  checkedOn: string;
+  note: string;
+  hackerrank: { title: string; url: string; dashboard: string };
+  structures: StructureInfo[];
+}
+
+/** content/concept-links.json (optional): 2–3 links per concept, keyed by concept id ("w03-c2"). */
+export interface ConceptLinksFile {
+  version: number;
+  concepts: Record<string, ResourceLink[]>;
+}
+
+/** A ticked curriculum concept. Keyed by concept id, so a tick is stored once. Added in Dexie schema v9. */
+export interface ConceptCheck {
+  conceptId: string; // primary key, "w03-c2"
+  checkedOn: string; // local calendar date
+}

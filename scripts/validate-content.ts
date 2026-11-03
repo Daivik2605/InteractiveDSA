@@ -8,7 +8,10 @@ import { fileURLToPath } from "node:url";
 import type { z } from "zod";
 import { DebugFile, PracticalTask, QuestionFile, practicalProblems, questionFileProblems, type PracticalTaskData, type QuestionFileData } from "./content-schema";
 import { Curriculum, type CurriculumFile } from "./curriculum-schema";
+import { ConceptLinks, conceptLinksProblems, type ConceptLinksData } from "./concept-links-schema";
+import { DataStructures, dataStructuresProblems, type DataStructuresData } from "./data-structures-schema";
 import { Resources, resourcesProblems, type ResourcesData } from "./resources-schema";
+import { curriculumConcepts } from "../src/lib/conceptIds";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contentDir = join(root, "content");
@@ -78,11 +81,35 @@ if (existsSync(debugFile)) check("content/mock-extras/debug.json", debugFile, De
 
 // ── resources: content/resources.json is optional; when absent there is nothing to check ──
 const resourcesFile = join(contentDir, "resources.json");
+let resourceStructures: string[] = [];
 if (existsSync(resourcesFile)) {
   const res = check("content/resources.json", resourcesFile, Resources) as ResourcesData | undefined;
   if (res && curriculum) {
     const problems = resourcesProblems(res, curriculum.weeks.map((w) => w.week));
     for (const p of problems) console.error(`    content/resources.json: ${p}`);
+    if (problems.length > 0) failures++;
+  }
+  resourceStructures = (res?.weeks ?? []).flatMap((w) => w.topics.map((t) => t.structure).filter((x): x is string => !!x));
+}
+
+// ── data-structures.json (optional): names unique, every structure used in resources.json exists, https URLs ──
+const dataStructuresFile = join(contentDir, "data-structures.json");
+if (existsSync(dataStructuresFile)) {
+  const ds = check("content/data-structures.json", dataStructuresFile, DataStructures) as DataStructuresData | undefined;
+  if (ds) {
+    const problems = dataStructuresProblems(ds, resourceStructures);
+    for (const p of problems) console.error(`    content/data-structures.json: ${p}`);
+    if (problems.length > 0) failures++;
+  }
+}
+
+// ── concept-links.json (optional): ids exist in the curriculum, 2-3 https links each, no duplicate URL in a concept ──
+const conceptLinksFile = join(contentDir, "concept-links.json");
+if (existsSync(conceptLinksFile) && curriculum) {
+  const cl = check("content/concept-links.json", conceptLinksFile, ConceptLinks) as ConceptLinksData | undefined;
+  if (cl) {
+    const problems = conceptLinksProblems(cl, new Set(curriculumConcepts(curriculum.weeks).map((c) => c.id)));
+    for (const p of problems) console.error(`    content/concept-links.json: ${p}`);
     if (problems.length > 0) failures++;
   }
 }

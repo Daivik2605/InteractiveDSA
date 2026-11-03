@@ -4,12 +4,15 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DsaDB, exportAll, importAll, resetAll, saveSettings } from "../lib/db";
-import type { ResourcesFile } from "../types/content";
+import { curriculum } from "../lib/curriculum";
+import type { ConceptLinksFile, DataStructuresFile, ResourcesFile } from "../types/content";
 import { App } from "./App";
 import { PlanProvider } from "./PlanContext";
 
-const state = vi.hoisted(() => ({ res: undefined as unknown }));
+const state = vi.hoisted(() => ({ res: undefined as unknown, ds: undefined as unknown, links: undefined as unknown }));
 vi.mock("../lib/resources", async (orig) => ({ ...(await orig<typeof import("../lib/resources")>()), getResources: () => state.res }));
+vi.mock("../lib/dataStructures", async (orig) => ({ ...(await orig<typeof import("../lib/dataStructures")>()), getDataStructures: () => state.ds }));
+vi.mock("../lib/concepts", async (orig) => ({ ...(await orig<typeof import("../lib/concepts")>()), getConceptLinks: () => state.links }));
 
 const link = (n: number) => ({ site: `Site${n}`, title: `Guide ${n}`, url: `https://example.com/${n}` });
 const FIXTURE: ResourcesFile = {
@@ -41,9 +44,29 @@ const FIXTURE: ResourcesFile = {
   ],
 };
 
+const HR = "https://www.hackerrank.com/domains/data-structures";
+const DS_FIXTURE: DataStructuresFile = {
+  version: 1,
+  checkedOn: "2026-11-02",
+  note: "fixture",
+  hackerrank: { title: "HackerRank: Data Structures", url: HR, dashboard: "https://www.hackerrank.com/dashboard" },
+  structures: [
+    { name: "Array / list", hackerrankSubdomain: "Arrays", inPlan: true, hackerrankUrl: HR },
+    { name: "Hash table (dict, set)", hackerrankSubdomain: null, inPlan: true, hackerrankUrl: HR },
+    { name: "Matrix", hackerrankSubdomain: "Arrays", inPlan: true, hackerrankUrl: HR }, // in the plan, but no topics in the fixture
+    { name: "Balanced trees", hackerrankSubdomain: "Balanced Trees", inPlan: false, hackerrankUrl: HR },
+  ],
+};
+const LINKS_FIXTURE: ConceptLinksFile = {
+  version: 1,
+  concepts: { "w01-c1": [{ site: "Docs", title: "First", url: "https://example.com/c1a" }, { site: "Blog", title: "Second", url: "https://example.com/c1b" }] },
+};
+
 const dbs: DsaDB[] = [];
 let n = 0;
 afterEach(async () => {
+  state.ds = undefined;
+  state.links = undefined;
   state.res = undefined;
   await Promise.all(dbs.splice(0).map((d) => d.delete()));
 });
@@ -250,20 +273,24 @@ describe("Settings: dashboard links", () => {
   });
 });
 
-describe("Content page: topics without resources.json", () => {
-  it("every resource tab says 'No topics yet' and nothing breaks; Concepts still lists the curriculum's", async () => {
+describe("Content page: without the optional files", () => {
+  it("Data Structures and Patterns say 'No topics yet' and nothing breaks", async () => {
     const { user } = await renderContent("/content?tab=data-structures");
     expect(panel().getByText("No topics yet.")).toBeInTheDocument();
     await user.click(tab("Patterns"));
     expect(panel().getByText("No topics yet.")).toBeInTheDocument();
-    await user.click(tab("Concepts"));
-    expect(panel().getByText("No topics yet.")).toBeInTheDocument();
-    expect(panel().getByRole("list", { name: "Week 1 concepts" })).toHaveTextContent("How cost grows");
+  });
+
+  it("Concepts still lists every curriculum concept, each with a quiet 'Links coming' note", async () => {
+    await renderContent("/content?tab=concepts");
+    expect(panel().getAllByRole("checkbox")).toHaveLength(80);
+    expect(panel().getAllByText("Links coming")).toHaveLength(80);
+    expect(panel().queryByText("Core reading")).not.toBeInTheDocument();
   });
 });
 
-describe("Content page: topics from resources.json", () => {
-  it("Patterns: headed by the NeetCode name, resources open in a new tab, 'N of M done' counts", async () => {
+describe("Content page: Patterns", () => {
+  it("is headed by the NeetCode name, links open in a new tab, 'N of M done' counts", async () => {
     state.res = FIXTURE;
     const { user } = await renderContent("/content?tab=patterns");
     expect(panel().getByRole("heading", { name: /Arrays & Hashing/ })).toBeInTheDocument();
@@ -279,44 +306,6 @@ describe("Content page: topics from resources.json", () => {
     expect(panel().getByRole("status", { name: "Topics done" })).toHaveTextContent("0 of 1 done");
   });
 
-  it("Concepts: the week's curriculum concepts as plain text above the concept topics", async () => {
-    state.res = FIXTURE;
-    await renderContent("/content?week=1&tab=concepts");
-    expect(panel().getByRole("list", { name: "Week 1 concepts" })).toHaveTextContent("What every operation costs");
-    expect(panel().getByLabelText("Big-O reading")).toBeInTheDocument();
-  });
-
-  it("Data Structures: the picker lists every structure; 'All structures' groups them", async () => {
-    state.res = FIXTURE;
-    await renderContent("/content?tab=data-structures");
-    const options = within(screen.getByLabelText("Structure")).getAllByRole("option").map((o) => o.textContent);
-    expect(options).toEqual(["All structures", "Array / list", "Hash table (dict, set)"]);
-    expect(panel().getByRole("heading", { name: "Hash table (dict, set)" })).toBeInTheDocument();
-    expect(panel().getByLabelText("Hash collisions")).toBeInTheDocument();
-    expect(panel().getByLabelText("Arrays")).toBeInTheDocument();
-  });
-
-  it("Dive deeper: topics, weeks, patterns of those weeks and their plan problems (old-topic rule kept)", async () => {
-    state.res = FIXTURE;
-    const { user } = await renderContent("/content?tab=data-structures");
-    await user.selectOptions(screen.getByLabelText("Structure"), "Hash table (dict, set)");
-    expect(where()).toContain("structure=");
-    const dive = within(panel().getByRole("region", { name: "Dive deeper: Hash table (dict, set)" }));
-    expect(dive.getByLabelText("Hash basics")).toBeInTheDocument();
-    expect(dive.getByLabelText("Hash collisions")).toBeInTheDocument();
-    expect(dive.queryByLabelText("Arrays")).not.toBeInTheDocument();
-    expect(dive.getByRole("list", { name: "Weeks" })).toHaveTextContent("Week 1 · Python toolkit");
-    expect(dive.getByRole("list", { name: "Weeks" })).toHaveTextContent("Week 2 · Hashing");
-    const patterns = within(dive.getByRole("list", { name: "Patterns" }));
-    expect(patterns.getByLabelText("Sliding window")).toBeInTheDocument();
-    expect(patterns.getByLabelText("Prefix sums")).toBeInTheDocument();
-    expect(dive.getByText("Plus One")).toBeInTheDocument();
-    expect(dive.getByText("Two Sum")).toBeInTheDocument();
-    expect(dive.queryByText("Move Zeroes")).not.toBeInTheDocument(); // spare problems stay out
-    const old = dive.getByRole("link", { name: "Reverse Words in a String" }).closest("li")!;
-    expect(old.textContent).not.toMatch(/week/i);
-  });
-
   it("ticking a topic persists and survives a reload", async () => {
     state.res = FIXTURE;
     const first = await renderContent("/content?tab=patterns");
@@ -329,17 +318,326 @@ describe("Content page: topics from resources.json", () => {
     await first.user.click(panel().getByLabelText("Prefix sums")); // unticking removes it
     await waitFor(async () => expect(await first.db.topicChecks.count()).toBe(0));
   });
+});
 
-  it("a tick is shared wherever the topic appears, and is in the export and back in after an import", async () => {
+describe("Content page: Data Structures list", () => {
+  const cards = () => within(panel().getByRole("list", { name: "Data structures" }));
+  const card = (name: string) => cards().getByRole("link", { name }).closest("li")!;
+
+  it("lists every structure in the file, with or without topics, with counts, weeks and the 'Beyond the plan' badge", async () => {
     state.res = FIXTURE;
-    const { db, user } = await renderContent("/content?tab=data-structures");
+    state.ds = DS_FIXTURE;
+    await renderContent("/content?tab=data-structures");
+    expect(cards().getAllByRole("listitem")).toHaveLength(4);
+    expect(card("Array / list")).toHaveTextContent("0 of 1 ticked");
+    expect(card("Array / list")).toHaveTextContent("Week 1");
+    expect(card("Hash table (dict, set)")).toHaveTextContent("0 of 2 ticked");
+    expect(card("Hash table (dict, set)")).toHaveTextContent("Weeks 1, 2");
+    expect(card("Matrix")).toHaveTextContent("No topics yet");
+    expect(card("Matrix")).not.toHaveTextContent("Beyond the plan");
+    expect(card("Balanced trees")).toHaveTextContent("Beyond the plan");
+    expect(card("Balanced trees")).toHaveTextContent("Not taught in a plan week");
+  });
+
+  it("counts ticked topics on the card", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { user } = await renderContent("/content?tab=data-structures&ds=Hash%20table%20(dict%2C%20set)");
     await user.click(panel().getByLabelText("Hash basics"));
+    await user.click(panel().getByRole("link", { name: /All data structures/ }));
+    await waitFor(() => expect(card("Hash table (dict, set)")).toHaveTextContent("1 of 2 ticked"));
+  });
+
+  it("respects the week selector: only structures taught that week", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { user } = await renderContent("/content?tab=data-structures");
+    await user.selectOptions(screen.getByLabelText("Week"), "2");
+    expect(cards().getAllByRole("listitem")).toHaveLength(1);
+    expect(cards().getByRole("link", { name: "Hash table (dict, set)" })).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Week"), "1");
+    expect(cards().getAllByRole("listitem")).toHaveLength(2); // Array / list and Hash table
+    await user.selectOptions(screen.getByLabelText("Week"), "3");
+    expect(panel().getByText("No data structures are taught in Week 3.")).toBeInTheDocument();
+  });
+
+  it("clicking a structure puts it in the URL, and the back link returns to the list", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { user } = await renderContent("/content?tab=data-structures");
+    await user.click(cards().getByRole("link", { name: "Array / list" }));
+    expect(where()).toBe("/content?tab=data-structures&ds=Array+%2F+list");
+    expect(panel().getByRole("heading", { level: 2, name: "Array / list" })).toBeInTheDocument();
+    await user.click(panel().getByRole("link", { name: /All data structures/ }));
+    expect(where()).toBe("/content?tab=data-structures");
+    expect(panel().getByRole("list", { name: "Data structures" })).toBeInTheDocument();
+  });
+});
+
+describe("Content page: a structure's page", () => {
+  const open = (name: string) => renderContent(`/content?tab=data-structures&ds=${encodeURIComponent(name)}`);
+  const within_ = (name: string) => within(panel().getByRole("region", { name }));
+
+  it("starts with the HackerRank block: the button, the sub-domain to open, and the dashboard from Settings", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { db } = await open("Array / list");
+    const block = within_("HackerRank");
+    const button = block.getByRole("link", { name: /Practise on HackerRank/ });
+    expect(button).toHaveAttribute("href", HR);
+    expect(button).toHaveAttribute("target", "_blank");
+    expect(block.getByText("Open the Arrays sub-domain on that page.")).toBeInTheDocument();
+    expect(block.getByRole("link", { name: /HackerRank dashboard/ })).toHaveAttribute("href", "https://www.hackerrank.com/dashboard");
+    await saveSettings(db, { hackerrankUrl: "https://www.hackerrank.com/profile/me" }, "2026-10-26");
+    await waitFor(() => expect(block.getByRole("link", { name: /HackerRank dashboard/ })).toHaveAttribute("href", "https://www.hackerrank.com/profile/me"));
+    // the block comes before Learn, Problems and Related patterns
+    const order = ["HackerRank", "Learn", "Problems from my plan", "Related patterns"];
+    const regions = order.map((name) => panel().getByRole("region", { name }));
+    regions.slice(1).forEach((r, i) => expect(regions[i]!.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy());
+  });
+
+  it("says plainly when a structure has no HackerRank sub-domain", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    await open("Hash table (dict, set)");
+    expect(within_("HackerRank").getByText("No sub-domain: practise under Algorithms or the Interview Preparation Kit.")).toBeInTheDocument();
+  });
+
+  it("Learn lists the structure's topics with checkboxes and links; ticks persist", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { db, user } = await open("Hash table (dict, set)");
+    const learn = within_("Learn");
+    expect(learn.getByLabelText("Hash basics")).toBeInTheDocument();
+    expect(learn.getByLabelText("Hash collisions")).toBeInTheDocument();
+    expect(learn.queryByLabelText("Arrays")).not.toBeInTheDocument();
+    expect(learn.getByRole("link", { name: /Site9: Guide 9/ })).toHaveAttribute("target", "_blank");
+    await user.click(learn.getByLabelText("Hash collisions"));
+    await waitFor(async () => expect(await db.topicChecks.toArray()).toMatchObject([{ topicId: "ds-hash-2" }]));
+  });
+
+  it("lists plan problems only from the weeks that teach it, grouped by week, and says why", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    await open("Array / list"); // taught in week 1 only
+    const problems = within_("Problems from my plan");
+    expect(problems.getByText(/A problem is listed when its week teaches this structure/)).toBeInTheDocument();
+    expect(problems.getByRole("region", { name: "Week 1 problems" })).toBeInTheDocument();
+    expect(problems.queryByRole("region", { name: "Week 2 problems" })).not.toBeInTheDocument();
+    expect(problems.getByText("Plus One")).toBeInTheDocument();
+    expect(problems.getByText("Set Matrix Zeroes")).toBeInTheDocument(); // a fallback
+    expect(problems.queryByText("Two Sum")).not.toBeInTheDocument();
+  });
+
+  it("a structure taught in two weeks lists both, and old-topic problems keep their origin hidden", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    await open("Hash table (dict, set)");
+    const problems = within_("Problems from my plan");
+    expect(problems.getByRole("region", { name: "Week 1 problems" })).toBeInTheDocument();
+    expect(problems.getByRole("region", { name: "Week 2 problems" })).toBeInTheDocument();
+    const old = problems.getByRole("link", { name: "Reverse Words in a String" }).closest("li")!;
+    expect(old).toHaveTextContent("Day 4");
+    expect(old.textContent).not.toMatch(/week/i);
+  });
+
+  it("filters the problems like the Problems tab", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { user } = await open("Array / list");
+    const problems = () => within_("Problems from my plan");
+    await user.selectOptions(problems().getByLabelText("Platform"), "HackerRank");
+    expect(problems().getByText("Nested Lists")).toBeInTheDocument();
+    expect(problems().queryByText("Plus One")).not.toBeInTheDocument();
+    await user.selectOptions(problems().getByLabelText("Platform"), "");
+    await user.selectOptions(problems().getByLabelText("Difficulty"), "Hard");
+    expect(problems().getByText("No problems match these filters.")).toBeInTheDocument();
+    await user.selectOptions(problems().getByLabelText("Difficulty"), "");
+    await user.selectOptions(problems().getByLabelText("Status"), "none");
+    expect(problems().getByText("Plus One")).toBeInTheDocument();
+  });
+
+  it("spare problems are hidden until the toggle, and then only those from the teaching weeks, with no week shown", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { user } = await open("Array / list");
+    const week1Spare = curriculum.weeks[0]!.pool[0]!.title;
+    const week2Spare = curriculum.weeks[1]!.pool[0]!.title;
+    const problems = () => within_("Problems from my plan");
+    expect(problems().queryByText(week1Spare)).not.toBeInTheDocument();
+    await user.click(problems().getByLabelText("Show spare problems"));
+    const spare = within(problems().getByRole("region", { name: "Spare problems" }));
+    const row = spare.getByRole("link", { name: week1Spare }).closest("li")!;
+    expect(row.textContent).not.toMatch(/week/i);
+    expect(spare.queryByText(week2Spare)).not.toBeInTheDocument();
+  });
+
+  it("Related patterns: the pattern topics of those weeks only", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    await open("Array / list");
+    expect(within_("Related patterns").getByLabelText("Sliding window")).toBeInTheDocument();
+    expect(within_("Related patterns").queryByLabelText("Prefix sums")).not.toBeInTheDocument();
+  });
+
+  it("a beyond-the-plan structure shows the badge, its HackerRank block, and clear empty states", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    await open("Balanced trees");
+    expect(panel().getByText("Beyond the plan")).toBeInTheDocument();
+    expect(within_("HackerRank").getByText("Open the Balanced Trees sub-domain on that page.")).toBeInTheDocument();
+    expect(within_("Learn").getByText("No topics for this structure yet.")).toBeInTheDocument();
+    expect(within_("Problems from my plan").getByText(/not taught in a week of the plan/)).toBeInTheDocument();
+    expect(within_("Related patterns").getByText("No patterns listed for these weeks.")).toBeInTheDocument();
+  });
+});
+
+describe("Content page: Concepts", () => {
+  const cardsOf = () => panel().getAllByRole("checkbox");
+  const week2Ids = () => curriculum.weeks[1]!.concepts.map((_, i) => `w02-c${i + 1}`);
+
+  it("renders a card for each of the 80 curriculum concepts, plus 'Core reading' cards first in their week", async () => {
+    state.res = FIXTURE;
+    state.links = LINKS_FIXTURE;
+    await renderContent("/content?tab=concepts");
+    expect(cardsOf()).toHaveLength(81); // 80 numbered + 1 core reading in the fixture
+    expect(panel().getAllByText("Core reading")).toHaveLength(1);
+    const week1 = within(panel().getByRole("list", { name: "Week 1 concept cards" }));
+    expect(week1.getAllByRole("checkbox")[0]).toHaveAccessibleName("Big-O reading"); // core reading first
+    expect(week1.getAllByRole("checkbox")[1]).toHaveAccessibleName(curriculum.weeks[0]!.concepts[0]!);
+    expect(week1.getAllByText("Core reading")).toHaveLength(1);
+  });
+
+  it("shows each concept's links from concept-links.json, and a quiet note where there are none", async () => {
+    state.res = FIXTURE;
+    state.links = LINKS_FIXTURE;
+    await renderContent("/content?tab=concepts");
+    const card = within(panel().getByLabelText(curriculum.weeks[0]!.concepts[0]!).closest("li")!);
+    const first = card.getByRole("link", { name: /Docs: First/ });
+    expect(first).toHaveAttribute("href", "https://example.com/c1a");
+    expect(first).toHaveAttribute("target", "_blank");
+    expect(card.getByRole("link", { name: /Blog: Second/ })).toBeInTheDocument();
+    expect(panel().getAllByText("Links coming")).toHaveLength(79); // every numbered concept but w01-c1; core reading has its own links
+    expect(within(panel().getByLabelText("Big-O reading").closest("li")!).getByRole("link", { name: /Site7: Guide 7/ })).toBeInTheDocument();
+  });
+
+  it("the week selector narrows the cards to that week", async () => {
+    state.res = FIXTURE;
+    const { user } = await renderContent("/content?tab=concepts");
+    await user.selectOptions(screen.getByLabelText("Week"), "2");
+    expect(cardsOf()).toHaveLength(curriculum.weeks[1]!.concepts.length);
+    expect(panel().queryByRole("button", { name: /^Week 2/ })).not.toBeInTheDocument(); // one week: no collapsing
+    expect(panel().getByRole("status", { name: "Concepts read" })).toHaveTextContent(`0 of ${curriculum.weeks[1]!.concepts.length} read`);
+  });
+
+  it("ticking a concept saves it once under its id, shows progress, and survives a reload", async () => {
+    const first = await renderContent("/content?tab=concepts");
+    const title = curriculum.weeks[2]!.concepts[1]!; // w03-c2
+    await first.user.click(panel().getByLabelText(title));
+    await waitFor(async () => expect(await first.db.conceptChecks.toArray()).toMatchObject([{ conceptId: "w03-c2", checkedOn: "2026-10-27" }]));
+    expect(panel().getByRole("status", { name: "Concepts read" })).toHaveTextContent("1 of 80 read");
+    expect(panel().getByRole("progressbar", { name: "Concepts read" })).toHaveAttribute("aria-valuenow", "1");
+    first.view.unmount();
+    await renderContent("/content?tab=concepts", { db: first.db });
+    await waitFor(() => expect(panel().getByLabelText(title)).toBeChecked());
+    await first.user.click(panel().getByLabelText(title)); // unticking removes it
+    await waitFor(async () => expect(await first.db.conceptChecks.count()).toBe(0));
+  });
+
+  it("a core-reading card keeps its tick with the other topics", async () => {
+    state.res = FIXTURE;
+    const { db, user } = await renderContent("/content?tab=concepts");
+    await user.click(panel().getByLabelText("Big-O reading"));
+    await waitFor(async () => expect(await db.topicChecks.toArray()).toMatchObject([{ topicId: "c-bigo" }]));
+    expect(await db.conceptChecks.count()).toBe(0);
+    expect(panel().getByRole("status", { name: "Concepts read" })).toHaveTextContent("1 of 81 read");
+  });
+
+  it("'Mark all as read' ticks a whole week, 'Undo' removes only what it added, and the week count follows", async () => {
+    const { db, user } = await renderContent("/content?tab=concepts", {
+      seed: async (d) => {
+        await d.conceptChecks.put({ conceptId: "w02-c1", checkedOn: "2026-10-26" }); // already read before
+      },
+    });
+    const total = curriculum.weeks[1]!.concepts.length;
+    const section = () => within(panel().getByRole("region", { name: "Week 2 concepts" }));
+    expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`1 of ${total} read`);
+    await user.click(section().getByRole("button", { name: "Mark all Week 2 as read" }));
+    await waitFor(async () => expect((await db.conceptChecks.toArray()).map((c) => c.conceptId).sort()).toEqual(week2Ids().sort()));
+    expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`${total} of ${total} read`);
+    await user.click(section().getByRole("button", { name: "Undo Week 2" }));
+    await waitFor(async () => expect((await db.conceptChecks.toArray()).map((c) => c.conceptId)).toEqual(["w02-c1"]));
+    expect(section().getByRole("button", { name: "Mark all Week 2 as read" })).toHaveTextContent("Mark all as read");
+  });
+
+  it("weeks collapse and expand with All weeks selected", async () => {
+    const { user } = await renderContent("/content?tab=concepts");
+    const toggle = () => panel().getByRole("button", { name: /^Week 3 ·/ });
+    expect(panel().getByRole("list", { name: "Week 3 concept cards" })).toBeInTheDocument();
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    await user.click(toggle());
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    expect(panel().queryByRole("list", { name: "Week 3 concept cards" })).not.toBeInTheDocument();
+    expect(panel().getByRole("region", { name: "Week 3 concepts" })).toHaveTextContent("read"); // the count stays visible
+    await user.click(toggle());
+    expect(panel().getByRole("list", { name: "Week 3 concept cards" })).toBeInTheDocument();
+  });
+
+  it("search narrows the cards by concept text, and says so when nothing matches", async () => {
+    const { user } = await renderContent("/content?tab=concepts");
+    await user.type(panel().getByRole("searchbox", { name: "Search concepts" }), curriculum.weeks[1]!.concepts[0]!);
+    expect(cardsOf().length).toBeGreaterThan(0);
+    expect(cardsOf().length).toBeLessThan(80);
+    expect(panel().getByLabelText(curriculum.weeks[1]!.concepts[0]!)).toBeInTheDocument();
+    await user.clear(panel().getByRole("searchbox", { name: "Search concepts" }));
+    await user.type(panel().getByRole("searchbox", { name: "Search concepts" }), "zzzz no such concept");
+    expect(panel().getByText("No concepts match.")).toBeInTheDocument();
+  });
+
+  it("the All / To read / Done filters split the cards by tick", async () => {
+    const title = curriculum.weeks[0]!.concepts[0]!;
+    const { user } = await renderContent("/content?tab=concepts", {
+      seed: async (d) => {
+        await d.conceptChecks.put({ conceptId: "w01-c1", checkedOn: "2026-10-26" });
+      },
+    });
+    await waitFor(() => expect(panel().getByLabelText(title)).toBeChecked());
+    await user.click(panel().getByRole("button", { name: "Done" }));
+    expect(cardsOf()).toHaveLength(1);
+    expect(panel().getByLabelText(title)).toBeInTheDocument();
+    await user.click(panel().getByRole("button", { name: "To read" }));
+    expect(cardsOf()).toHaveLength(79);
+    expect(panel().queryByLabelText(title)).not.toBeInTheDocument();
+    await user.click(panel().getByRole("button", { name: "All" }));
+    expect(cardsOf()).toHaveLength(80);
+  });
+
+  it("is in the dashboard's summary row as 'Concepts: N of 80'", async () => {
+    const db = new DsaDB(`content-${n++}`);
+    dbs.push(db);
+    await db.conceptChecks.bulkPut([{ conceptId: "w01-c1", checkedOn: "2026-10-26" }, { conceptId: "w04-c2", checkedOn: "2026-10-26" }, { conceptId: "w99-c9", checkedOn: "2026-10-26" }]);
+    mount(db, "2026-10-27", "/dashboard");
+    const summary = within(await screen.findByRole("region", { name: "Study summary" }));
+    expect(summary.getByText("Concepts").nextElementSibling).toHaveTextContent("2"); // the stale id does not count
+    expect(summary.getByText("Concepts").nextElementSibling!.nextElementSibling).toHaveTextContent("of 80 read");
+  });
+});
+
+describe("Content page: export and import", () => {
+  it("topic and concept ticks are in the export and come back after an import", async () => {
+    state.res = FIXTURE;
+    state.ds = DS_FIXTURE;
+    const { db, user } = await renderContent("/content?tab=data-structures&ds=Hash%20table%20(dict%2C%20set)");
+    await user.click(panel().getByLabelText("Hash basics"));
+    await db.conceptChecks.put({ conceptId: "w05-c3", checkedOn: "2026-10-27" });
     await waitFor(async () => expect(await db.topicChecks.count()).toBe(1));
     const snapshot = JSON.parse(JSON.stringify(await exportAll(db)));
     expect(snapshot.topicChecks).toMatchObject([{ topicId: "ds-hash-1" }]);
+    expect(snapshot.conceptChecks).toMatchObject([{ conceptId: "w05-c3" }]);
     await resetAll(db);
     expect(await db.topicChecks.count()).toBe(0);
     await importAll(db, snapshot);
     expect(await db.topicChecks.toArray()).toMatchObject([{ topicId: "ds-hash-1" }]);
+    expect(await db.conceptChecks.toArray()).toMatchObject([{ conceptId: "w05-c3" }]);
   });
 });

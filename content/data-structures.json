@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "checkedOn": "2026-11-02",
+  "note": "HackerRank's Data Structures domain page (opened and its sub-domain list read on 2026-11-02). Sub-domain pages are loaded by script, so each entry links to the domain page and names the sub-domain to open there. Structures with no sub-domain (String, Hash table, Graph) are practised on HackerRank under Algorithms or the Interview Preparation Kit instead.",
+  "hackerrank": {
+    "title": "HackerRank: Data Structures",
+    "url": "https://www.hackerrank.com/domains/data-structures",
+    "dashboard": "https://www.hackerrank.com/dashboard"
+  },
+  "structures": [
+    {
+      "name": "Array (list)",
+      "hackerrankSubdomain": "Arrays",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Matrix (2D list)",
+      "hackerrankSubdomain": "Arrays",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Sorted array",
+      "hackerrankSubdomain": "Arrays",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "String",
+      "hackerrankSubdomain": null,
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Hash table (dict, set)",
+      "hackerrankSubdomain": null,
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Stack",
+      "hackerrankSubdomain": "Stacks",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Queue and deque",
+      "hackerrankSubdomain": "Queues",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Linked list",
+      "hackerrankSubdomain": "Linked Lists",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Binary tree",
+      "hackerrankSubdomain": "Trees",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Binary search tree",
+      "hackerrankSubdomain": "Trees",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Heap / priority queue",
+      "hackerrankSubdomain": "Heap",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Trie",
+      "hackerrankSubdomain": "Trie",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Union-find",
+      "hackerrankSubdomain": "Disjoint Set",
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Graph",
+      "hackerrankSubdomain": null,
+      "inPlan": true,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Balanced trees (AVL, red-black)",
+      "hackerrankSubdomain": "Balanced Trees",
+      "inPlan": false,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    },
+    {
+      "name": "Multiple-choice quizzes",
+      "hackerrankSubdomain": "Multiple Choice",
+      "inPlan": false,
+      "hackerrankUrl": "https://www.hackerrank.com/domains/data-structures"
+    }
+  ]
+}

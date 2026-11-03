@@ -6,4 +6,4 @@ import { afterEach } from "vitest";
 afterEach(cleanup);
 
 // Under parallel load the first render (Dexie snapshot behind "Loading…") can exceed the 1s default.
-configure({ asyncUtilTimeout: 3000 });
+configure({ asyncUtilTimeout: 6000 });

@@ -244,3 +244,34 @@ interface TopicCheck { topicId: string; checkedOn: string }
 ```
 
 The Content page's Problems tab reads `curriculum.json` only (day problems, fallbacks, pools). Old-topic and pool problems never show the week or topic they came from.
+
+## Data structures (`content/data-structures.json`, optional)
+
+One entry per structure the Data Structures tab lists (16), including ones the plan does not teach. Validated by `scripts/data-structures-schema.ts`: names unique, https URLs, and every `structure` name used in `resources.json` must exist here.
+
+```ts
+interface StructureInfo {
+  name: string;                        // matches the "structure" field in resources.json
+  hackerrankSubdomain: string | null;  // "Open the <sub-domain> sub-domain on that page"; null = "No sub-domain: practise under Algorithms or the Interview Preparation Kit"
+  inPlan: boolean;                     // false = shown with a "Beyond the plan" badge
+  hackerrankUrl: string;               // https; the "Practise on HackerRank" button
+}
+interface DataStructuresFile { version: number; checkedOn: string; note: string; hackerrank: { title: string; url: string; dashboard: string }; structures: StructureInfo[] }
+```
+
+A structure is "taught" in a week when `resources.json` has a `data-structure` topic for it in that week. That decides the weeks shown on its card, the week selector filter, and the weeks whose plan problems its page lists. The HackerRank dashboard link on a structure page comes from Settings (`hackerrankUrl`), not from this file.
+
+## Concepts: ids, `content/concept-links.json` (optional) and `ConceptCheck` (Dexie v9)
+
+Every string in `curriculum.json` `weeks[].concepts` is a concept card with a **stable id built from week and 1-based position**: `w03-c2` is the 2nd concept of Week 3 (`src/lib/conceptIds.ts`). Ids never come from the text. **Only append concepts to the end of a week's list**: reordering or removing one moves the ids and breaks the links file and saved ticks. `src/lib/conceptIds.test.ts` (with `src/lib/fixtures/concept-ids.json`) fails if any of the 80 current ids changes its concept.
+
+The `concept` topics of `resources.json` also show on the Concepts tab, as **"Core reading"** cards first in their week; they keep their topic id and their tick stays in `topicChecks`.
+
+```ts
+// content/concept-links.json (optional): 2-3 https links per concept, no duplicate URL within a concept; keys must exist in the curriculum.
+interface ConceptLinksFile { version: number; concepts: Record<string /* "w03-c2" */, { site: string; title: string; url: string }[]> }
+// Dexie v9 table `conceptChecks`, key conceptId: a ticked numbered concept. Exported/imported; v1-v8 exports import with it empty.
+interface ConceptCheck { conceptId: string; checkedOn: string }
+```
+
+A concept with no entry (or no file) shows a quiet "Links coming" note. Validated by `scripts/concept-links-schema.ts`.

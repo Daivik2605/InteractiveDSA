@@ -1,0 +1,1101 @@
+{
+  "version": 2,
+  "checkedOn": "2026-11-02",
+  "note": "Every URL was opened and its heading checked on 2026-11-02. Topics follow the NeetCode roadmap mapped onto the 13 plan weeks. kind matches the Content page tabs; data-structure topics carry a 'structure' name used to group them.",
+  "roadmap": {
+    "title": "NeetCode roadmap",
+    "url": "https://neetcode.io/roadmap"
+  },
+  "weeks": [
+    {
+      "week": 1,
+      "title": "Python toolkit, Big-O, arrays & strings",
+      "neetcode": "Arrays & Hashing",
+      "topics": [
+        {
+          "id": "w01-bigo",
+          "title": "Big-O and the cost of Python operations",
+          "kind": "concept",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Big O Notation",
+              "url": "https://www.geeksforgeeks.org/dsa/analysis-algorithms-big-o-analysis/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Time complexity of operations on built-in types",
+              "url": "https://docs.python.org/3/library/time-complexity.html"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Array cheatsheet (complexity table)",
+              "url": "https://www.techinterviewhandbook.org/algorithms/array/"
+            }
+          ]
+        },
+        {
+          "id": "w01-list",
+          "title": "Lists as dynamic arrays",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "Python docs",
+              "title": "Tutorial: More on Lists",
+              "url": "https://docs.python.org/3/tutorial/datastructures.html#more-on-lists"
+            },
+            {
+              "site": "Python docs",
+              "title": "Sequence types: list, tuple, range",
+              "url": "https://docs.python.org/3/library/stdtypes.html#sequence-types-list-tuple-range"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Python Lists",
+              "url": "https://www.geeksforgeeks.org/python/python-lists/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Common Python Data Structures",
+              "url": "https://realpython.com/python-data-structures/"
+            }
+          ],
+          "structure": "Array (list)"
+        },
+        {
+          "id": "w01-str",
+          "title": "Strings (immutable sequences)",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "Python docs",
+              "title": "Text sequence type: str",
+              "url": "https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Python String",
+              "url": "https://www.geeksforgeeks.org/python/python-string/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "String cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/string/"
+            }
+          ],
+          "structure": "String"
+        },
+        {
+          "id": "w01-matrix",
+          "title": "Matrix (2D list) and traversal",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Matrix cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/matrix/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Print a matrix in spiral form",
+              "url": "https://www.geeksforgeeks.org/dsa/print-a-given-matrix-in-spiral-form/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Tutorial: Nested list comprehensions",
+              "url": "https://docs.python.org/3/tutorial/datastructures.html#nested-list-comprehensions"
+            }
+          ],
+          "structure": "Matrix (2D list)"
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "title": "Hashing, counting, prefix sums",
+      "neetcode": "Arrays & Hashing",
+      "topics": [
+        {
+          "id": "w02-hash",
+          "title": "Hash tables: dict and set",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Hashing in Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/hashing-data-structure/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Tutorial: Dictionaries",
+              "url": "https://docs.python.org/3/tutorial/datastructures.html#dictionaries"
+            },
+            {
+              "site": "Python docs",
+              "title": "Set types: set, frozenset",
+              "url": "https://docs.python.org/3/library/stdtypes.html#set-types-set-frozenset"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Hash table visualisation",
+              "url": "https://visualgo.net/en/hashtable"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Hash table cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/hash-table/"
+            }
+          ],
+          "structure": "Hash table (dict, set)"
+        },
+        {
+          "id": "w02-pydict",
+          "title": "dict and set in Python",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Python Dictionary",
+              "url": "https://www.geeksforgeeks.org/python/python-dictionary/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Python Sets",
+              "url": "https://www.geeksforgeeks.org/python/sets-in-python/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Build a Hash Table in Python",
+              "url": "https://realpython.com/python-hash-table/"
+            }
+          ],
+          "structure": "Hash table (dict, set)"
+        },
+        {
+          "id": "w02-counter",
+          "title": "Counter and defaultdict",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "Python docs",
+              "title": "collections.Counter",
+              "url": "https://docs.python.org/3/library/collections.html#counter-objects"
+            },
+            {
+              "site": "Python docs",
+              "title": "collections.defaultdict",
+              "url": "https://docs.python.org/3/library/collections.html#defaultdict-objects"
+            },
+            {
+              "site": "Real Python",
+              "title": "Python's Counter",
+              "url": "https://realpython.com/python-counter/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Python defaultdict",
+              "url": "https://realpython.com/python-defaultdict/"
+            }
+          ],
+          "structure": "Hash table (dict, set)"
+        },
+        {
+          "id": "w02-prefix",
+          "title": "Prefix sums",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Prefix Sum Array",
+              "url": "https://www.geeksforgeeks.org/dsa/prefix-sum-array-implementation-applications-competitive-programming/"
+            },
+            {
+              "site": "Python docs",
+              "title": "itertools.accumulate",
+              "url": "https://docs.python.org/3/library/itertools.html#itertools.accumulate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "title": "Two pointers & sliding window",
+      "neetcode": "Two Pointers · Sliding Window",
+      "topics": [
+        {
+          "id": "w03-twoptr",
+          "title": "Two pointers",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Two Pointers Technique",
+              "url": "https://www.geeksforgeeks.org/dsa/two-pointers-technique/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Array cheatsheet: two pointers",
+              "url": "https://www.techinterviewhandbook.org/algorithms/array/"
+            }
+          ]
+        },
+        {
+          "id": "w03-window",
+          "title": "Sliding window (fixed and variable)",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Sliding Window Technique",
+              "url": "https://www.geeksforgeeks.org/dsa/window-sliding-technique/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "String cheatsheet: sliding window",
+              "url": "https://www.techinterviewhandbook.org/algorithms/string/"
+            },
+            {
+              "site": "Python docs",
+              "title": "collections.Counter",
+              "url": "https://docs.python.org/3/library/collections.html#counter-objects"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "title": "Sorting & binary search",
+      "neetcode": "Binary Search",
+      "topics": [
+        {
+          "id": "w04-sort",
+          "title": "Sorting: merge sort, quicksort, Timsort",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Merge Sort",
+              "url": "https://www.geeksforgeeks.org/dsa/merge-sort/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Quick Sort",
+              "url": "https://www.geeksforgeeks.org/dsa/quick-sort-algorithm/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Sorting Techniques (HOWTO)",
+              "url": "https://docs.python.org/3/howto/sorting.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Sorting visualisation",
+              "url": "https://visualgo.net/en/sorting"
+            },
+            {
+              "site": "Real Python",
+              "title": "Sorting Algorithms in Python",
+              "url": "https://realpython.com/sorting-algorithms-python/"
+            }
+          ]
+        },
+        {
+          "id": "w04-qselect",
+          "title": "Quickselect",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Quickselect Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/quickselect-algorithm/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Quick Sort (the partition step)",
+              "url": "https://www.geeksforgeeks.org/dsa/quick-sort-algorithm/"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Sorting visualisation (quick sort)",
+              "url": "https://visualgo.net/en/sorting"
+            }
+          ]
+        },
+        {
+          "id": "w04-bsearch",
+          "title": "Binary search and search on the answer",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Binary Search",
+              "url": "https://www.geeksforgeeks.org/dsa/binary-search/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Binary search",
+              "url": "https://cp-algorithms.com/num_methods/binary_search.html"
+            },
+            {
+              "site": "Real Python",
+              "title": "Binary Search in Python",
+              "url": "https://realpython.com/binary-search-python/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Sorting and searching cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/sorting-searching/"
+            }
+          ]
+        },
+        {
+          "id": "w04-bisect",
+          "title": "Sorted arrays with bisect",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "Python docs",
+              "title": "bisect: array bisection",
+              "url": "https://docs.python.org/3/library/bisect.html"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Binary Search (bisect) in Python",
+              "url": "https://www.geeksforgeeks.org/python/binary-search-bisect-in-python/"
+            }
+          ],
+          "structure": "Sorted array"
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "title": "Stacks, queues, monotonic stack & deque",
+      "neetcode": "Stack",
+      "topics": [
+        {
+          "id": "w05-stack",
+          "title": "Stack",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Stack Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/stack-data-structure/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Tutorial: Using lists as stacks",
+              "url": "https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks"
+            },
+            {
+              "site": "Real Python",
+              "title": "How to Implement a Python Stack",
+              "url": "https://realpython.com/how-to-implement-python-stack/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Stack cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/stack/"
+            }
+          ],
+          "structure": "Stack"
+        },
+        {
+          "id": "w05-queue",
+          "title": "Queue and deque",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Queue Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/queue-data-structure/"
+            },
+            {
+              "site": "Python docs",
+              "title": "collections.deque",
+              "url": "https://docs.python.org/3/library/collections.html#deque-objects"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Deque in Python",
+              "url": "https://www.geeksforgeeks.org/python/deque-in-python/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Python's deque",
+              "url": "https://realpython.com/python-deque/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Queue cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/queue/"
+            }
+          ],
+          "structure": "Queue and deque"
+        },
+        {
+          "id": "w05-mono",
+          "title": "Monotonic stack and deque",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Introduction to Monotonic Stack",
+              "url": "https://www.geeksforgeeks.org/dsa/introduction-to-monotonic-stack-2/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Sliding Window Maximum",
+              "url": "https://www.geeksforgeeks.org/dsa/sliding-window-maximum-maximum-of-all-subarrays-of-size-k/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "title": "Recursion & linked lists",
+      "neetcode": "Linked List",
+      "topics": [
+        {
+          "id": "w06-rec",
+          "title": "Recursion and the call stack",
+          "kind": "concept",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Introduction to Recursion",
+              "url": "https://www.geeksforgeeks.org/dsa/introduction-to-recursion-2/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Recursion in Python",
+              "url": "https://realpython.com/python-recursion/"
+            },
+            {
+              "site": "Python docs",
+              "title": "sys.setrecursionlimit",
+              "url": "https://docs.python.org/3/library/sys.html#sys.setrecursionlimit"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Recursion tree visualisation",
+              "url": "https://visualgo.net/en/recursion"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Recursion cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/recursion/"
+            }
+          ]
+        },
+        {
+          "id": "w06-ll",
+          "title": "Linked list (singly and doubly)",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Linked List Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/linked-list-data-structure/"
+            },
+            {
+              "site": "Real Python",
+              "title": "Linked Lists in Python",
+              "url": "https://realpython.com/linked-lists-python/"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Linked list visualisation",
+              "url": "https://visualgo.net/en/list"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Linked list cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/linked-list/"
+            }
+          ],
+          "structure": "Linked list"
+        },
+        {
+          "id": "w06-lru",
+          "title": "LRU cache (hash map + doubly linked list)",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Introduction to LRU Cache",
+              "url": "https://www.geeksforgeeks.org/system-design/lru-cache-implementation/"
+            },
+            {
+              "site": "Python docs",
+              "title": "collections.OrderedDict",
+              "url": "https://docs.python.org/3/library/collections.html#ordereddict-objects"
+            },
+            {
+              "site": "Python docs",
+              "title": "functools.lru_cache",
+              "url": "https://docs.python.org/3/library/functools.html#functools.lru_cache"
+            }
+          ],
+          "structure": "Linked list"
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "title": "Trees & BST",
+      "neetcode": "Trees",
+      "topics": [
+        {
+          "id": "w07-tree",
+          "title": "Binary tree and traversals",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Binary Tree Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/binary-tree-data-structure/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Tree cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/tree/"
+            }
+          ],
+          "structure": "Binary tree"
+        },
+        {
+          "id": "w07-bst",
+          "title": "Binary search tree",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Binary Search Tree",
+              "url": "https://www.geeksforgeeks.org/dsa/binary-search-tree-data-structure/"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "BST visualisation",
+              "url": "https://visualgo.net/en/bst"
+            }
+          ],
+          "structure": "Binary search tree"
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "title": "Heaps, intervals & greedy",
+      "neetcode": "Heap / Priority Queue · Intervals · Greedy",
+      "topics": [
+        {
+          "id": "w08-heap",
+          "title": "Heap / priority queue",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Heap Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/heap-data-structure/"
+            },
+            {
+              "site": "Python docs",
+              "title": "heapq: heap queue algorithm",
+              "url": "https://docs.python.org/3/library/heapq.html"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "heapq in Python",
+              "url": "https://www.geeksforgeeks.org/python/heap-queue-or-heapq-in-python/"
+            },
+            {
+              "site": "Real Python",
+              "title": "The Python heapq Module",
+              "url": "https://realpython.com/python-heapq-module/"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Binary heap visualisation",
+              "url": "https://visualgo.net/en/heap"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Heap cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/heap/"
+            }
+          ],
+          "structure": "Heap / priority queue"
+        },
+        {
+          "id": "w08-median",
+          "title": "Two heaps (running median)",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Median of a Stream",
+              "url": "https://www.geeksforgeeks.org/dsa/median-of-stream-of-integers-running-integers/"
+            },
+            {
+              "site": "Python docs",
+              "title": "heapq: heap queue algorithm",
+              "url": "https://docs.python.org/3/library/heapq.html"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Heap cheatsheet (two heaps)",
+              "url": "https://www.techinterviewhandbook.org/algorithms/heap/"
+            }
+          ]
+        },
+        {
+          "id": "w08-intervals",
+          "title": "Intervals",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Overlapping (merge) intervals",
+              "url": "https://www.geeksforgeeks.org/dsa/merging-intervals/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Interval cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/interval/"
+            }
+          ]
+        },
+        {
+          "id": "w08-greedy",
+          "title": "Greedy",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Greedy Algorithms Tutorial",
+              "url": "https://www.geeksforgeeks.org/dsa/greedy-algorithms/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Interval cheatsheet (greedy on intervals)",
+              "url": "https://www.techinterviewhandbook.org/algorithms/interval/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 9,
+      "title": "Backtracking & tries",
+      "neetcode": "Backtracking · Tries",
+      "topics": [
+        {
+          "id": "w09-bt",
+          "title": "Backtracking",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Backtracking Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/backtracking-algorithms/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Recursion cheatsheet (backtracking)",
+              "url": "https://www.techinterviewhandbook.org/algorithms/recursion/"
+            }
+          ]
+        },
+        {
+          "id": "w09-trie",
+          "title": "Trie",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Trie Data Structure",
+              "url": "https://www.geeksforgeeks.org/dsa/trie-insert-and-search/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Trie cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/trie/"
+            }
+          ],
+          "structure": "Trie"
+        }
+      ]
+    },
+    {
+      "week": 10,
+      "title": "Graphs I: BFS, DFS, grids, topological sort, union-find",
+      "neetcode": "Graphs",
+      "topics": [
+        {
+          "id": "w10-graph",
+          "title": "Graphs: representation, BFS, DFS",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Graph Algorithms",
+              "url": "https://www.geeksforgeeks.org/dsa/graph-data-structure-and-algorithms/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "BFS for a Graph",
+              "url": "https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "DFS for a Graph",
+              "url": "https://www.geeksforgeeks.org/dsa/depth-first-search-or-dfs-for-a-graph/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Breadth-first search",
+              "url": "https://cp-algorithms.com/graph/breadth-first-search.html"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Depth First Search",
+              "url": "https://cp-algorithms.com/graph/depth-first-search.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Graph traversal visualisation",
+              "url": "https://visualgo.net/en/dfsbfs"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Graph cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/graph/"
+            }
+          ],
+          "structure": "Graph"
+        },
+        {
+          "id": "w10-topo",
+          "title": "Topological sort",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Topological Sort: Kahn's Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/topological-sorting-indegree-based-solution/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Topological Sorting",
+              "url": "https://cp-algorithms.com/graph/topological-sort.html"
+            },
+            {
+              "site": "Python docs",
+              "title": "graphlib.TopologicalSorter",
+              "url": "https://docs.python.org/3/library/graphlib.html"
+            }
+          ]
+        },
+        {
+          "id": "w10-uf",
+          "title": "Union-find (disjoint set)",
+          "kind": "data-structure",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Disjoint Set (Union-Find)",
+              "url": "https://www.geeksforgeeks.org/dsa/introduction-to-disjoint-set-data-structure-or-union-find-algorithm/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Disjoint Set Union",
+              "url": "https://cp-algorithms.com/data_structures/disjoint_set_union.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Union-find visualisation",
+              "url": "https://visualgo.net/en/ufds"
+            }
+          ],
+          "structure": "Union-find"
+        }
+      ]
+    },
+    {
+      "week": 11,
+      "title": "DP I (1D) + Kadane",
+      "neetcode": "1-D Dynamic Programming",
+      "topics": [
+        {
+          "id": "w11-dp",
+          "title": "Dynamic programming basics (memo and table)",
+          "kind": "concept",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Dynamic Programming",
+              "url": "https://www.geeksforgeeks.org/dsa/dynamic-programming/"
+            },
+            {
+              "site": "Python docs",
+              "title": "functools.cache",
+              "url": "https://docs.python.org/3/library/functools.html#functools.cache"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Recursion tree and DAG (DP)",
+              "url": "https://visualgo.net/en/recursion"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Dynamic programming cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/"
+            }
+          ]
+        },
+        {
+          "id": "w11-kadane",
+          "title": "Kadane's algorithm",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Kadane's Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/largest-sum-contiguous-subarray/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Array cheatsheet (subarray sums)",
+              "url": "https://www.techinterviewhandbook.org/algorithms/array/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Dynamic programming cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/"
+            }
+          ]
+        },
+        {
+          "id": "w11-lis",
+          "title": "Longest increasing subsequence",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Longest Increasing Subsequence",
+              "url": "https://www.geeksforgeeks.org/dsa/longest-increasing-subsequence-dp-3/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Longest increasing subsequence",
+              "url": "https://cp-algorithms.com/sequences/longest_increasing_subsequence.html"
+            },
+            {
+              "site": "Python docs",
+              "title": "bisect",
+              "url": "https://docs.python.org/3/library/bisect.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 12,
+      "title": "DP II (2D) + weighted graphs",
+      "neetcode": "2-D Dynamic Programming · Advanced Graphs",
+      "topics": [
+        {
+          "id": "w12-2d",
+          "title": "2D DP: grids and two strings",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Longest Common Subsequence",
+              "url": "https://www.geeksforgeeks.org/dsa/longest-common-subsequence-dp-4/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Dynamic programming cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/"
+            }
+          ]
+        },
+        {
+          "id": "w12-knap",
+          "title": "Knapsack",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "0/1 Knapsack Problem",
+              "url": "https://www.geeksforgeeks.org/dsa/0-1-knapsack-problem-dp-10/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Dynamic programming cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/dynamic-programming/"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Recursion tree and DAG (DP)",
+              "url": "https://visualgo.net/en/recursion"
+            }
+          ]
+        },
+        {
+          "id": "w12-dijkstra",
+          "title": "Shortest paths: Dijkstra and Bellman-Ford",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Dijkstra's Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/dijkstras-shortest-path-algorithm-greedy-algo-7/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Dijkstra Algorithm",
+              "url": "https://cp-algorithms.com/graph/dijkstra.html"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Bellman-Ford Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/bellman-ford-algorithm-dp-23/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Bellman-Ford Algorithm",
+              "url": "https://cp-algorithms.com/graph/bellman_ford.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Shortest paths visualisation",
+              "url": "https://visualgo.net/en/sssp"
+            }
+          ]
+        },
+        {
+          "id": "w12-mst",
+          "title": "Minimum spanning tree: Prim and Kruskal",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Prim's Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/prims-minimum-spanning-tree-mst-greedy-algo-5/"
+            },
+            {
+              "site": "GeeksforGeeks",
+              "title": "Kruskal's Algorithm",
+              "url": "https://www.geeksforgeeks.org/dsa/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Prim's algorithm",
+              "url": "https://cp-algorithms.com/graph/mst_prim.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "MST visualisation",
+              "url": "https://visualgo.net/en/mst"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 13,
+      "title": "Bit tricks, practical class design, final mocks",
+      "neetcode": "Bit Manipulation · Math & Geometry",
+      "topics": [
+        {
+          "id": "w13-bits",
+          "title": "Bit manipulation",
+          "kind": "pattern",
+          "resources": [
+            {
+              "site": "GeeksforGeeks",
+              "title": "Bitwise Algorithms",
+              "url": "https://www.geeksforgeeks.org/dsa/bitwise-algorithms/"
+            },
+            {
+              "site": "Python docs",
+              "title": "Bitwise operations on integers",
+              "url": "https://docs.python.org/3/library/stdtypes.html#bitwise-operations-on-integer-types"
+            },
+            {
+              "site": "Real Python",
+              "title": "Bitwise Operators in Python",
+              "url": "https://realpython.com/python-bitwise-operators/"
+            },
+            {
+              "site": "CP-Algorithms",
+              "title": "Bit manipulation",
+              "url": "https://cp-algorithms.com/algebra/bit-manipulation.html"
+            },
+            {
+              "site": "VisuAlgo",
+              "title": "Bitmask visualisation",
+              "url": "https://visualgo.net/en/bitmask"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Binary cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/binary/"
+            }
+          ]
+        },
+        {
+          "id": "w13-math",
+          "title": "Math and geometry",
+          "kind": "concept",
+          "resources": [
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Math cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/math/"
+            },
+            {
+              "site": "Tech Interview Handbook",
+              "title": "Geometry cheatsheet",
+              "url": "https://www.techinterviewhandbook.org/algorithms/geometry/"
+            },
+            {
+              "site": "Python docs",
+              "title": "math module",
+              "url": "https://docs.python.org/3/library/math.html"
+            }
+          ]
+        },
+        {
+          "id": "w13-class",
+          "title": "Class design for pairing rounds",
+          "kind": "concept",
+          "resources": [
+            {
+              "site": "Python docs",
+              "title": "Tutorial: Classes",
+              "url": "https://docs.python.org/3/tutorial/classes.html"
+            },
+            {
+              "site": "Python docs",
+              "title": "dataclasses",
+              "url": "https://docs.python.org/3/library/dataclasses.html"
+            },
+            {
+              "site": "Real Python",
+              "title": "Data Classes in Python",
+              "url": "https://realpython.com/python-data-classes/"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
