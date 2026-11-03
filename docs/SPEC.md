@@ -18,7 +18,7 @@ One learner, 90 days, Python. Every day has coding. The app tells the learner ex
 - Shows "Week N · Day D · date", the day's kind in plain words (New topic, Topic practice, Python fluency, Old topics (mixed), Timed practice · 45 min per problem, Redo day, Wrap-up), the coding note, and today's checklist: the learn item (new-topic days) + problems + two review problems (from plan day 5; with a Re-roll button until logged) (title, difficulty, platform badge, link opening in a new tab).
 - On a `redo` day, due redos appear in the "Redo due" section; when none are due the day's **fallback** problem is offered under "Try this instead". The fallback is logged as a normal attempt (Problems page, journal, redo rules) but is never a checklist item, so it never changes day status or the catch-up queue.
 - Each item has a checkbox. Ticking a problem opens a quick log: **Solved alone / Needed hint / Needed solution**, minutes taken, optional note.
-- The sidebar and Today show "N of 90 days complete" (days with every item ticked), week progress including the week's mocks, Days missed (red), Incomplete tasks, Days online and the streak; a past day with some items ticked is "Incomplete" (yellow), with none it is "Missed". `#/incomplete` lists everything still owed and lets you write a reason for a missed day.
+- The sidebar and Today show "N of 90 days complete" (days with every item ticked), week progress including the week's mocks, Days missed (red), Problems solved today, Days online and the streak (the sidebar then lists the incomplete tasks, each with its original date, linking to `#/incomplete`); a past day with some items ticked is "Incomplete" (yellow), with none it is "Missed". `#/incomplete` lists everything still owed and lets you write a reason for a missed day.
 - Learn items (a new-topic lesson, the Week 13 wrap-up item) are ticked manually.
 - Plan days have no redo slots. Redo slots (filled from this week's catch-up, then due redos, then "any problem from this week") exist on **extension days only**.
 - Before the start date: countdown + link to Week 1 lesson. After day 90: "Plan complete" + free practice mode.
@@ -144,13 +144,13 @@ A record of every problem you work on: plan problems, custom problems on a day, 
 - Link (URL), title, platform (LeetCode / other), difficulty.
 - Topic: the week it belongs to (defaults to the current week) and pattern tags (e.g. "Prefix Sum", "Two Pointers").
 - Problem description (markdown; paste or summarise).
-- Attach to a day (optional). Attached → it appears on that day's checklist and counts toward its status, like any custom item (3.13). Not attached → journal only; it never affects day status or catch-up.
-- First attempt (optional): outcome, minutes, date.
+- No day attachment here: it is recorded on the chosen date (default today) and never affects day status or catch-up. (A custom problem can still be attached to a day from its detail page, 3.13.)
+- Result (always recorded): **Solved** or **Failed**, plus minutes and date (default today). Saving always logs an attempt, so the problem counts as done on that date (Today's "Problems solved" tabs, the sidebar list, redo scheduling). Solved is logged as "solved alone", Failed as "failed".
 
 **Every problem's journal entry** (plan, custom or found) has a detail page:
 - Description, my approach (markdown), my solution (Python code with highlighting), time and space complexity I worked out, key insight / what I missed, comments.
 - Confidence 1–5 ("could I solve this cold in an interview?").
-- Attempt history: every attempt with date, outcome, minutes and note. "Log another attempt" uses the normal problem log, so redo scheduling applies.
+- Attempt history: every attempt with date, outcome, minutes and note. A **Log result** form at the top of the page records Solved or Failed with minutes and date (default today), like "Log a problem I found"; redo scheduling applies.
 - "Redo later" button adds a manual redo task (pick a date).
 - Plan problems get the same fields; their title/link come from the curriculum and can't be edited.
 

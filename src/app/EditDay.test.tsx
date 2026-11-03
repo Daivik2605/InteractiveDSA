@@ -199,9 +199,9 @@ describe("Problem journal", () => {
     await user.selectOptions(form.getByLabelText("Difficulty"), "Hard");
     await user.type(form.getByLabelText("Pattern tags"), "Prefix Sum, Two Pointers");
     await user.type(form.getByLabelText(/Problem description/), "Count ranges whose sum is a multiple of k");
-    expect(form.getByLabelText(/Attach to a day/)).toHaveValue(""); // journal only by default
-    await user.click(form.getByLabelText(/already attempted/));
-    await user.click(form.getByLabelText("Failed / couldn't finish"));
+    expect(form.queryByLabelText(/Attach to a day/)).toBeNull();
+    expect(form.getByLabelText("Solved")).toBeChecked(); // a result is always recorded
+    await user.click(form.getByLabelText("Failed"));
     await user.click(form.getByRole("button", { name: "Save problem" }));
 
     // lands on its detail page
@@ -256,13 +256,12 @@ describe("Problem journal", () => {
     await user.click(journal.getByRole("button", { name: "Save journal" }));
     await waitFor(async () => expect(await db.problemEntries.get("w01-d1-p1")).toMatchObject({ timeComplexity: "O(n)", confidence: 2, tags: ["Hash Set"], insight: "sets dedupe" }));
 
-    await user.click(main().getByRole("button", { name: "Log another attempt" }));
-    const dialog = within(screen.getByRole("dialog", { name: "Log another attempt" }));
-    await user.click(dialog.getByLabelText("Needed solution"));
-    await user.click(dialog.getByRole("button", { name: "Save" }));
+    const logForm = within(main().getByRole("form", { name: "Log result" }));
+    await user.click(logForm.getByLabelText("Failed"));
+    await user.click(logForm.getByRole("button", { name: "Log result" }));
     await waitFor(async () => expect((await db.redos.toArray()).map((r) => r.dueOn)).toEqual(["2026-10-31", "2026-11-04"]));
     expect(await db.completions.count()).toBe(0); // journal attempts don't tick plan items
-    expect(await within(screen.getByRole("region", { name: "Attempts" })).findByText(/Needed solution/)).toBeInTheDocument();
+    expect(await within(screen.getByRole("region", { name: "Attempts" })).findByText(/Failed/)).toBeInTheDocument();
 
     await user.clear(main().getByLabelText("Redo on"));
     await user.type(main().getByLabelText("Redo on"), "2026-11-10");
@@ -274,8 +273,7 @@ describe("Problem journal", () => {
     const { user } = await renderApp({ today: "2026-11-05", path: "/problems/w02-d4-p1" });
     expect(await main().findByRole("heading", { level: 1, name: "Reverse Words in a String" })).toBeInTheDocument();
     expect(main().getByText(/^Plan/).textContent).toBe("Plan · LeetCode"); // no week yet
-    await user.click(main().getByRole("button", { name: "Log another attempt" }));
-    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
+    await user.click(within(main().getByRole("form", { name: "Log result" })).getByRole("button", { name: "Log result" }));
     await waitFor(() => expect(main().getByText(/^Plan/).textContent).toBe("Plan · Week 1 · LeetCode")); // revealed after the attempt
   });
 

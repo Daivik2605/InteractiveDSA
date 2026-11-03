@@ -116,7 +116,7 @@ describe("after a reset", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Today" })).toBeInTheDocument(); // taken back to Today
     await waitFor(() => expect(sidebar().getByText("0 of 90 days complete")).toBeInTheDocument());
     expect(statValue("Days missed")).toBe("0");
-    expect(statValue("Incomplete tasks")).toBe("0");
+    expect(sidebar().getByText("Incomplete tasks").textContent).toContain("· 0");
     expect(statValue("Days online")).toBe("0");
     expect(statValue("Current streak")).toBe("0");
     expect(sidebar().getByText("Week 1 · Day 1")).toBeInTheDocument();

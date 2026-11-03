@@ -10,7 +10,6 @@ import { OUTCOME_LABEL, revealedWeek } from "../../lib/problems";
 import type { ProblemEntry } from "../../types/content";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Markdown } from "../../components/Markdown";
-import { LogModal } from "../today/LogModal";
 import { DIFF_STYLE } from "../today/Row";
 import { parseTags } from "./FoundProblemModal";
 
@@ -55,7 +54,12 @@ function Detail({ id }: { id: string }) {
   });
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(!entry);
-  const [logging, setLogging] = useState(false);
+  const [result, setResult] = useState<"solved" | "failed">("solved");
+  const [minutes, setMinutes] = useState("30");
+  const [resultDate, setResultDate] = useState(plan.today);
+  const [logBusy, setLogBusy] = useState(false);
+  const mins = Number(minutes);
+  const resultOk = Number.isInteger(mins) && mins >= 0 && mins <= 600 && !!resultDate && resultDate <= plan.today;
   const [redoDate, setRedoDate] = useState(plan.today);
   const [deleting, setDeleting] = useState(false);
   const set = (k: keyof typeof form, v: string) => {
@@ -77,6 +81,29 @@ function Detail({ id }: { id: string }) {
         <span>{custom ? (custom.planDayId ? "Added to a day" : "Found") : "Plan"}{week !== undefined ? ` · Week ${week}` : ""}{platform ? ` · ${platform}` : ""}</span>
         {problem.url && <a href={problem.url} target="_blank" rel="noopener noreferrer" className="text-indigo-700 underline dark:text-indigo-300">Open problem<span className="sr-only"> (new tab)</span></a>}
       </p>
+
+      <form
+        aria-label="Log result"
+        className="mt-6 space-y-2 rounded-md border border-slate-200 p-3 text-sm dark:border-slate-800"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!resultOk || logBusy) return;
+          setLogBusy(true);
+          await logAttempt(db, { problemId: id, date: resultDate, outcome: result === "solved" ? "alone" : "failed", minutes: mins, note: "", isRedo: attempts.some((a) => a.source !== "mock"), completes: [] });
+          setLogBusy(false);
+        }}
+      >
+        <h2 className="font-semibold">Log result</h2>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2"><input type="radio" name="result" checked={result === "solved"} onChange={() => setResult("solved")} /> Solved</label>
+          <label className="flex items-center gap-2"><input type="radio" name="result" checked={result === "failed"} onChange={() => setResult("failed")} /> Failed</label>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">Minutes<input type="number" min={0} max={600} value={minutes} onChange={(e) => setMinutes(e.target.value)} className={field} /></label>
+          <label className="block">Date<input type="date" max={plan.today} value={resultDate} onChange={(e) => setResultDate(e.target.value)} className={field} /></label>
+        </div>
+        <button type="submit" disabled={!resultOk || logBusy} className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium text-white disabled:opacity-40">Log result</button>
+      </form>
 
       {editing ? (
       <form
@@ -157,7 +184,6 @@ function Detail({ id }: { id: string }) {
       <section className="mt-8" aria-label="Attempts">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Attempts</h2>
-          <button type="button" onClick={() => setLogging(true)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-700">Log another attempt</button>
         </div>
         {attempts.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">No attempts yet.</p>
@@ -190,19 +216,6 @@ function Detail({ id }: { id: string }) {
         </section>
       )}
 
-      {logging && (
-        <LogModal
-          title="Log another attempt"
-          problem={problem}
-          platform={platform}
-          dateRange={{ value: plan.today, min: "2000-01-01", max: plan.today }}
-          onCancel={() => setLogging(false)}
-          onSubmit={async (v) => {
-            await logAttempt(db, { problemId: id, date: v.date, outcome: v.outcome, minutes: v.minutes, note: v.note, isRedo: attempts.some((a) => a.source !== "mock"), completes: [] });
-            setLogging(false);
-          }}
-        />
-      )}
       {deleting && (
         <Modal title="Delete this problem?" onClose={() => setDeleting(false)}>
           <p className="text-sm">This removes it from its day, its tick, its pending redos and its journal entry. Attempt history stays.</p>

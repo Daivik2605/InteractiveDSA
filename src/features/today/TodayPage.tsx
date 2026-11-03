@@ -14,6 +14,7 @@ import { STATUS_META } from "../calendar/status";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
 import { LogModal, type LogValues } from "./LogModal";
 import { Row, Section } from "./Row";
+import { TodaysProblemsTabs } from "./TodaysProblems";
 
 interface Logging {
   title: string;
@@ -29,6 +30,7 @@ export function TodayPage() {
       <h1 className="text-2xl font-semibold">Today</h1>
       {plan.phase === "before" && <BeforeStart plan={plan} />}
       {plan.phase === "after" && <PlanComplete />}
+      {plan.phase !== "during" && <TodaysProblemsTabs />}
       {plan.phase === "during" && plan.todayDay && <TodayBody />}
     </div>
   );
@@ -279,6 +281,8 @@ function TodayBody() {
           ),
         )}
       </Section>
+
+      <TodaysProblemsTabs />
 
       <MocksPrompt />
 

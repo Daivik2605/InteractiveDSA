@@ -415,4 +415,20 @@ describe("Settings page", () => {
     await user.upload(screen.getByLabelText(/Import progress/), new File(["{\"hello\":1}"], "x.json", { type: "application/json" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/doesn't look like/);
   });
+
+  it("lists problems logged today (from any week) in the Today tabs and the sidebar", async () => {
+    const { user } = await renderApp({
+      today: "2026-10-27",
+      seed: async (db) => {
+        await db.attempts.add({ problemId: "w05-d1-p1", date: "2026-10-27", outcome: "alone", minutes: 20, isRedo: false });
+      },
+    });
+    const tabs = within(screen.getByRole("region", { name: "Problems done today" }));
+    expect(tabs.getByText("Valid Parentheses")).toBeTruthy();
+    await user.click(tabs.getByRole("tab", { name: /HackerRank/ }));
+    expect(tabs.queryByText("Valid Parentheses")).toBeNull();
+    await user.click(tabs.getByRole("tab", { name: /LeetCode/ }));
+    expect(tabs.getByText("Valid Parentheses")).toBeTruthy();
+    expect(sidebar().getByRole("region", { name: "Problems solved today" }).textContent).toContain("Valid Parentheses");
+  });
 });

@@ -5,6 +5,8 @@ import { addMonths, formatShort, monthLabel, parseDate } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
 import { currentWeek } from "../../lib/plan";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
+import { itemLabel } from "../../lib/labels";
+import { problemsDoneToday, todayCounts, TodaysProblemsList } from "../today/TodaysProblems";
 import { AddDayButton } from "./AddDayButton";
 import { DayDetails } from "./DayDetails";
 import { MonthGrid } from "./MonthGrid";
@@ -30,6 +32,7 @@ export function Sidebar() {
   const [finding, setFinding] = useState(false);
   const selectedDay = selected ? plan.byDate.get(selected) : undefined;
   const topic = curriculum.weeks.find((w) => w.week === currentWeek(plan))?.title;
+  const solvedToday = todayCounts(problemsDoneToday(plan)).solved;
   const weekNow = plan.weekProgress.find((w) => w.week === currentWeek(plan));
 
   return (
@@ -58,16 +61,15 @@ export function Sidebar() {
 
       {selectedDay && <DayDetails day={selectedDay} />}
 
+      <TodaysProblemsList />
+
       <section aria-label="Stats" className="grid grid-cols-2 gap-2">
         <Link to="/incomplete" className="rounded-lg border border-rose-200 p-2 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40">
           <div className={`text-xl font-semibold tabular-nums ${plan.stats.missed > 0 ? "text-rose-700 dark:text-rose-300" : ""}`}>{plan.stats.missed}</div>
           <div className="text-xs text-slate-500">Days missed</div>
         </Link>
-        <Link to="/incomplete" className="rounded-lg border border-amber-200 p-2 hover:bg-amber-50 dark:border-amber-900 dark:hover:bg-amber-950/40">
-          <div className="text-xl font-semibold tabular-nums">{plan.stats.catchUpCount}</div>
-          <div className="text-xs text-slate-500">Incomplete tasks</div>
-        </Link>
         {[
+          ["Problems solved today", solvedToday],
           ["Days online", plan.daysOnline],
           ["Current streak", plan.streak.current],
         ].map(([label, value]) => (
@@ -76,6 +78,24 @@ export function Sidebar() {
             <div className="text-xs text-slate-500">{label}</div>
           </div>
         ))}
+      </section>
+
+      <section aria-label="Sidebar incomplete tasks">
+        <Link to="/incomplete" className="text-xs uppercase tracking-wide text-slate-500 hover:underline">
+          Incomplete tasks <span>· {plan.catchUp.length}</span>
+        </Link>
+        {plan.catchUp.length === 0 ? (
+          <p className="mt-1 text-xs text-slate-500">Nothing outstanding.</p>
+        ) : (
+          <ul className="mt-1 max-h-56 space-y-1 overflow-y-auto">
+            {plan.catchUp.map((c) => (
+              <li key={c.item.itemId} className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0 truncate">{itemLabel(plan, c.item)}</span>
+                <span className="shrink-0 text-xs text-slate-500">{formatShort(c.fromDate)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-label="Finish date">
