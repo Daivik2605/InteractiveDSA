@@ -92,6 +92,32 @@ describe("reset dialog", () => {
   });
 });
 
+describe("Start date card", () => {
+  const card = () => within(screen.getByRole("region", { name: "Start date" }));
+
+  it("no longer has 'Use default'; it offers a warned 'start over on a new date' that opens the reset dialog with that date", async () => {
+    const { db, user } = await setup();
+    expect(card().queryByRole("button", { name: /Use default/ })).not.toBeInTheDocument();
+    expect(card().getByText(/this deletes all progress/i)).toBeInTheDocument();
+    expect(card().getByLabelText("New start date")).toHaveValue(TODAY);
+    fireEvent.change(card().getByLabelText("New start date"), { target: { value: "2026-11-09" } });
+    await user.click(card().getByRole("button", { name: "Reset and start on this date…" }));
+    const dialog = within(screen.getByRole("dialog", { name: "Reset all progress?" }));
+    expect(dialog.getByLabelText("Day 1 after the reset")).toHaveValue("2026-11-09");
+    expect(dialog.getByRole("button", { name: "Delete everything" })).toBeDisabled(); // still needs RESET typed
+    expect(await db.completions.count()).toBe(2);
+    await confirmReset(user, dialog);
+    await waitFor(async () => expect((await db.settings.get("settings"))!.startDate).toBe("2026-11-09"));
+    expect(await db.completions.count()).toBe(0);
+  });
+
+  it("the option is disabled without a valid date", async () => {
+    await setup();
+    fireEvent.change(card().getByLabelText("New start date"), { target: { value: "" } });
+    expect(card().getByRole("button", { name: "Reset and start on this date…" })).toBeDisabled();
+  });
+});
+
 describe("after a reset", () => {
   it("every table is empty except the fresh settings: the chosen day is Day 1 and the theme is the default", async () => {
     const { db, user } = await setup();

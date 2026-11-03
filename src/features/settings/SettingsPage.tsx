@@ -34,6 +34,7 @@ export function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [typed, setTyped] = useState("");
   const [resetStart, setResetStart] = useState(plan.today); // Day 1 after a reset
+  const [newStart, setNewStart] = useState(plan.today); // the date picked in the Start date card's "start over" option
   const [lcUrl, setLcUrl] = useState(plan.settings.leetcodeUrl ?? "");
   const [hrUrl, setHrUrl] = useState(plan.settings.hackerrankUrl ?? "");
   const [urlMsg, setUrlMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -94,9 +95,28 @@ export function SettingsPage() {
             <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className={`${input} mt-1 block`} />
           </label>
           <button type="submit" className={button}>Save</button>
-          <button type="button" className={button} onClick={() => setStart(def)}>Use default ({formatDayMonth(def)})</button>
         </form>
         {startMsg && <p role="status" className="mt-2 text-sm text-slate-600 dark:text-slate-400">{startMsg}</p>}
+        <p className="mt-2 text-xs text-slate-500">Saving a new date moves every plan day; your ticks stay as they are.</p>
+
+        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+          <p className="text-sm font-medium">Start over on a new date</p>
+          <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">Warning: this deletes all progress, attempts, notes, extensions and settings, and cannot be undone. Export first if unsure.</p>
+          <div className="mt-2 flex flex-wrap items-end gap-3">
+            <label className="text-sm">
+              New start date
+              <input type="date" aria-label="New start date" value={newStart} onChange={(e) => setNewStart(e.target.value)} className={`${input} mt-1 block`} />
+            </label>
+            <button
+              type="button"
+              disabled={!isValidDate(newStart)}
+              className={`${button} border-rose-400 text-rose-700 disabled:opacity-40 dark:text-rose-300`}
+              onClick={() => { setTyped(""); setResetStart(newStart); setResetting(true); }}
+            >
+              Reset and start on this date…
+            </button>
+          </div>
+        </div>
       </Card>
 
       <Card title="Practice dashboards">

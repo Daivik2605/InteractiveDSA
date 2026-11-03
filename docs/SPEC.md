@@ -87,7 +87,7 @@ Per week page with tabs:
 - Saved as a mock record with self-rating 1–5.
 
 ### 3.11 Settings
-- Start date; theme (light/dark/system); export progress (JSON download); import progress (JSON upload with confirmation); reset progress (typed confirmation).
+- Start date (change it and every plan day moves, ticks stay; there is no "use default" button). The same card has a warned "Start over on a new date" option: pick a date, then "Reset and start on this date…" opens the reset dialog (typed RESET) with that date as Day 1. Theme (light/dark/system); export progress (JSON download); import progress (JSON upload with confirmation); reset progress (typed confirmation).
 
 ### 3.12 Calendar sidebar (on every page) and week extensions
 
