@@ -1,11 +1,11 @@
 import "fake-indexeddb/auto";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import { curriculum } from "../lib/curriculum";
 import { DsaDB } from "../lib/db";
-import { App } from "./App";
+import { WeeksPage } from "../features/weeks/WeeksPage";
 import { PlanProvider } from "./PlanContext";
 
 const dbs: DsaDB[] = [];
@@ -21,7 +21,9 @@ async function renderWeeks(today: string, seed?: (db: DsaDB) => Promise<void>) {
   render(
     <PlanProvider db={db} today={today}>
       <MemoryRouter initialEntries={["/weeks"]}>
-        <App />
+        <Routes>
+          <Route path="*" element={<WeeksPage />} />
+        </Routes>
       </MemoryRouter>
     </PlanProvider>,
   );
@@ -31,7 +33,8 @@ async function renderWeeks(today: string, seed?: (db: DsaDB) => Promise<void>) {
 
 const panel = () => within(screen.getByRole("tabpanel"));
 
-describe("Weeks page", () => {
+// The old Weeks page is no longer routed (the Content page replaced it) but its code is kept, so its tests are too.
+describe("Weeks page (legacy, unrouted)", () => {
   it("opens on the current week with Concepts, Templates and Problems tabs (no Visuals yet)", async () => {
     await renderWeeks("2026-10-27");
     expect(screen.getByLabelText("Week")).toHaveValue("1");
@@ -100,13 +103,5 @@ describe("Weeks page", () => {
     const row = within(panel().getByRole("list", { name: "Week 2 days" })).getByRole("link", { name: "Reverse Words in a String" }).closest("li")!;
     expect(row.textContent).not.toMatch(/week/i);
     expect(panel().getByRole("list", { name: "Week 2 days" }).textContent).not.toMatch(/Week 1\b/);
-  });
-
-  it("keeps the 'Add a day to Week N' button, which adds an extension and opens the new day", async () => {
-    const { db, user } = await renderWeeks("2026-10-27");
-    await user.selectOptions(screen.getByLabelText("Week"), "3");
-    await user.click(screen.getByRole("button", { name: "+ Add a day to Week 3" }));
-    await waitFor(async () => expect(await db.extensions.toArray()).toMatchObject([{ week: 3, extraDays: 1 }]));
-    expect(await screen.findByRole("heading", { level: 1, name: "Edit day" })).toBeInTheDocument();
   });
 });

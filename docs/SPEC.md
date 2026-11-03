@@ -180,3 +180,8 @@ Progress is mirrored to the shared PersonalOS Supabase project so it survives cl
 
 ## 5. Out of scope (for now)
 - Running Python in the browser, true multi-device sync (cloud sync is single-install, see DATA_CONTRACT), AI-generated questions at runtime, notifications.
+
+## 3.16 Content page (replaces the Weeks page)
+Nav "Content" (`#/content`; `#/weeks` redirects). A week selector at the top (All weeks by default, Week 1–13, "This week"); week and tab are kept in the URL. "Add a day to Week N" shows only with a week selected. Tabs: **Problems**, **Data Structures**, **Patterns**, **Concepts**. With no week selected a tab shows all weeks grouped by week; with one selected, only that week.
+- **Problems:** every plan problem (day problems and fallbacks; spare pool problems only after ticking "Show spare problems") with difficulty, platform, link, the day it is on and the latest outcome. Filters: platform, difficulty, status (Not attempted / Solved alone / Needs work). Buttons open the LeetCode and HackerRank dashboards (Settings; https only; defaults when empty). Old-topic problems are listed under their scheduled day with no origin week; spare problems carry no week either.
+- **Data Structures / Patterns / Concepts:** topics from the optional `content/resources.json`, each with a checkbox and resource links; "N of M done" for the view. Data Structures has a structure picker and a "Dive deeper" view (topics, weeks, patterns of those weeks, plan problems of those weeks). Patterns are headed by the week's NeetCode name; Concepts also lists the week's curriculum concepts as text.

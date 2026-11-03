@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import type { z } from "zod";
 import { DebugFile, PracticalTask, QuestionFile, practicalProblems, questionFileProblems, type PracticalTaskData, type QuestionFileData } from "./content-schema";
 import { Curriculum, type CurriculumFile } from "./curriculum-schema";
+import { Resources, resourcesProblems, type ResourcesData } from "./resources-schema";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contentDir = join(root, "content");
@@ -74,6 +75,17 @@ if (existsSync(practicalDir)) {
 
 const debugFile = join(contentDir, "mock-extras", "debug.json");
 if (existsSync(debugFile)) check("content/mock-extras/debug.json", debugFile, DebugFile);
+
+// ── resources: content/resources.json is optional; when absent there is nothing to check ──
+const resourcesFile = join(contentDir, "resources.json");
+if (existsSync(resourcesFile)) {
+  const res = check("content/resources.json", resourcesFile, Resources) as ResourcesData | undefined;
+  if (res && curriculum) {
+    const problems = resourcesProblems(res, curriculum.weeks.map((w) => w.week));
+    for (const p of problems) console.error(`    content/resources.json: ${p}`);
+    if (problems.length > 0) failures++;
+  }
+}
 
 // ── lessons: content/concepts/week-NN.md and content/templates/week-NN.md ───
 // Each `## ` heading must match the curriculum's list for that week, in order; every section needs a Python block

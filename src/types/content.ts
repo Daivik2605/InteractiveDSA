@@ -414,4 +414,47 @@ export interface Settings {
   id: "settings";
   startDate: string;
   theme: "light" | "dark" | "system";
+  /** Content page buttons. https only; empty/missing falls back to the default (src/lib/resources.ts). */
+  leetcodeUrl?: string;
+  hackerrankUrl?: string;
+}
+
+// ── resources (content/resources.json) and topic ticks (Dexie v8) ────────────
+
+export type TopicKind = "data-structure" | "pattern" | "concept";
+
+export interface ResourceLink {
+  site: string;
+  title: string;
+  url: string; // https
+}
+
+export interface Topic {
+  id: string; // unique across the file
+  title: string;
+  kind: TopicKind;
+  /** Groups data-structure topics, e.g. "Hash table (dict, set)". Required when kind is "data-structure". */
+  structure?: string;
+  resources: ResourceLink[]; // at least 2
+}
+
+export interface ResourceWeek {
+  week: number; // a curriculum week number
+  title: string;
+  neetcode: string; // the week's NeetCode topic name
+  topics: Topic[];
+}
+
+export interface ResourcesFile {
+  version: number;
+  checkedOn: string;
+  note: string;
+  roadmap: { title: string; url: string };
+  weeks: ResourceWeek[];
+}
+
+/** A ticked topic. Keyed by topic id, so a topic is done wherever it appears. Added in Dexie schema v8. */
+export interface TopicCheck {
+  topicId: string; // primary key
+  checkedOn: string; // local calendar date
 }

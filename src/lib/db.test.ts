@@ -34,7 +34,7 @@ describe("db", () => {
     await seed(db);
     await saveSettings(db, { theme: "dark" }, "2026-10-26");
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(7);
+    expect(snapshot.schemaVersion).toBe(8);
 
     await resetAll(db);
     expect(await db.completions.count()).toBe(0);
@@ -162,7 +162,7 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
       { slotId: "w01-d5:review-2", planDayId: "w01-d5", problemId: "w01-d2-p1", drawnOn: "2026-10-30", attemptId: 7 },
     ]);
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(7);
+    expect(snapshot.schemaVersion).toBe(8);
     expect(snapshot.dayDraws).toHaveLength(2);
     await resetAll(db);
     expect(await db.dayDraws.count()).toBe(0);
@@ -230,7 +230,7 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
       { date: "2026-10-30", text: "during a mock", createdAt: "2026-10-30T11:00:00.000Z", updatedAt: "2026-10-30T11:00:00.000Z", mockNumber: 3 },
     ]);
     const snapshot = await exportAll(db);
-    expect(snapshot.schemaVersion).toBe(7);
+    expect(snapshot.schemaVersion).toBe(8);
     expect(snapshot.dayNotes).toHaveLength(2);
     await resetAll(db);
     expect(await db.dayNotes.count()).toBe(0);
@@ -240,5 +240,21 @@ describe("schema v2 (SPEC 3.13, 3.14)", () => {
     await importAll(db, { ...v6, schemaVersion: 6 });
     expect(await db.dayNotes.count()).toBe(0); // comes in empty
     await expect(importAll(db, { ...v6, schemaVersion: 7 })).rejects.toThrow(/dayNotes/);
+  });
+
+  it("exports and re-imports topic ticks, saved URL settings, and a v7 export without them still imports", async () => {
+    await db.topicChecks.bulkAdd([{ topicId: "t-array", checkedOn: "2026-10-30" }, { topicId: "t-heap", checkedOn: "2026-10-31" }]);
+    await saveSettings(db, { leetcodeUrl: "https://leetcode.com/u/me/" }, "2026-10-26");
+    const snapshot = await exportAll(db);
+    expect(snapshot.topicChecks).toHaveLength(2);
+    await resetAll(db);
+    expect(await db.topicChecks.count()).toBe(0);
+    await importAll(db, JSON.parse(JSON.stringify(snapshot)));
+    expect((await db.topicChecks.toArray()).map((c) => c.topicId).sort()).toEqual(["t-array", "t-heap"]);
+    expect((await getSettings(db, "2026-10-26")).leetcodeUrl).toBe("https://leetcode.com/u/me/");
+    const { topicChecks: _omit, ...v7 } = snapshot;
+    await importAll(db, { ...v7, schemaVersion: 7 });
+    expect(await db.topicChecks.count()).toBe(0); // comes in empty
+    await expect(importAll(db, { ...v7, schemaVersion: 8 })).rejects.toThrow(/topicChecks/);
   });
 });

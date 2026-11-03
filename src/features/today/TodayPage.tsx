@@ -90,7 +90,7 @@ function BeforeStart({ plan }: { plan: Plan }) {
       <p className="text-3xl font-semibold tabular-nums">{n} day{n === 1 ? "" : "s"}</p>
       <p className="text-slate-600 dark:text-slate-400">until the plan starts on {formatShort(plan.startDate)}.</p>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Link to="/weeks" className="text-indigo-700 underline dark:text-indigo-300">
+        <Link to="/content?week=1&tab=concepts" className="text-indigo-700 underline dark:text-indigo-300">
           Preview the Week 1 lesson
         </Link>
       </div>

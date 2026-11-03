@@ -187,7 +187,10 @@ export interface DayLog {
   updatedOn: string;
 }
 
-export interface Settings { id: "settings"; startDate: string; theme: "light" | "dark" | "system"; }
+export interface Settings {
+  id: "settings"; startDate: string; theme: "light" | "dark" | "system";
+  leetcodeUrl?: string; hackerrankUrl?: string; // https only; empty/missing/invalid -> defaults (https://leetcode.com/problemset/, https://www.hackerrank.com/dashboard)
+}
 ```
 Export/import = one JSON object with every table plus `schemaVersion`.
 
@@ -216,3 +219,28 @@ export interface DayDraw {
   attemptId?: number;  // set when the slot is logged; locks Re-roll
 }
 ```
+
+## Resources (`content/resources.json`, optional) and `TopicCheck` (Dexie v8)
+
+Feeds the Content page's Data Structures, Patterns and Concepts tabs. While the file is absent each tab says "No topics yet". Validated by `scripts/resources-schema.ts` (the file is optional: validation passes when it is missing).
+
+```ts
+type TopicKind = "data-structure" | "pattern" | "concept";
+interface ResourceLink { site: string; title: string; url: string }   // url is https
+interface Topic {
+  id: string;                 // unique across the whole file
+  title: string;
+  kind: TopicKind;
+  structure?: string;         // required for "data-structure": groups topics, e.g. "Hash table (dict, set)"
+  resources: ResourceLink[];  // at least 2
+}
+interface ResourcesFile {
+  version: number; checkedOn: string; note: string;
+  roadmap: { title: string; url: string };
+  weeks: { week: number; title: string; neetcode: string; topics: Topic[] }[]; // week = a curriculum week, once each
+}
+// Dexie v8 table `topicChecks`, key topicId: a ticked topic. Exported/imported; v1-v7 exports import with it empty.
+interface TopicCheck { topicId: string; checkedOn: string }
+```
+
+The Content page's Problems tab reads `curriculum.json` only (day problems, fallbacks, pools). Old-topic and pool problems never show the week or topic they came from.

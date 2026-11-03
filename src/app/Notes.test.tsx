@@ -47,7 +47,7 @@ describe("Notes button and shortcut", () => {
     const first = await setup("/");
     expect(notesButton()).toBeInTheDocument();
     first.view.unmount();
-    for (const path of ["/calendar", "/weeks", "/problems", "/mocks", "/dashboard", "/settings"]) {
+    for (const path of ["/calendar", "/content", "/problems", "/mocks", "/dashboard", "/settings"]) {
       const { view } = await setup(path);
       expect(notesButton(), path).toBeInTheDocument();
       view.unmount();

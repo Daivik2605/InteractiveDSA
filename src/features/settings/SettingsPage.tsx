@@ -5,6 +5,7 @@ import { usePlanContext } from "../../app/PlanContext";
 import { saveExtensions, setStartDate } from "../../lib/actions";
 import { curriculum } from "../../lib/curriculum";
 import { addDays, formatDayMonth, formatLong, isValidDate } from "../../lib/dates";
+import { DEFAULT_HACKERRANK_URL, DEFAULT_LEETCODE_URL, isHttpsUrl } from "../../lib/resources";
 import { exportAll, importAll, resetAll, saveSettings, TABLE_NAMES } from "../../lib/db";
 import { scheduleContext } from "../../lib/plan";
 import { removeExtension, shortenExtension } from "../../lib/schedule";
@@ -33,7 +34,12 @@ export function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [typed, setTyped] = useState("");
   const [resetStart, setResetStart] = useState(plan.today); // Day 1 after a reset
+  const [lcUrl, setLcUrl] = useState(plan.settings.leetcodeUrl ?? "");
+  const [hrUrl, setHrUrl] = useState(plan.settings.hackerrankUrl ?? "");
+  const [urlMsg, setUrlMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const navigate = useNavigate();
+  useEffect(() => setLcUrl(plan.settings.leetcodeUrl ?? ""), [plan.settings.leetcodeUrl]);
+  useEffect(() => setHrUrl(plan.settings.hackerrankUrl ?? ""), [plan.settings.hackerrankUrl]);
   useEffect(() => setStart(plan.startDate), [plan.startDate]); // the field follows the real start date (e.g. after a reset or import)
   const resetValid = isValidDate(resetStart);
   const resetLast = resetValid ? addDays(resetStart, curriculum.totalPlanDays - 1) : null;
@@ -91,6 +97,32 @@ export function SettingsPage() {
           <button type="button" className={button} onClick={() => setStart(def)}>Use default ({formatDayMonth(def)})</button>
         </form>
         {startMsg && <p role="status" className="mt-2 text-sm text-slate-600 dark:text-slate-400">{startMsg}</p>}
+      </Card>
+
+      <Card title="Practice dashboards">
+        <form
+          className="space-y-3 text-sm"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const lc = lcUrl.trim();
+            const hr = hrUrl.trim();
+            if ((lc && !isHttpsUrl(lc)) || (hr && !isHttpsUrl(hr))) return setUrlMsg({ ok: false, text: "Links must be https:// URLs." });
+            await saveSettings(db, { leetcodeUrl: lc || undefined, hackerrankUrl: hr || undefined }, def);
+            setUrlMsg({ ok: true, text: "Saved. An empty field uses the default." });
+          }}
+        >
+          <label className="block">
+            LeetCode dashboard link
+            <input type="url" value={lcUrl} onChange={(e) => setLcUrl(e.target.value)} placeholder={DEFAULT_LEETCODE_URL} className={`${input} mt-1 block w-full`} />
+          </label>
+          <label className="block">
+            HackerRank dashboard link
+            <input type="url" value={hrUrl} onChange={(e) => setHrUrl(e.target.value)} placeholder={DEFAULT_HACKERRANK_URL} className={`${input} mt-1 block w-full`} />
+          </label>
+          <button type="submit" className={button}>Save links</button>
+          {urlMsg && <p role={urlMsg.ok ? "status" : "alert"} className={`text-sm ${urlMsg.ok ? "text-slate-600 dark:text-slate-400" : "text-rose-700 dark:text-rose-300"}`}>{urlMsg.text}</p>}
+        </form>
+        <p className="mt-2 text-xs text-slate-500">Used by the buttons on the Content page's Problems tab.</p>
       </Card>
 
       <Card title="Theme">

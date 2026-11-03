@@ -37,14 +37,14 @@ describe("app shell", () => {
   it("shows the seven nav links and the calendar sidebar on every page", async () => {
     await renderApp({ today: "2026-10-27" });
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Weeks", "Problems", "Mocks", "Dashboard", "Settings"]);
+    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Content", "Problems", "Mocks", "Dashboard", "Settings"]);
     expect(NAV_ITEMS).toHaveLength(7);
     expect(sidebar().getByText("Week 1 · Day 2")).toBeInTheDocument();
   });
 
   it("keeps the sidebar on other pages and marks the active link", async () => {
     const { user } = await renderApp({ today: "2026-10-27" });
-    for (const name of ["Calendar", "Weeks", "Problems", "Mocks", "Dashboard", "Settings"]) {
+    for (const name of ["Calendar", "Content", "Problems", "Mocks", "Dashboard", "Settings"]) {
       await user.click(screen.getByRole("link", { name }));
       expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
       expect(screen.getByRole("link", { name })).toHaveAttribute("aria-current", "page");

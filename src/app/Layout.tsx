@@ -9,7 +9,7 @@ import { usePlanContext } from "./PlanContext";
 export const NAV_ITEMS = [
   { to: "/", label: "Today", end: true },
   { to: "/calendar", label: "Calendar" },
-  { to: "/weeks", label: "Weeks" },
+  { to: "/content", label: "Content" },
   { to: "/problems", label: "Problems" },
   { to: "/mocks", label: "Mocks" },
   { to: "/dashboard", label: "Dashboard" },
