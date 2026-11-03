@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import type { z } from "zod";
 import { DebugFile, PracticalTask, QuestionFile, practicalProblems, questionFileProblems, type PracticalTaskData, type QuestionFileData } from "./content-schema";
 import { Curriculum, type CurriculumFile } from "./curriculum-schema";
-import { ConceptLinks, conceptLinksProblems, type ConceptLinksData } from "./concept-links-schema";
+import { ConceptLinks, conceptLinksProblems, conceptTextDiffs, type ConceptLinksData } from "./concept-links-schema";
 import { DataStructures, dataStructuresProblems, type DataStructuresData } from "./data-structures-schema";
 import { Resources, resourcesProblems, type ResourcesData } from "./resources-schema";
 import { curriculumConcepts } from "../src/lib/conceptIds";
@@ -108,9 +108,18 @@ const conceptLinksFile = join(contentDir, "concept-links.json");
 if (existsSync(conceptLinksFile) && curriculum) {
   const cl = check("content/concept-links.json", conceptLinksFile, ConceptLinks) as ConceptLinksData | undefined;
   if (cl) {
-    const problems = conceptLinksProblems(cl, new Set(curriculumConcepts(curriculum.weeks).map((c) => c.id)));
+    const all = curriculumConcepts(curriculum.weeks);
+    const problems = conceptLinksProblems(cl, new Set(all.map((c) => c.id)));
     for (const p of problems) console.error(`    content/concept-links.json: ${p}`);
     if (problems.length > 0) failures++;
+    // "texts" records each concept's wording when the links were chosen: report any that no longer match (the file is never edited here).
+    const diffs = conceptTextDiffs(cl, new Map(all.map((c) => [c.id, c.text])));
+    for (const d of diffs) {
+      console.error(`    content/concept-links.json: texts.${d.id} differs from curriculum.json`);
+      console.error(`        curriculum: ${d.curriculum === undefined ? "(no such concept)" : JSON.stringify(d.curriculum)}`);
+      console.error(`        links file: ${JSON.stringify(d.file)}`);
+    }
+    if (diffs.length > 0) failures++;
   }
 }
 

@@ -561,10 +561,10 @@ describe("Content page: Concepts", () => {
     });
     const total = curriculum.weeks[1]!.concepts.length;
     const section = () => within(panel().getByRole("region", { name: "Week 2 concepts" }));
-    expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`1 of ${total} read`);
+    await waitFor(() => expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`1 of ${total} read`)); // the seeded tick loads after the first render
     await user.click(section().getByRole("button", { name: "Mark all Week 2 as read" }));
     await waitFor(async () => expect((await db.conceptChecks.toArray()).map((c) => c.conceptId).sort()).toEqual(week2Ids().sort()));
-    expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`${total} of ${total} read`);
+    await waitFor(() => expect(section().getByLabelText("Week 2 read")).toHaveTextContent(`${total} of ${total} read`));
     await user.click(section().getByRole("button", { name: "Undo Week 2" }));
     await waitFor(async () => expect((await db.conceptChecks.toArray()).map((c) => c.conceptId)).toEqual(["w02-c1"]));
     expect(section().getByRole("button", { name: "Mark all Week 2 as read" })).toHaveTextContent("Mark all as read");

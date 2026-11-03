@@ -274,4 +274,4 @@ interface ConceptLinksFile { version: number; concepts: Record<string /* "w03-c2
 interface ConceptCheck { conceptId: string; checkedOn: string }
 ```
 
-A concept with no entry (or no file) shows a quiet "Links coming" note. Validated by `scripts/concept-links-schema.ts`.
+The file may also carry `checkedOn`, `note` and `texts` (id -> the concept's wording when its links were chosen). `validate-content` compares every `texts` entry with the concept string in `curriculum.json` and lists any difference (id, curriculum wording, file wording) as a failure; it never edits the file. `src/lib/conceptLinks.test.ts` requires all 80 concepts to have 2-3 links. A concept with no entry (or no file) shows a quiet "Links coming" note. Validated by `scripts/concept-links-schema.ts`.

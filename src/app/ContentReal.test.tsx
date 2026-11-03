@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import { DsaDB } from "../lib/db";
 import { curriculum } from "../lib/curriculum";
+import { getConceptLinks } from "../lib/concepts";
 import { getDataStructures } from "../lib/dataStructures";
 import { getResources } from "../lib/resources";
 import { App } from "./App";
@@ -100,6 +101,26 @@ describe("Content page with the real resources.json", () => {
       expect(core.some((t) => names.slice(core.length).includes(t))).toBe(false);
     }
     expect(panel().getByRole("status", { name: "Concepts read" })).toHaveTextContent("0 of 85 read");
+  });
+
+  it("Concepts: a real concept (w03-c2) shows its links, and no numbered concept says 'Links coming'", async () => {
+    await open("/content?tab=concepts");
+    const links = getConceptLinks()!.concepts["w03-c2"]!;
+    const card = within(panel().getByLabelText(curriculum.weeks[2]!.concepts[1]!).closest("li")!);
+    expect(links.length).toBeGreaterThanOrEqual(2);
+    for (const l of links) {
+      const a = card.getByRole("link", { name: new RegExp(`${l.site}: ${l.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) });
+      expect(a).toHaveAttribute("href", l.url);
+      expect(a).toHaveAttribute("target", "_blank");
+      expect(a).toHaveAttribute("rel", expect.stringContaining("noopener"));
+    }
+    expect(panel().queryByText("Links coming")).not.toBeInTheDocument();
+    // every numbered card lists at least 2 links
+    for (const [id, ls] of Object.entries(getConceptLinks()!.concepts)) {
+      const week = Number(id.slice(1, 3));
+      const text = curriculum.weeks[week - 1]!.concepts[Number(id.split("-c")[1]) - 1]!;
+      expect(within(panel().getByLabelText(text).closest("li")!).getAllByRole("link"), id).toHaveLength(ls.length);
+    }
   });
 
   it("Concepts, Week 2: that week's concepts only", async () => {
