@@ -34,17 +34,17 @@ const sidebar = () => within(screen.getByRole("complementary", { name: "Calendar
 const checklist = () => within(screen.getByRole("region", { name: "Today's checklist" }));
 
 describe("app shell", () => {
-  it("shows the seven nav links and the calendar sidebar on every page", async () => {
+  it("shows the eight nav links and the calendar sidebar on every page", async () => {
     await renderApp({ today: "2026-10-27" });
     const nav = screen.getByRole("navigation", { name: "Main" });
-    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Content", "Problems", "Mocks", "Dashboard", "Settings"]);
-    expect(NAV_ITEMS).toHaveLength(7);
+    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(["Today", "Calendar", "Content", "Problems", "Mocks", "Logs", "Dashboard", "Settings"]);
+    expect(NAV_ITEMS).toHaveLength(8);
     expect(sidebar().getByText("Week 1 · Day 2")).toBeInTheDocument();
   });
 
   it("keeps the sidebar on other pages and marks the active link", async () => {
     const { user } = await renderApp({ today: "2026-10-27" });
-    for (const name of ["Calendar", "Content", "Problems", "Mocks", "Dashboard", "Settings"]) {
+    for (const name of ["Calendar", "Content", "Problems", "Mocks", "Logs", "Dashboard", "Settings"]) {
       await user.click(screen.getByRole("link", { name }));
       expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
       expect(screen.getByRole("link", { name })).toHaveAttribute("aria-current", "page");
@@ -302,7 +302,7 @@ describe("Today page", () => {
   it("rest day: marks today as rest, allowed once per week, can be undone", async () => {
     const { db, user } = await renderApp({ today: "2026-10-27" });
     await user.click(screen.getByRole("button", { name: "Rest day" }));
-    await waitFor(async () => expect(await db.restDays.toArray()).toEqual([{ date: "2026-10-27" }]));
+    await waitFor(async () => expect(await db.restDays.toArray()).toEqual([{ date: "2026-10-27", at: expect.any(String) }]));
     expect(await screen.findByRole("button", { name: /undo rest day/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /undo rest day/ }));
     await waitFor(async () => expect(await db.restDays.count()).toBe(0));

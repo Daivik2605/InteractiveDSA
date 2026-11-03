@@ -38,7 +38,9 @@ describe("logAttempt", () => {
   it("records the attempt and a completion dated to the actual day", async () => {
     const id = await logAttempt(db, attempt({ date: "2026-10-30" }));
     expect(await db.attempts.get(id)).toMatchObject({ problemId: P, outcome: "alone", isRedo: false });
-    expect(await db.completions.get(P)).toEqual({ itemId: P, planDayId: "w01-d1", completedOn: "2026-10-30", attemptId: id });
+    expect(await db.completions.get(P)).toEqual({ itemId: P, planDayId: "w01-d1", completedOn: "2026-10-30", attemptId: id, at: expect.any(String) });
+    expect((await db.attempts.get(id))!.at).toBe((await db.completions.get(P))!.at); // one moment for both
+    expect(Number.isNaN(Date.parse((await db.attempts.get(id))!.at!))).toBe(false);
     expect(await db.redos.count()).toBe(0);
   });
 

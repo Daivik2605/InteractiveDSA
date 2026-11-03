@@ -3,6 +3,7 @@ import { CalendarPage } from "../features/calendar/CalendarPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { EditDayPage } from "../features/day/EditDayPage";
 import { IncompletePage } from "../features/incomplete/IncompletePage";
+import { LogsPage } from "../features/logs/LogsPage";
 import { MockPage } from "../features/mock/MockPage";
 import { MocksPage } from "../features/mock/MocksPage";
 import { ProblemDetailPage } from "../features/problems/ProblemDetailPage";
@@ -28,6 +29,7 @@ export function App() {
         <Route path="incomplete" element={<IncompletePage />} />
         <Route path="mocks" element={<MocksPage />} />
         <Route path="mock/:number" element={<MockPage />} />
+        <Route path="logs" element={<LogsPage />} />
         <Route path="problems" element={<ProblemsPage />} />
         <Route path="problems/:id" element={<ProblemDetailPage />} />
         <Route path="day/:planDayId" element={<EditDayPage />} />

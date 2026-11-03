@@ -12,6 +12,7 @@ export const NAV_ITEMS = [
   { to: "/content", label: "Content" },
   { to: "/problems", label: "Problems" },
   { to: "/mocks", label: "Mocks" },
+  { to: "/logs", label: "Logs" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/settings", label: "Settings" },
 ] as const;

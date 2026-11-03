@@ -275,3 +275,6 @@ interface ConceptCheck { conceptId: string; checkedOn: string }
 ```
 
 The file may also carry `checkedOn`, `note` and `texts` (id -> the concept's wording when its links were chosen). `validate-content` compares every `texts` entry with the concept string in `curriculum.json` and lists any difference (id, curriculum wording, file wording) as a failure; it never edits the file. `src/lib/conceptLinks.test.ts` requires all 80 concepts to have 2-3 links. A concept with no entry (or no file) shows a quiet "Links coming" note. Validated by `scripts/concept-links-schema.ts`.
+
+## Recorded moments (for the Logs page)
+Optional ISO timestamps added to existing records, no Dexie version change: `ProblemAttempt.at`, `ItemCompletion.at`, `TopicCheck.at`, `ConceptCheck.at`, `RestDay.at`, `MissedReason.loggedAt`, `CustomItem.createdAt`, `DayLog.updatedAt`, `ProblemEntry.updatedAt`, `MockSession.savedAt`, `MockRetake.savedAt` (`DayNote.createdAt/updatedAt` already existed). Rows from before the Logs page lack them and show "time not recorded".

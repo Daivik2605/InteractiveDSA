@@ -56,6 +56,9 @@ export interface LogInput {
  * and updates the redo queue: schedules redos, closes redos as completed (re-solved alone) or as
  * attempted (a new chain replaced them). Returns the attempt id.
  */
+/** The current moment as an ISO string, for the Logs page. Rows saved before it existed have none. */
+export const nowIso = (): string => new Date().toISOString();
+
 export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
   return db.transaction("rw", [db.attempts, db.completions, db.redos, db.dayDraws], async () => {
     const attempt: ProblemAttempt = {
@@ -66,12 +69,13 @@ export async function logAttempt(db: DsaDB, input: LogInput): Promise<number> {
       isRedo: input.isRedo,
       ...(input.note ? { note: input.note } : {}),
       ...(input.source ? { source: input.source } : {}),
+      at: nowIso(),
     };
     const attemptId = (await db.attempts.add(attempt)) as number;
 
     for (const t of input.source === "mock" ? [] : input.completes) {
       if (await db.completions.get(t.itemId)) continue; // never overwrite an earlier completion
-      await db.completions.put({ itemId: t.itemId, planDayId: t.planDayId, completedOn: input.date, attemptId });
+      await db.completions.put({ itemId: t.itemId, planDayId: t.planDayId, completedOn: input.date, attemptId, at: attempt.at });
       if (await db.dayDraws.get(t.itemId)) await db.dayDraws.update(t.itemId, { attemptId }); // a logged review slot can't be re-rolled
     }
 
@@ -110,7 +114,7 @@ export async function undoAttempt(db: DsaDB, attemptId: number): Promise<void> {
 
 /** Learn items (and anything without an attempt) are ticked directly. */
 export async function tickItem(db: DsaDB, target: CompletionTarget, date: string): Promise<void> {
-  const completion: ItemCompletion = { ...target, completedOn: date };
+  const completion: ItemCompletion = { ...target, completedOn: date, at: nowIso() };
   await db.completions.put(completion);
 }
 
@@ -134,7 +138,7 @@ export async function setRestDay(
     return { ok: true };
   }
   const check = canAddRestDay(schedule, restDates, date);
-  if (check.ok) await db.restDays.put({ date });
+  if (check.ok) await db.restDays.put({ date, at: nowIso() });
   return check;
 }
 
@@ -184,7 +188,7 @@ const clean = <T extends object>(o: T): T =>
 /** Returns the new item's id ("c-<uuid>"). */
 export async function addCustomItem(db: DsaDB, input: CustomItemInput, today: string): Promise<string> {
   const id = `c-${crypto.randomUUID()}`;
-  await db.customItems.add(clean({ ...input, id, createdOn: today }) as CustomItem);
+  await db.customItems.add(clean({ ...input, id, createdOn: today, createdAt: nowIso() }) as CustomItem);
   return id;
 }
 
@@ -241,7 +245,7 @@ export async function saveDayLog(
   if (!notes && input.minutes === 0 && links.length === 0) return void (await db.dayLogs.delete(input.planDayId));
   const prev = await db.dayLogs.get(input.planDayId);
   if (prev && prev.notes === notes && prev.minutes === input.minutes && sameStrings(prev.links, links)) return;
-  await db.dayLogs.put({ planDayId: input.planDayId, notes, minutes: input.minutes, links, updatedOn: today });
+  await db.dayLogs.put({ planDayId: input.planDayId, notes, minutes: input.minutes, links, updatedOn: today, updatedAt: nowIso() });
 }
 
 /** "+ Add a day to Week N": a +1 extension that follows the same rules. Returns the new day's id. */
@@ -266,7 +270,7 @@ export async function saveProblemEntry(db: DsaDB, entry: Omit<ProblemEntry, "upd
   const empty = ENTRY_TEXT.every((k) => !text[k]) && !entry.confidence && entry.tags.length === 0;
   if (empty) return void (await db.problemEntries.delete(entry.problemId));
   await db.problemEntries.put(
-    clean({ problemId: entry.problemId, ...text, confidence: entry.confidence, tags: entry.tags, updatedOn: today }) as ProblemEntry,
+    clean({ problemId: entry.problemId, ...text, confidence: entry.confidence, tags: entry.tags, updatedOn: today, updatedAt: nowIso() }) as ProblemEntry,
   );
 }
 
@@ -411,7 +415,7 @@ export async function logMockProgram(
 /** Saves a finished mock and drops its run, in one transaction. Mocks are not plan items, so nothing is ticked. */
 export async function saveMockSession(db: DsaDB, session: MockSession): Promise<number> {
   return db.transaction("rw", [db.mocks, db.mockRuns], async () => {
-    const id = (await db.mocks.add(session)) as number;
+    const id = (await db.mocks.add({ savedAt: nowIso(), ...session })) as number;
     await db.mockRuns.delete(session.mockNumber);
     return id;
   });
@@ -432,7 +436,7 @@ export async function appendMockAnswer(db: DsaDB, mockNumber: number, correct: b
 export async function saveMockRetake(db: DsaDB, retake: Omit<MockRetake, "id" | "retakeNumber">): Promise<number> {
   return db.transaction("rw", db.mockRetakes, async () => {
     const retakeNumber = (await db.mockRetakes.where("mockNumber").equals(retake.mockNumber).count()) + 1;
-    return (await db.mockRetakes.add({ ...retake, retakeNumber })) as number;
+    return (await db.mockRetakes.add({ savedAt: nowIso(), ...retake, retakeNumber })) as number;
   });
 }
 
@@ -469,7 +473,7 @@ export async function deleteBlankNotes(db: DsaDB, date: string): Promise<void> {
 export async function saveMissedReason(db: DsaDB, planDayId: string, reason: string, today: string): Promise<void> {
   const text = reason.trim();
   if (!text) await db.missedReasons.delete(planDayId);
-  else await db.missedReasons.put({ planDayId, reason: text, loggedOn: today });
+  else await db.missedReasons.put({ planDayId, reason: text, loggedOn: today, loggedAt: nowIso() });
 }
 
 // ── review slots ─────────────────────────────────────────────────────────────
@@ -511,4 +515,62 @@ export async function rerollDraw(db: DsaDB, curriculum: Curriculum, slotId: stri
 function curriculumDayOf(curriculum: Curriculum, planDayId: string) {
   const m = /^w(\d{2})-d(\d)$/.exec(planDayId);
   return m ? curriculum.weeks.find((w) => w.week === Number(m[1]))?.days.find((d) => d.day === Number(m[2])) : undefined;
+}
+
+// ── logs (the Logs page) ─────────────────────────────────────────────────────
+
+/** What a Logs row removes. Every kind maps to one existing table row (or, for attempts, the existing undo). */
+export type LogRemoval =
+  | { type: "attempt"; id: number }
+  | { type: "completion"; itemId: string }
+  | { type: "mock"; id: number; mockNumber: number }
+  | { type: "retake"; id: number }
+  | { type: "dayNote"; id: number }
+  | { type: "dayLog"; planDayId: string }
+  | { type: "topicCheck"; id: string }
+  | { type: "conceptCheck"; id: string }
+  | { type: "restDay"; date: string }
+  | { type: "missedReason"; planDayId: string }
+  | { type: "customItem"; id: string }
+  | { type: "journal"; id: string };
+
+/**
+ * Deletes one log entry. An attempt is undone the usual way (its ticks and the redos it created go too); a mock result
+ * takes its retakes and its recorded answers with it, so the mock can be taken again. Problems done inside the mock stay
+ * in the log as their own entries.
+ */
+export async function deleteLog(db: DsaDB, r: LogRemoval): Promise<void> {
+  switch (r.type) {
+    case "attempt":
+      return undoAttempt(db, r.id);
+    case "completion":
+      return untickItem(db, r.itemId);
+    case "mock":
+      await db.transaction("rw", [db.mocks, db.mockRetakes, db.quizAnswers, db.mockRuns], async () => {
+        await db.mocks.delete(r.id);
+        const stillSaved = (await db.mocks.where("mockNumber").equals(r.mockNumber).count()) > 0;
+        if (stillSaved) return; // an older copy of the same mock is still saved: keep its retakes and answers
+        await db.mockRetakes.where("mockNumber").equals(r.mockNumber).delete();
+        await db.quizAnswers.filter((a) => a.mode === "mock" && a.mockNumber === r.mockNumber).delete();
+      });
+      return;
+    case "retake":
+      return db.mockRetakes.delete(r.id);
+    case "dayNote":
+      return deleteDayNote(db, r.id);
+    case "dayLog":
+      return db.dayLogs.delete(r.planDayId);
+    case "topicCheck":
+      return db.topicChecks.delete(r.id);
+    case "conceptCheck":
+      return db.conceptChecks.delete(r.id);
+    case "restDay":
+      return db.restDays.delete(r.date);
+    case "missedReason":
+      return db.missedReasons.delete(r.planDayId);
+    case "customItem":
+      return deleteCustomItem(db, r.id);
+    case "journal":
+      return db.problemEntries.delete(r.id);
+  }
 }

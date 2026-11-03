@@ -185,6 +185,7 @@ export interface ItemCompletion {
   planDayId: string; // "w03-d2" or extension day "w03-x1"
   completedOn: string; // YYYY-MM-DD when actually done
   attemptId?: number; // the ProblemAttempt that produced this completion (lets "untick" undo it)
+  at?: string; // ISO moment it was recorded; rows from before the Logs page have none
 }
 
 /**
@@ -214,7 +215,9 @@ export interface MissedReason {
   planDayId: string; // primary key
   reason: string;
   loggedOn: string; // YYYY-MM-DD
+  loggedAt?: string; // ISO moment
 }
+
 
 export interface WeekExtension {
   id?: number;
@@ -242,6 +245,7 @@ export interface ProblemAttempt {
   isRedo: boolean;
   /** "mock": made during a mock. Never ticks a plan item and never counts toward a day's problems. */
   source?: "mock";
+  at?: string; // ISO moment it was recorded; rows from before the Logs page have none
 }
 
 export interface RedoTask {
@@ -265,6 +269,7 @@ export interface CustomItem {
   difficulty?: Difficulty; // problems only
   url?: string;
   createdOn: string;
+  createdAt?: string; // ISO moment
 }
 
 export interface ItemMove {
@@ -287,6 +292,7 @@ export interface ProblemEntry {
   confidence?: 1 | 2 | 3 | 4 | 5;
   tags: string[]; // pattern tags
   updatedOn: string;
+  updatedAt?: string; // ISO moment
 }
 
 export interface DayLog {
@@ -295,6 +301,7 @@ export interface DayLog {
   minutes: number;
   links: string[];
   updatedOn: string;
+  updatedAt?: string; // ISO moment
 }
 
 export interface QuizAnswer {
@@ -315,6 +322,7 @@ export interface CardState {
 
 export interface RestDay {
   date: string;
+  at?: string; // ISO moment it was set
 }
 
 export interface MockProgram {
@@ -352,6 +360,7 @@ export interface MockRetake {
   missedOnly?: boolean;
   /** The retake (id) a missed-only retake was built from; absent when it came from the first attempt. */
   basedOn?: number;
+  savedAt?: string; // ISO moment the retake was saved
 }
 
 /** A finished mock. Saving it ticks the "Mock N" row. */
@@ -369,6 +378,7 @@ export interface MockSession {
   extra: { kind: MockExtra; done: boolean; snippetId?: string };
   rating: 1 | 2 | 3 | 4 | 5;
   notes?: string;
+  savedAt?: string; // ISO moment the result was saved
 }
 
 /** What a started mock will show, picked once so a reload does not reshuffle. Cleared when the session is saved. */
@@ -457,6 +467,7 @@ export interface ResourcesFile {
 export interface TopicCheck {
   topicId: string; // primary key
   checkedOn: string; // local calendar date
+  at?: string; // ISO moment
 }
 
 // ── data-structures.json, concept-links.json, concept ticks (Dexie v9) ───────
@@ -486,4 +497,5 @@ export interface ConceptLinksFile {
 export interface ConceptCheck {
   conceptId: string; // primary key, "w03-c2"
   checkedOn: string; // local calendar date
+  at?: string; // ISO moment
 }

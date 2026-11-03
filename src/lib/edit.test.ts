@@ -348,7 +348,7 @@ describe("actions", () => {
 
   it("saves, edits and clears a day log", async () => {
     await saveDayLog(db, { planDayId: day(1), notes: " heaps ", minutes: 30, links: ["https://a.test", " "] }, "2026-10-26");
-    expect(await db.dayLogs.get(day(1))).toEqual({ planDayId: day(1), notes: "heaps", minutes: 30, links: ["https://a.test"], updatedOn: "2026-10-26" });
+    expect(await db.dayLogs.get(day(1))).toEqual({ planDayId: day(1), notes: "heaps", minutes: 30, links: ["https://a.test"], updatedOn: "2026-10-26", updatedAt: expect.any(String) });
     await saveDayLog(db, { planDayId: day(1), notes: "heaps", minutes: 30, links: ["https://a.test"] }, "2026-10-30");
     expect((await db.dayLogs.get(day(1)))!.updatedOn).toBe("2026-10-26"); // unchanged: not "edited"
     await saveDayLog(db, { planDayId: day(1), notes: "heaps + tries", minutes: 30, links: ["https://a.test"] }, "2026-10-30");

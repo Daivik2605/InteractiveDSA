@@ -1,5 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { usePlanContext } from "../../app/PlanContext";
+import { nowIso } from "../../lib/actions";
 import type { ConceptCard } from "../../lib/concepts";
 
 /** Ticks on resources.json topics (table topicChecks). */
@@ -7,7 +8,7 @@ export function useTopicChecks() {
   const { db, plan } = usePlanContext();
   const rows = useLiveQuery(() => db.topicChecks.toArray(), [db]);
   const done = new Set((rows ?? []).map((r) => r.topicId));
-  const toggle = (id: string) => (done.has(id) ? db.topicChecks.delete(id) : db.topicChecks.put({ topicId: id, checkedOn: plan.today }));
+  const toggle = (id: string) => (done.has(id) ? db.topicChecks.delete(id) : db.topicChecks.put({ topicId: id, checkedOn: plan.today, at: nowIso() }));
   return { done, toggle };
 }
 
@@ -27,8 +28,8 @@ export function useConceptTicks() {
     const numbered = cards.filter((c) => !c.core).map((c) => c.id);
     const core = cards.filter((c) => c.core).map((c) => c.id);
     if (on) {
-      await db.conceptChecks.bulkPut(numbered.map((conceptId) => ({ conceptId, checkedOn: plan.today })));
-      await db.topicChecks.bulkPut(core.map((topicId) => ({ topicId, checkedOn: plan.today })));
+      await db.conceptChecks.bulkPut(numbered.map((conceptId) => ({ conceptId, checkedOn: plan.today, at: nowIso() })));
+      await db.topicChecks.bulkPut(core.map((topicId) => ({ topicId, checkedOn: plan.today, at: nowIso() })));
     } else {
       await db.conceptChecks.bulkDelete(numbered);
       await db.topicChecks.bulkDelete(core);
