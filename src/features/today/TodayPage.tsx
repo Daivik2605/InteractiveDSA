@@ -14,6 +14,7 @@ import { STATUS_META } from "../calendar/status";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
 import { LogModal, type LogValues } from "./LogModal";
 import { Row, Section } from "./Row";
+import { LearnRecord, TomorrowChecklist } from "./Tomorrow";
 import { TodaysProblemsTabs } from "./TodaysProblems";
 
 interface Logging {
@@ -238,7 +239,13 @@ function TodayBody() {
       <Section title="Today's checklist">
         {day.items.map((item) =>
           item.kind === "learn" ? (
-            <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} {...learnRow(plan, item)} />
+            <Row
+              key={item.itemId}
+              checked={!!done(item)}
+              onToggle={() => toggleSimple(item)}
+              {...learnRow(plan, item)}
+              actions={item.itemId.endsWith(":learn") ? <LearnRecord planDayId={item.planDayId} /> : undefined}
+            />
           ) : item.kind === "task" ? (
             <Row key={item.itemId} checked={!!done(item)} onToggle={() => toggleSimple(item)} label={item.custom!.title} meta="Task" />
           ) : item.kind === "review" ? (
@@ -283,6 +290,8 @@ function TodayBody() {
       </Section>
 
       <TodaysProblemsTabs />
+
+      <TomorrowChecklist plan={plan} />
 
       <MocksPrompt />
 

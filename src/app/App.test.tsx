@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
@@ -76,7 +76,7 @@ describe("sidebar", () => {
     });
     expect(sidebar().getByText("Days missed").previousSibling).toHaveTextContent("14");
     const queue = within(screen.getByRole("region", { name: "Catch-up queue" }));
-    expect(queue.getAllByRole("checkbox")[0]).toHaveAccessibleName("New topic: cold try, then concepts and templates");
+    expect(queue.getAllByRole("checkbox")[0]).toHaveAccessibleName("Learn a topic");
     expect(queue.getAllByText(/from Mon 12 Oct/).length).toBeGreaterThan(0);
   });
 
@@ -135,7 +135,7 @@ describe("Today page", () => {
     expect(link).toHaveAttribute("href", "https://leetcode.com/problems/plus-one/");
     expect(link).toHaveAttribute("target", "_blank");
     expect(checklist().getAllByRole("checkbox")).toHaveLength(2); // the lesson + Plus One (plan days 1-4 have no review slots)
-    expect(checklist().getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" })).toBeInTheDocument();
+    expect(checklist().getByRole("checkbox", { name: "Learn a topic" })).toBeInTheDocument();
     expect(checklist().queryByText(/Mock|Diagnostic/)).not.toBeInTheDocument();
     expect(checklist().getByText("LeetCode")).toBeInTheDocument();
   });
@@ -197,7 +197,7 @@ describe("Today page", () => {
 
   it("ticks the lesson row directly", async () => {
     const { db, user } = await renderApp({ today: "2026-10-26" });
-    await user.click(checklist().getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" }));
+    await user.click(checklist().getByRole("checkbox", { name: "Learn a topic" }));
     await waitFor(async () => expect(await db.completions.get("w01-d1:learn")).toMatchObject({ completedOn: "2026-10-26" }));
   });
 
@@ -205,13 +205,13 @@ describe("Today page", () => {
     const { db, user } = await renderApp({ today: "2026-10-28" });
     const queue = within(screen.getByRole("region", { name: "Catch-up queue" }));
     expect(queue.getAllByRole("checkbox").map((c) => c.getAttribute("aria-label"))).toEqual([
-      "New topic: cold try, then concepts and templates",
+      "Learn a topic",
       "Plus One",
       "Merge Sorted Array",
       "Remove Duplicates from Sorted Array",
       "Longest Common Prefix",
     ]);
-    await user.click(queue.getByRole("checkbox", { name: "New topic: cold try, then concepts and templates" }));
+    await user.click(queue.getByRole("checkbox", { name: "Learn a topic" }));
     await waitFor(async () => expect(await db.completions.get("w01-d1:learn")).toMatchObject({ completedOn: "2026-10-28", planDayId: "w01-d1" }));
   });
 
@@ -430,5 +430,61 @@ describe("Settings page", () => {
     await user.click(tabs.getByRole("tab", { name: /LeetCode/ }));
     expect(tabs.getByText("Valid Parentheses")).toBeTruthy();
     expect(sidebar().getByRole("region", { name: "Problems solved today" }).textContent).toContain("Valid Parentheses");
+  });
+});
+
+describe("Today: learn item and tomorrow's checklist", () => {
+  const tomorrow = () => within(screen.getByRole("region", { name: "Tomorrow's checklist" }));
+
+  it("the new-topic item is a plain 'Learn a topic', never the old curriculum wording", async () => {
+    await renderApp({ today: "2026-10-26" }); // Week 1 Day 1
+    expect(checklist().getByRole("checkbox", { name: "Learn a topic" })).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/cold try/i);
+  });
+
+  it("'What did you learn?' saves into the day's study notes, and shows them again", async () => {
+    const { db, user } = await renderApp({ today: "2026-10-26" });
+    const box = checklist().getByLabelText(/What did you learn/);
+    expect(checklist().getByRole("button", { name: "Save" })).toBeDisabled();
+    await user.type(box, "Big-O and list costs");
+    await user.click(checklist().getByRole("button", { name: "Save" }));
+    await waitFor(async () => expect(await db.dayLogs.get("w01-d1")).toMatchObject({ notes: "Big-O and list costs", minutes: 0 }));
+    await waitFor(() => expect(checklist().getByText("Saved")).toBeInTheDocument());
+    expect(checklist().getByLabelText(/What did you learn/)).toHaveValue("Big-O and list costs");
+  });
+
+  it("saving the note keeps the day's logged minutes and links", async () => {
+    const { db, user } = await renderApp({
+      today: "2026-10-26",
+      seed: async (d) => {
+        await d.dayLogs.put({ planDayId: "w01-d1", notes: "", minutes: 45, links: ["https://example.com/x"], updatedOn: "2026-10-26" });
+      },
+    });
+    await user.type(await checklist().findByLabelText(/What did you learn/), "arrays");
+    await user.click(checklist().getByRole("button", { name: "Save" }));
+    await waitFor(async () => expect(await db.dayLogs.get("w01-d1")).toMatchObject({ notes: "arrays", minutes: 45, links: ["https://example.com/x"] }));
+  });
+
+  it("Tomorrow's checklist lists tomorrow's programs with difficulty and platform, read-only", async () => {
+    await renderApp({ today: "2026-10-26" }); // tomorrow is Week 1 Day 2
+    expect(tomorrow().getByText(/Week 1 · Day 2 · Tue 27 Oct/)).toBeInTheDocument();
+    for (const t of ["Merge Sorted Array", "Remove Duplicates from Sorted Array", "Longest Common Prefix"]) expect(tomorrow().getByRole("link", { name: new RegExp(t) })).toHaveAttribute("target", "_blank");
+    expect(tomorrow().queryAllByRole("checkbox")).toHaveLength(0);
+    expect(within(screen.getByRole("region", { name: "Today's checklist" })).queryByText("Merge Sorted Array")).not.toBeInTheDocument();
+    expect(tomorrow().getAllByText("LeetCode").length).toBeGreaterThan(0);
+  });
+
+  it("it shows tomorrow's learn item, and groups review slots into one line", async () => {
+    await renderApp({ today: "2026-11-01" }); // tomorrow is Week 2 Day 1 (a new-topic day)
+    expect(tomorrow().getByText("Learn a topic")).toBeInTheDocument();
+    expect(tomorrow().getByText("Two Sum")).toBeInTheDocument();
+    cleanup();
+    await renderApp({ today: "2026-10-30" }); // tomorrow is plan day 6: has review slots
+    expect(tomorrow().getByText(/2 review problems, drawn when you open the day/)).toBeInTheDocument();
+  });
+
+  it("says so when nothing is scheduled for tomorrow", async () => {
+    await renderApp({ today: "2027-01-23" }); // the last plan day
+    expect(tomorrow().getByText(/Nothing is scheduled for tomorrow/)).toBeInTheDocument();
   });
 });

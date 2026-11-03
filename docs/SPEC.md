@@ -15,6 +15,8 @@ One learner, 90 days, Python. Every day has coding. The app tells the learner ex
 ## 3. Features
 
 ### 3.1 Today (home screen)
+- **Learn item:** on a new-topic day the checklist item reads just "Learn a topic" (the curriculum's longer wording is no longer shown), with an optional "What did you learn?" box that saves into that day's study notes (the same notes Edit day shows; logged minutes and links are kept).
+- **Tomorrow's checklist:** below Today's problems, a read-only list of tomorrow's day: the learn item, the programs (problems with difficulty, platform and link), a redo slot if any, and one line for the review problems that are drawn when the day is opened; "Nothing is scheduled for tomorrow" after the last day.
 - Shows "Week N · Day D · date", the day's kind in plain words (New topic, Topic practice, Python fluency, Old topics (mixed), Timed practice · 45 min per problem, Redo day, Wrap-up), the coding note, and today's checklist: the learn item (new-topic days) + problems + two review problems (from plan day 5; with a Re-roll button until logged) (title, difficulty, platform badge, link opening in a new tab).
 - On a `redo` day, due redos appear in the "Redo due" section; when none are due the day's **fallback** problem is offered under "Try this instead". The fallback is logged as a normal attempt (Problems page, journal, redo rules) but is never a checklist item, so it never changes day status or the catch-up queue.
 - Each item has a checkbox. Ticking a problem opens a quick log: **Solved alone / Needed hint / Needed solution**, minutes taken, optional note.

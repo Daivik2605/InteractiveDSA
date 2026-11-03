@@ -3,6 +3,9 @@ import type { Plan } from "./plan";
 import type { DayItem } from "./schedule";
 import type { Problem } from "../types/content";
 
+/** The checklist wording of a new-topic day's learn item. */
+export const LEARN_LABEL = "Learn a topic";
+
 const homeDay = (itemId: string) => curriculumDay(itemId.split(":")[0]!);
 
 /** Platform to badge a problem with: a custom problem keeps its own text, a curriculum problem its typed platform. */
@@ -16,7 +19,7 @@ export function itemLabel(plan: Plan, item: DayItem): string {
   if (item.kind === "learn") {
     const home = homeDay(item.itemId);
     if (item.itemId.endsWith(":wrapup")) return home?.codingNote ?? "Wrap-up";
-    return home?.learn ?? "Learn";
+    return LEARN_LABEL; // the curriculum's "New topic: cold try, then concepts and templates" is shown as a plain checklist item
   }
   if (item.kind === "review") return item.problem?.title ?? `Review problem ${item.reviewSlot}`;
   const slotNo = item.itemId.endsWith(":s1") ? 1 : 2;
