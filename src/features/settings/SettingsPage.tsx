@@ -7,6 +7,7 @@ import { curriculum } from "../../lib/curriculum";
 import { addDays, formatDayMonth, formatLong, isValidDate } from "../../lib/dates";
 import { DEFAULT_HACKERRANK_URL, DEFAULT_LEETCODE_URL, isHttpsUrl } from "../../lib/resources";
 import { exportAll, importAll, resetAll, saveSettings, TABLE_NAMES } from "../../lib/db";
+import { MODES, modeOf } from "../../lib/mode";
 import { scheduleContext } from "../../lib/plan";
 import { removeExtension, shortenExtension } from "../../lib/schedule";
 import type { Settings } from "../../types/content";
@@ -80,6 +81,21 @@ export function SettingsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-semibold">Settings</h1>
+
+      <Card title="How do you want to use the app?">
+        <div className="space-y-3 text-sm" role="radiogroup" aria-label="How do you want to use the app?">
+          {MODES.map((m) => (
+            <label key={m.id} className="flex items-start gap-2">
+              <input type="radio" name="mode" className="mt-1" checked={modeOf(plan.settings) === m.id} onChange={() => saveSettings(db, { mode: m.id }, def)} />
+              <span>
+                <span className="font-medium">{m.label}</span>
+                <span className="block text-slate-600 dark:text-slate-400">{m.blurb}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-slate-500">Switching only changes what you see. Nothing is deleted or changed, and Guided plan picks up exactly where you left it.</p>
+      </Card>
 
       <Card title="Start date">
         <form

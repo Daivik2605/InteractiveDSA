@@ -424,6 +424,8 @@ export interface Settings {
   id: "settings";
   startDate: string;
   theme: "light" | "dark" | "system";
+  /** How the app is used. Missing = "guided" (every install from before modes). Switching never changes any other data. */
+  mode?: "guided" | "journal";
   /** Content page buttons. https only; empty/missing falls back to the default (src/lib/resources.ts). */
   leetcodeUrl?: string;
   hackerrankUrl?: string;

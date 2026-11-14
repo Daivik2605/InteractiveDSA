@@ -189,6 +189,7 @@ export interface DayLog {
 
 export interface Settings {
   id: "settings"; startDate: string; theme: "light" | "dark" | "system";
+  mode?: "guided" | "journal"; // missing = "guided" (installs from before modes); switching changes nothing else
   leetcodeUrl?: string; hackerrankUrl?: string; // https only; empty/missing/invalid -> defaults (https://leetcode.com/problemset/, https://www.hackerrank.com/dashboard)
 }
 ```

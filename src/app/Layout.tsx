@@ -4,6 +4,7 @@ import { ExtensionDialog } from "../features/calendar/ExtensionDialog";
 import { Sidebar, sidebarSummary } from "../features/calendar/Sidebar";
 import { NotesProvider } from "../features/notes/Notes";
 import { Modal } from "./Modal";
+import { modeOf } from "../lib/mode";
 import { usePlanContext } from "./PlanContext";
 
 export const NAV_ITEMS = [
@@ -13,6 +14,17 @@ export const NAV_ITEMS = [
   { to: "/problems", label: "Problems" },
   { to: "/mocks", label: "Mocks" },
   { to: "/logs", label: "Logs" },
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/settings", label: "Settings" },
+] as const;
+
+/** Journal mode: no plan pages (Today, Incomplete) and no Logs link. */
+export const JOURNAL_NAV_ITEMS = [
+  { to: "/", label: "Journal", end: true },
+  { to: "/calendar", label: "Calendar" },
+  { to: "/problems", label: "Problems" },
+  { to: "/mocks", label: "Mocks" },
+  { to: "/content", label: "Content" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/settings", label: "Settings" },
 ] as const;
@@ -51,6 +63,7 @@ export function Layout() {
   const { plan, extensionPrefill } = usePlanContext();
   const [drawer, setDrawer] = useState(false);
   const [focus, setFocus] = useState(false);
+  const navItems: readonly { to: string; label: string; end?: boolean }[] = modeOf(plan.settings) === "journal" ? JOURNAL_NAV_ITEMS : NAV_ITEMS;
   const mockRoute = useMatch("/mock/:number");
   const mockNumber = focus && mockRoute ? Number(mockRoute.params.number) : undefined; // notes written during a mock get its tag
   return (
@@ -62,8 +75,8 @@ export function Layout() {
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-slate-200 bg-white px-1 dark:border-slate-800 dark:bg-slate-950 md:sticky md:top-0 md:h-screen md:flex-col md:gap-1 md:self-start md:border-t-0 md:border-r md:p-4"
       >
         <span className="hidden px-3 pb-3 text-base font-semibold md:block">InteractiveDSA</span>
-        {NAV_ITEMS.map((item) => (
-          <NavLink key={item.to} to={item.to} end={"end" in item ? item.end : false} className={linkClass}>
+        {navItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.end ?? false} className={linkClass}>
             {item.label}
           </NavLink>
         ))}

@@ -4,6 +4,9 @@ import { usePlanContext } from "../../app/PlanContext";
 import { addMonths, formatShort, monthLabel, parseDate } from "../../lib/dates";
 import { curriculum } from "../../lib/curriculum";
 import { currentWeek } from "../../lib/plan";
+import { modeOf } from "../../lib/mode";
+import { JournalSidebar, journalSummary } from "../journal/JournalSidebar";
+import { entriesByDate, journalStreak } from "../../lib/journal";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
 import { itemLabel } from "../../lib/labels";
 import { problemsDoneToday, todayCounts, TodaysProblemsList } from "../today/TodaysProblems";
@@ -20,11 +23,19 @@ function dayLabel(plan: ReturnType<typeof usePlanContext>["plan"]) {
 
 /** Short summary for the mobile top bar. */
 export function sidebarSummary(plan: ReturnType<typeof usePlanContext>["plan"]) {
+  if (modeOf(plan.settings) === "journal") {
+    const byDate = entriesByDate(plan.snapshot.attempts);
+    return journalSummary(byDate.get(plan.today)?.length ?? 0, journalStreak(new Set(byDate.keys()), plan.today).current);
+  }
   return `${dayLabel(plan)} · ${plan.stats.missed} missed`;
 }
 
 /** SPEC 3.12: today, mini calendar, stats, finish date, extension button. */
 export function Sidebar() {
+  return modeOf(usePlanContext().plan.settings) === "journal" ? <JournalSidebar /> : <PlanSidebar />;
+}
+
+function PlanSidebar() {
   const { plan, openExtension } = usePlanContext();
   const anchor = plan.phase === "before" ? plan.startDate : plan.phase === "after" && plan.finish ? plan.finish : plan.today;
   const [month, setMonth] = useState(() => ({ y: parseDate(anchor).y, m: parseDate(anchor).m }));

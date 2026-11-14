@@ -125,6 +125,13 @@ Tip: stay one week ahead — build Week N+1's content while you study Week N.
 
 ---
 
+### Journal mode (SPEC 3.18)
+- [x] Stage 1: mode setting, mode-aware nav/routes/sidebar (`src/lib/mode.ts`, `src/lib/journal.ts`, `src/features/journal/`, tests in `src/app/Mode.test.tsx`)
+- [ ] Stage 2: journal entry form, `help` field, attempt timeline (export schema bump; no Dexie bump, help derived on read)
+- [ ] Stage 3: Problems buckets
+- [ ] Stage 4: Journal home and calendar days
+- [ ] Stage 5: Journal dashboard
+
 ## Optional later
 - Real multi-device sync (needs a UUID migration for the `++id` tables; see DATA_CONTRACT).
 - In-browser Python (Pyodide) to run your own code against sample tests.

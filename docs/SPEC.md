@@ -196,3 +196,9 @@ Nav "Logs" (`#/logs`). One list of everything you did or added, newest date firs
 - **Filters:** All / Problems / Ticks / Mocks / Notes / Reading / Plan & journal, plus a search box.
 - **Delete:** every entry except extensions has a Delete button with a confirmation that says exactly what it removes. Deleting an attempt uses the normal undo (its tick and the redos it created go too); a mock result also removes its retakes and recorded answers so the mock can be taken again (problems logged inside the mock stay as their own entries); an added problem/task takes its tick, pending redos and journal entry with it (attempts stay).
 - **Timestamps:** new records carry an optional ISO `at` (attempts, ticks, topic/concept ticks, rest days, added items, study notes, journal entries, mock results and retakes, missed reasons). Day notes already had one. No Dexie version change: these are plain optional fields.
+
+## 3.18 Modes: Guided plan and Journal
+Settings → "How do you want to use the app?" (`settings.mode`, missing = Guided plan). Switching never deletes or changes any data; Guided plan resumes exactly as it was. Included in export/import (it is in the settings row).
+- **Guided plan**: unchanged.
+- **Journal**: nav is Journal (home, `/`), Calendar, Problems, Mocks, Content, Dashboard, Settings. Today, Incomplete and the day editor redirect to `/`. The catch-up queue, missed-day counters and plan-day labels are hidden. The calendar sidebar and the Calendar page show journal activity: problems logged per day (mock attempts excluded) and the streak (consecutive days with at least one entry; ends today, or yesterday while today is empty). Journal mode never ticks plan items.
+- Stages: 1 mode + navigation (done); 2 journal entry form; 3 Problems buckets; 4 Journal home and calendar days; 5 Journal dashboard.
