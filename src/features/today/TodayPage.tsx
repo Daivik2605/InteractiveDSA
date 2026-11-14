@@ -12,6 +12,7 @@ import { canAddRestDay, fillSlots, type DayItem } from "../../lib/schedule";
 import type { Problem } from "../../types/content";
 import { STATUS_META } from "../calendar/status";
 import { FoundProblemModal } from "../problems/FoundProblemModal";
+import { RedoButton } from "../problems/RedoButton";
 import { LogModal, type LogValues } from "./LogModal";
 import { Row, Section } from "./Row";
 import { LearnRecord, TomorrowChecklist } from "./Tomorrow";
@@ -275,6 +276,7 @@ function TodayBody() {
               problem={item.problem}
               platform={platformOf(plan, item.problem!)}
               meta={item.movedFrom ? `moved from ${movedLabel(plan, item.movedFrom)}` : item.custom ? "Added by you" : undefined}
+              actions={<RedoButton problemId={item.problem!.id} />}
             />
           ) : (
             <Row
@@ -371,6 +373,7 @@ function TodayBody() {
               problem={c.item.problem}
               platform={c.item.problem ? platformOf(plan, c.item.problem) : undefined}
               meta={`from ${formatShort(c.fromDate)}${c.item.movedFrom ? ` · moved from ${movedLabel(plan, c.item.movedFrom)}` : ""}`}
+              actions={c.item.problem ? <RedoButton problemId={c.item.problem.id} /> : undefined}
             />
           ))}
         </Section>

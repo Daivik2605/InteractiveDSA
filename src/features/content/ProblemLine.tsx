@@ -5,6 +5,7 @@ import { latestAttempt } from "../../lib/contentProblems";
 import { formatShort } from "../../lib/dates";
 import type { Plan } from "../../lib/plan";
 import { OUTCOME_LABEL } from "../../lib/problems";
+import { RedoButton } from "../problems/RedoButton";
 import { DIFF_STYLE } from "../today/Row";
 
 /** One plan problem: title (to its journal page), difficulty, platform, external link, the day it's on, my latest outcome. */
@@ -26,6 +27,7 @@ export function ProblemLine({ plan, row }: { plan: Plan; row: ContentProblem }) 
       )}
       <span className="text-xs text-slate-500">{where}</span>
       <span className="text-xs text-slate-500">{last ? OUTCOME_LABEL[last.outcome] : "not attempted"}</span>
+      <RedoButton problemId={problem.id} className="ml-auto" />
     </li>
   );
 }

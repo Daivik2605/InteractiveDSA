@@ -62,6 +62,7 @@ export function IncompletePage() {
           </div>
         ))}
         {groups.length > 0 && <p className="mt-2 text-xs text-slate-500">Log them from the Catch-up queue on Today, or tick them with a date on the day itself.</p>}
+        {groups.length > 0 && <Link to="/" className="mt-3 inline-block rounded-md border border-indigo-600 px-3 py-1.5 text-sm text-indigo-700 dark:border-indigo-400 dark:text-indigo-300">Catch up now → Today's catch-up queue</Link>}
       </section>
 
       <section className="mt-8" aria-label="Mocks not taken">

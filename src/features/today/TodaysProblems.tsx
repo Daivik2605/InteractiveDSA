@@ -3,6 +3,7 @@ import { usePlanContext } from "../../app/PlanContext";
 import { platformOf } from "../../lib/labels";
 import type { Plan } from "../../lib/plan";
 import type { Problem, ProblemAttempt } from "../../types/content";
+import { RedoButton } from "../problems/RedoButton";
 import { DIFF_STYLE } from "./Row";
 import { OUTCOMES } from "./LogModal";
 
@@ -53,6 +54,7 @@ function Item({ p }: { p: TodayProblem }) {
       <span className="text-xs text-slate-500">
         {attempt.outcome === "failed" ? "Attempted" : OUTCOME_LABEL[attempt.outcome]} · {attempt.minutes} min{attempt.isRedo ? " · redo" : ""}
       </span>
+      <RedoButton problemId={attempt.problemId} className="ml-auto" />
     </li>
   );
 }

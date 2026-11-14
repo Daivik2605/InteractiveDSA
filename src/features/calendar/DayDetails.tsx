@@ -77,12 +77,13 @@ export function DayDetails({ day }: { day: EvaluatedDay }) {
       {day.status === "missed" && (
         <div className="mt-2 rounded border border-rose-200 bg-rose-50 p-2 dark:border-rose-900 dark:bg-rose-950/40">
           <p className="text-xs font-medium text-rose-800 dark:text-rose-200">✕ Missed: nothing was ticked on this day.</p>
+          <Link to="/" className="mt-1 block text-xs text-indigo-700 underline dark:text-indigo-300">Catch up on Today ({day.items.length} item(s) now in the catch-up queue)</Link>
           <MissedReason planDayId={planDayId} />
         </div>
       )}
       {day.status === "partial" && (
         <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">
-          ◐ Incomplete: {day.items.filter((i) => !plan.completions.has(i.itemId)).length} item(s) still to do. <Link to="/incomplete" className="underline">See all incomplete</Link>
+          ◐ Incomplete: {day.items.filter((i) => !plan.completions.has(i.itemId)).length} item(s) still to do. <Link to="/" className="underline">Catch up on Today</Link> · <Link to="/incomplete" className="underline">See all incomplete</Link>
         </p>
       )}
       <Link
